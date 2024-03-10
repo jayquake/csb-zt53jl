@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>ARIA Label and ARIA-labelledby Examples</title>
+  </head>
+  <body>
+    <h2>ARIA Label Successes</h2>
+    <div id="aria-label-successes">
+      <!-- Button with ARIA Label (Success) -->
+      <button aria-label="Submit this form button">Submit</button>
+
+      <!-- Image with Content Description (Success) -->
+      <img
+        src="image.jpg"
+        alt="A beautiful sunset"
+        aria-label="Image: A beautiful sunset"
+      />
+
+      <!-- Link with ARIA Label (Success) -->
+      <a href="#" aria-label="Learn More">Learn More</a>
+
+      <!-- Paragraph with ARIA Label (Success) -->
+      <p aria-label="Important Information">This is important information.</p>
+
+      <!-- Input Field with ARIA Label (Success) -->
+      <label for="inputField">Enter your name:</label>
+      <input type="text" id="inputField" aria-label="Name input field" />
+
+      <!-- List with ARIA Label (Success) -->
+      <ul aria-label="Fruits List">
+        <li>Apple</li>
+        <li>Banana</li>
+        <li>Cherry</li>
+      </ul>
+
+      <!-- Success 1: Button with ARIA Label (Content Included) -->
+      <button aria-label="Submit this form button">Submit</button>
+
+      <!-- Success 2: Image with ARIA Label (Content Included) -->
+      <img
+        src="image.jpg"
+        alt="A beautiful sunset"
+        aria-label="Image: A beautiful sunset"
+      />
+
+      <!-- Success 3: Link with ARIA Label (Content Included) -->
+      <a href="#" aria-label="Learn more about our products">Click here</a>
+
+      <!-- Success 4: Paragraph with ARIA Label (Content Included) -->
+      <p aria-label="A detailed description of a beautiful flower">
+        A beautiful flower
+      </p>
+
+      <!-- Success 5: Heading with ARIA Label (Content Included) -->
+      <h1 aria-label="Main heading for the website">Welcome to Our Website</h1>
+
+      <!-- Success 6: Checkbox with ARIA Label (Content Included) -->
+      <input
+        type="checkbox"
+        id="agree"
+        aria-label="Agree to terms and conditions"
+      />
+      <label for="agree">I agree to the terms and conditions</label>
+    </div>
+
+    <div>
+      <h2>ARIA-labelledby Successes</h2>
+
+      <!-- Button with ARIA-labelledby (Success) -->
+      <button aria-labelledby="buttonLabel">Submit</button>
+      <div id="buttonLabel">Submit this form button</div>
+
+      <!-- Image with ARIA-labelledby (Success) -->
+      <img
+        src="image.jpg"
+        alt="A beautiful sunset"
+        aria-labelledby="imageLabel"
+      />
+      <div id="imageLabel">Image: A beautiful sunset</div>
+
+      <!-- Link with ARIA-labelledby (Success) -->
+      <a href="#" aria-labelledby="linkLabel">Click here</a>
+      <div id="linkLabel">Learn more about our products</div>
+
+      <!-- Paragraph with ARIA-labelledby (Success) -->
+      <p aria-labelledby="infoLabel">Important Information</p>
+      <div id="infoLabel">This is some important information.</div>
+
+      <!-- Input Field with ARIA-labelledby (Success) -->
+      <label for="inputField">Enter your name:</label>
+      <input type="text" id="inputField" aria-labelledby="inputLabel" />
+      <div id="inputLabel">Name input field</div>
+
+      <!-- List with ARIA-labelledby (Success) -->
+      <ul aria-labelledby="listLabel">
+        <li>Apple</li>
+        <li>Banana</li>
+        <li>Cherry</li>
+      </ul>
+      <div id="listLabel">Fruits List</div>
+    </div>
+
+    <hr />
+    <div id="aria-failures">
+      <h2>ARIA Label Failures</h2>
+      <!-- Failure 1: Button with ARIA Label Omitting Content Text -->
+      <button aria-label="Submit">Submit</button>
+
+      <!-- Failure 2: Image with ARIA Label Omitting Content Description -->
+      <img
+        src="image.jpg"
+        alt="A beautiful sunset"
+        aria-label="A beautiful sunset"
+      />
+
+      <!-- Failure 3: Link with ARIA Label Omitting Content Text -->
+      <a href="#" aria-label="Learn more">Click here</a>
+
+      <!-- Failure 4: Paragraph with ARIA Label Omitting Content Text -->
+      <p aria-label="Description">A beautiful flower</p>
+
+      <!-- Failure 5: Heading with ARIA Label Omitting Content Text -->
+      <h1 aria-label="Heading">Welcome to Our Website</h1>
+
+      <!-- Failure 6: Checkbox with ARIA Label Omitting Content Text -->
+      <input type="checkbox" id="disagree" aria-label="Agree" />
+      <label for="disagree">I disagree to the terms and conditions</label>
+      <!-- Button with ARIA Label Omitting Content Text (Failure) -->
+      <button aria-label="Submit">Submit</button>
+
+      <!-- Image with ARIA Label Omitting Content Description (Failure) -->
+      <img
+        src="image.jpg"
+        alt="A beautiful sunset"
+        aria-label="A beautiful sunset"
+      />
+
+      <!-- Link with ARIA Label Omitting Content Text (Failure) -->
+      <a href="#" aria-label="Learn More">Click here</a>
+
+      <!-- Paragraph with ARIA Label Omitting Content Text (Failure) -->
+      <p aria-label="Important Information">This is some information.</p>
+
+      <!-- Input Field with ARIA Label Omitting Content Text (Failure) -->
+      <label for="inputField">Enter your name:</label>
+      <input type="text" id="inputField" aria-label="Input field" />
+
+      <!-- List with ARIA Label Omitting Content Text (Failure) -->
+      <ul aria-label="List">
+        <li>Item 1</li>
+        <li>Item 2</li>
+        <li>Item 3</li>
+      </ul>
+
+      <h2>ARIA-labelledby Failures</h2>
+
+      <!-- Button with ARIA-labelledby Omitting Content Text (Failure) -->
+      <button aria-labelledby="buttonLabel">Submit</button>
+      <div id="buttonLabel">Submit</div>
+
+      <!-- Image with ARIA-labelledby Omitting Content Description (Failure) -->
+      <img
+        src="image.jpg"
+        alt="A beautiful sunset"
+        aria-labelledby="imageLabel"
+      />
+      <div id="imageLabel">A beautiful sunset</div>
+
+      <!-- Link with ARIA-labelledby Omitting Content Text (Failure) -->
+      <a href="#" aria-labelledby="linkLabel">Click here</a>
+      <div id="linkLabel">Learn more</div>
+
+      <!-- Paragraph with ARIA-labelledby Omitting Content Text (Failure) -->
+      <p aria-labelledby="infoLabel">This is some information.</p>
+      <div id="infoLabel">Important Information</div>
+
+      <!-- Input Field with ARIA-labelledby Omitting Content Text (Failure) -->
+      <label for="inputField">Enter your name:</label>
+      <input type="text" id="inputField" aria-labelledby="inputLabel" />
+      <div id="inputLabel">Input field</div>
+
+      <!-- List with ARIA-labelledby Omitting Content Text (Failure) -->
+      <ul aria-labelledby="listLabel">
+        <li>Item 1</li>
+        <li>Item 2</li>
+        <li>Item 3</li>
+      </ul>
+      <div id="listLabel">List</div>
+    </div>
+
+    <div class="icons" role="button" aria-label="open modal to show cd rate">
+      <span
+        class="cdrate-icon"
+        data-toggle="modal"
+        tabindex="0"
+        data-target="#myModal3"
+        aria-label="open modal to show cd rate"
+      >
+        <i class="fa fa-bar-chart fa-3x fa-fw" aria-hidden="true"></i>
+      </span>
+      <!--<h2 class="clientsheader">Great CD Rate</h2> -->
+      <p>Great CD Rate (Text Overwritten on screen reader)</p>
+    </div>
+    <div aria-label="aria Text Here for Screen Readers">
+      <p>My Descriptive Paragraph Text Housed in another Div that has a</p>
+    </div>
+  </body>
+</html>
