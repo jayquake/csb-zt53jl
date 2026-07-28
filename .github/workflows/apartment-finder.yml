@@ -171,15 +171,19 @@ jobs:
             git reset --hard "origin/$BRANCH"
 
             cp "$SNAPSHOT_BACKUP" apartment-finder/data/snapshot.json
-            cp apartment-finder/site/index.html \
-               apartment-finder/site/app.js \
-               apartment-finder/site/styles.css \
-               apartment-finder/site/data.json \
-               .
-            # Stops Pages running the upload through Jekyll.
-            touch .nojekyll
 
-            git add apartment-finder/data/snapshot.json index.html app.js styles.css data.json .nojekyll
+            # Copy the whole built site, not a hand-listed set of files. The
+            # list silently omitted public/vendor/ (the vendored Leaflet
+            # build), which published fine and only broke the map with a 404 in
+            # production — the kind of failure a file list invites every time an
+            # asset is added.
+            cp -R apartment-finder/site/. .
+
+            git add apartment-finder/data/snapshot.json
+            # Stage whatever the build actually produced.
+            (cd apartment-finder/site && find . -type f -printf '%P\\n') \
+              | while read -r f; do git add -f "$f"; done
+            git add -f .nojekyll
 
             # Nothing changed is a normal outcome, not a failure.
             if git diff --staged --quiet; then

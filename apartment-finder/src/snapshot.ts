@@ -266,15 +266,35 @@ export async function importSnapshot(prisma: PrismaClient, inputPath: string): P
   return imported;
 }
 
-/** Copies the UI assets next to the generated data file, ready for Pages. */
+/**
+ * Copies the UI assets next to the generated data file, ready for Pages.
+ *
+ * Recursive, because `public/vendor/` holds the vendored Leaflet build. A
+ * files-only copy omitted it silently: the site still published and only the
+ * map broke, with a 404 in production and nothing wrong locally.
+ */
 export function buildStaticSite(publicDir: string, outputDir: string): void {
   fs.mkdirSync(outputDir, { recursive: true });
-  for (const file of fs.readdirSync(publicDir)) {
-    const from = path.join(publicDir, file);
-    if (fs.statSync(from).isFile()) fs.copyFileSync(from, path.join(outputDir, file));
+
+  for (const entry of fs.readdirSync(publicDir, { withFileTypes: true })) {
+    const from = path.join(publicDir, entry.name);
+    const to = path.join(outputDir, entry.name);
+    if (entry.isDirectory()) copyTree(from, to);
+    else if (entry.isFile()) fs.copyFileSync(from, to);
   }
+
   // Stops Pages running the upload through Jekyll, which would drop files
   // whose names begin with an underscore.
   fs.writeFileSync(path.join(outputDir, '.nojekyll'), '');
   log.info(`static site assembled at ${outputDir}`);
+}
+
+function copyTree(from: string, to: string): void {
+  fs.mkdirSync(to, { recursive: true });
+  for (const entry of fs.readdirSync(from, { withFileTypes: true })) {
+    const src = path.join(from, entry.name);
+    const dst = path.join(to, entry.name);
+    if (entry.isDirectory()) copyTree(src, dst);
+    else if (entry.isFile()) fs.copyFileSync(src, dst);
+  }
 }
