@@ -136,14 +136,30 @@ jobs:
             for (const e of run.errors || []) console.log('- error:', e);
           " >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Commit the snapshot
+      - name: Publish the site to the branch root
+        # This repository's Pages is configured as "deploy from a branch", which
+        # serves the root of gh-pages. The `deploy` job below covers the other
+        # mode ("GitHub Actions"), and publishing both ways means the site is
+        # correct whichever setting is active — the content is identical, so
+        # there is nothing to conflict over.
+        working-directory: .
+        run: |
+          cp apartment-finder/site/index.html \
+             apartment-finder/site/app.js \
+             apartment-finder/site/styles.css \
+             apartment-finder/site/data.json \
+             apartment-finder/site/.nojekyll \
+             .
+
+      - name: Commit the snapshot and the published site
+        working-directory: .
         run: |
           git config user.name  "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add data/snapshot.json
+          git add apartment-finder/data/snapshot.json index.html app.js styles.css data.json .nojekyll
           # Nothing changed is a normal outcome, not a failure.
           if git diff --staged --quiet; then
-            echo "snapshot unchanged"
+            echo "nothing to publish"
           else
             git commit -m "chore: apartment snapshot $(date -u +%Y-%m-%d)"
             # Rebase first: a push during the scan would otherwise reject this
