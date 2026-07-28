@@ -79,6 +79,7 @@ api.get('/listings', async (req, res) => {
     maxRooms,
     minSize,
     poster,
+    area,
     q,
     sort = 'score',
     includeHidden = 'false',
@@ -105,6 +106,7 @@ api.get('/listings', async (req, res) => {
   if (Object.keys(roomRange).length) where.rooms = roomRange;
 
   if (minSize) where.sizeSqm = { gte: Number(minSize) };
+  if (area) where.neighborhood = area;
 
   // Conditions that each need their own OR group. They are collected into a
   // single AND so a later one cannot clobber an earlier one's `OR` key.
@@ -279,6 +281,38 @@ api.post('/ingest/manual', async (req, res) => {
     // and "ah, it's over my budget".
     note: result.rejected > 0 ? 'parsed, but it does not match your current criteria' : undefined,
   });
+});
+
+/**
+ * GET /api/areas — the neighbourhoods that currently have listings.
+ *
+ * Served from the database rather than derived from a page of results, so the
+ * dropdown offers every area with matches, not just those on the visible page.
+ */
+api.get('/areas', async (_req, res) => {
+  try {
+    const rows = await prisma.listing.findMany({
+      where: { isActive: true, neighborhood: { not: null } },
+      select: { neighborhood: true, neighborhoodEn: true },
+    });
+
+    const areas = new Map<string, { label: string; count: number }>();
+    for (const row of rows) {
+      const he = row.neighborhood!;
+      const entry = areas.get(he);
+      if (entry) entry.count += 1;
+      else areas.set(he, { label: row.neighborhoodEn ?? he, count: 1 });
+    }
+
+    res.json({
+      areas: [...areas.entries()]
+        .map(([value, { label, count }]) => ({ value, label, count }))
+        .sort((a, b) => a.label.localeCompare(b.label)),
+    });
+  } catch (err) {
+    log.error('GET /areas failed', err);
+    res.status(500).json({ error: 'failed to load areas' });
+  }
 });
 
 /** GET /api/status — last scan, counts, whether a scan is running now. */

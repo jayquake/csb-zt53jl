@@ -15,6 +15,7 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
+import { createHash } from 'crypto';
 import type { PrismaClient } from '@prisma/client';
 import { log } from './logger';
 import type { SearchCriteria } from './types';
@@ -286,7 +287,39 @@ export function buildStaticSite(publicDir: string, outputDir: string): void {
   // Stops Pages running the upload through Jekyll, which would drop files
   // whose names begin with an underscore.
   fs.writeFileSync(path.join(outputDir, '.nojekyll'), '');
+
+  versionAssets(outputDir);
   log.info(`static site assembled at ${outputDir}`);
+}
+
+/**
+ * Rewrites asset references in index.html to carry a content hash.
+ *
+ * GitHub Pages serves with `cache-control: max-age=600`, and browsers hold on
+ * to HTML and JS considerably longer than that in practice. Without this, a
+ * deploy can leave someone on a stale index.html for a long time — which is
+ * exactly how a fixed map still showed "Map library failed to load" on a phone
+ * hours after the fix went live.
+ *
+ * Hashing content rather than stamping a build time means an unchanged asset
+ * keeps its URL and stays cached, and only what actually changed is re-fetched.
+ */
+function versionAssets(outputDir: string): void {
+  const indexPath = path.join(outputDir, 'index.html');
+  if (!fs.existsSync(indexPath)) return;
+
+  let html = fs.readFileSync(indexPath, 'utf8');
+
+  for (const asset of ['styles.css', 'app.js', 'vendor/leaflet.css', 'vendor/leaflet.js']) {
+    const assetPath = path.join(outputDir, asset);
+    if (!fs.existsSync(assetPath)) continue;
+
+    const hash = createHash('sha1').update(fs.readFileSync(assetPath)).digest('hex').slice(0, 8);
+    // Only rewrite an unversioned reference, so re-running is idempotent.
+    html = html.replace(new RegExp(`(["'])${asset.replace('/', '\\/')}\\1`, 'g'), `$1${asset}?v=${hash}$1`);
+  }
+
+  fs.writeFileSync(indexPath, html);
 }
 
 function copyTree(from: string, to: string): void {
