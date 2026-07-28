@@ -6,6 +6,7 @@
     <meta name="theme-color" content="#0f172a" />
     <meta name="color-scheme" content="light dark" />
     <title>Apartment Finder — Tel Aviv</title>
+    <link rel="stylesheet" href="vendor/leaflet.css" />
     <link rel="stylesheet" href="styles.css" />
   </head>
   <body>
@@ -19,6 +20,7 @@
 
     <nav class="tabs" role="tablist">
       <button class="tab is-active" role="tab" data-tab="feed" aria-selected="true">Feed</button>
+      <button class="tab" role="tab" data-tab="map" aria-selected="false">Map</button>
       <button class="tab" role="tab" data-tab="saved" aria-selected="false">Saved</button>
       <button class="tab" role="tab" data-tab="add" aria-selected="false">Add</button>
       <button class="tab" role="tab" data-tab="settings" aria-selected="false">Criteria</button>
@@ -81,6 +83,12 @@
         </p>
         <div id="feed-list" class="list"></div>
         <button id="load-more" class="btn btn-ghost" type="button" hidden>Load more</button>
+      </section>
+
+      <!-- Map -->
+      <section id="panel-map" class="panel">
+        <div id="map"></div>
+        <p id="map-note" class="muted map-note"></p>
       </section>
 
       <!-- Saved -->
@@ -170,6 +178,7 @@
     </main>
 
     <div id="toast" class="toast" hidden></div>
+    <script src="vendor/leaflet.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

@@ -320,3 +320,46 @@ body.is-static .static-note { display: block; }
 .contact .btn { padding: 7px 14px; font-size: 13px; min-height: 36px; text-decoration: none; display: inline-flex; align-items: center; }
 .btn-wa { background: #25d366; color: #05240f; border-color: #25d366; font-weight: 700; }
 @media (prefers-color-scheme: dark) { .btn-wa { background: #21c05d; color: #041b0b; border-color: #21c05d; } }
+
+/* ---- Map ----
+   Sized in viewport units so it fills the phone screen without needing a JS
+   resize handler; Leaflet reads the container height at init. */
+#map {
+  height: calc(100vh - 210px);
+  min-height: 320px;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  z-index: 1; /* below the sticky header, which Leaflet would otherwise cover */
+}
+
+.map-note { margin: 10px 2px 0; }
+
+/* Markers are styled divs rather than Leaflet's default PNGs: no image assets
+   to vendor, and the colour can carry the match score. */
+.pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  border-radius: 50% 50% 50% 4px;
+  transform: rotate(-45deg);
+  border: 2px solid rgb(255 255 255 / 0.9);
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.35);
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #fff;
+}
+.pin span { transform: rotate(45deg); }
+.pin-high { background: #059669; }
+.pin-mid  { background: #d97706; }
+.pin-low  { background: #64748b; }
+
+.leaflet-popup-content { margin: 10px 12px; font-family: inherit; }
+.popup-title { font-weight: 600; font-size: 13.5px; margin: 0 0 4px; max-width: 200px; }
+.popup-price { font-size: 16px; font-weight: 700; margin-bottom: 2px; }
+.popup-meta { color: #64748b; font-size: 12.5px; margin-bottom: 6px; }
+.popup-links { display: flex; gap: 6px; flex-wrap: wrap; }
+.popup-links a { font-size: 12.5px; font-weight: 600; text-decoration: none; padding: 4px 9px; border-radius: 7px; background: #2563eb; color: #fff; }
+.popup-links a.wa { background: #25d366; color: #05240f; }

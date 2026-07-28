@@ -301,6 +301,104 @@ function renderList(container, listings, emptyMessage) {
   });
 }
 
+/* ---------- map ---------- */
+
+let map = null;
+let markerLayer = null;
+
+/**
+ * Renders the currently filtered listings as pins.
+ *
+ * Built lazily on first view: Leaflet measures its container at init, and a
+ * hidden panel has zero height, so initialising it up front produces a map
+ * that never renders until something forces a resize.
+ */
+function renderMap(listings) {
+  if (typeof L === 'undefined') {
+    $('#map-note').textContent = 'Map library failed to load.';
+    return;
+  }
+
+  if (!map) {
+    // Centred on Tel Aviv until the pins tell us better.
+    map = L.map('map', { scrollWheelZoom: false }).setView([32.0761, 34.7783], 13);
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+      maxZoom: 19,
+      attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+    }).addTo(map);
+    markerLayer = L.layerGroup().addTo(map);
+  }
+
+  markerLayer.clearLayers();
+
+  const located = listings.filter((l) => typeof l.lat === 'number' && typeof l.lng === 'number');
+  const bounds = [];
+
+  for (const listing of located) {
+    const tier = listing.score >= 70 ? 'high' : listing.score >= 50 ? 'mid' : 'low';
+    const icon = L.divIcon({
+      className: '',
+      html: `<div class="pin pin-${tier}"><span>${listing.score}</span></div>`,
+      iconSize: [0, 0],
+    });
+
+    const place = [listing.neighborhoodEn, listing.cityEn].filter(Boolean).join(', ')
+      || [listing.neighborhood, listing.city].filter(Boolean).join(', ');
+    const specs = [
+      listing.rooms != null ? `${listing.rooms} rm` : null,
+      listing.sizeSqm != null ? `${listing.sizeSqm} m²` : null,
+    ].filter(Boolean).join(' · ');
+
+    const url = safeUrl(listing.url);
+    const wa = listing.contactPhone && /^\+\d{8,15}$/.test(listing.contactPhone)
+      ? `https://wa.me/${listing.contactPhone.slice(1)}`
+      : null;
+
+    const popup = `
+      <div class="popup-price">${shekels(listing.priceIls)}</div>
+      <p class="popup-title" dir="auto">${esc(listing.title)}</p>
+      <div class="popup-meta">${esc(specs)}${specs && place ? ' · ' : ''}${esc(place)}</div>
+      <div class="popup-links">
+        ${url ? `<a href="${esc(url)}" target="_blank" rel="noopener noreferrer">Open listing</a>` : ''}
+        ${wa ? `<a class="wa" href="${esc(wa)}" target="_blank" rel="noopener noreferrer">WhatsApp</a>` : ''}
+      </div>`;
+
+    L.marker([listing.lat, listing.lng], { icon }).bindPopup(popup).addTo(markerLayer);
+    bounds.push([listing.lat, listing.lng]);
+  }
+
+  if (bounds.length) map.fitBounds(bounds, { padding: [30, 30], maxZoom: 15 });
+
+  // Be explicit about coverage rather than quietly showing a partial map —
+  // a listing with no pin is easy to assume does not exist.
+  const missing = listings.length - located.length;
+  $('#map-note').textContent = missing
+    ? `${located.length} of ${listings.length} shown. ${missing} have no address yet — they are geocoded a batch at a time.`
+    : `${located.length} listings shown.`;
+
+  // The container had no size while the panel was hidden.
+  setTimeout(() => map.invalidateSize(), 0);
+}
+
+/** Loads every match (not just the current page) so the map is complete. */
+async function loadMap() {
+  try {
+    if (state.static) {
+      const actions = loadLocalActions();
+      const all = (state.snapshot.listings || []).map((row) => fromSnapshot(row, actions));
+      renderMap(filterAndSort(all));
+      return;
+    }
+    const params = new URLSearchParams(feedQuery(0));
+    params.set('limit', '500');
+    params.set('offset', '0');
+    const data = await api(`/listings?${params.toString()}`);
+    renderMap(data.listings);
+  } catch (err) {
+    $('#map-note').textContent = `Could not load the map: ${err.message}`;
+  }
+}
+
 /* ---------- data loading ---------- */
 
 const FILTER_FIELDS = [
@@ -459,6 +557,7 @@ document.querySelectorAll('.tab').forEach((tab) => {
     });
 
     if (state.tab === 'saved') loadSaved();
+    if (state.tab === 'map') loadMap();
     if (state.tab === 'settings') loadCriteria().catch((e) => toast(e.message));
   });
 });
@@ -488,6 +587,7 @@ document.addEventListener('click', async (event) => {
     } else {
       toast(status ? 'Updated' : 'Cleared');
       if (state.tab === 'saved') loadSaved();
+    if (state.tab === 'map') loadMap();
       else renderList($('#feed-list'), state.listings, '');
     }
   } catch (err) {
@@ -592,6 +692,14 @@ let debounce;
 ['#filter-sort', '#filter-poster', '#filter-source'].forEach((sel) => {
   $(sel).addEventListener('change', () => loadFeed());
 });
+
+// The map reflects the same filters as the feed, so re-render it when they
+// change and it is the visible tab.
+const originalLoadFeed = loadFeed;
+loadFeed = async function (append = false) {
+  await originalLoadFeed(append);
+  if (state.tab === 'map') loadMap();
+};
 
 $('#filter-reset').addEventListener('click', () => {
   ['#filter-q', '#filter-min-price', '#filter-max-price', '#filter-poster', '#filter-source'].forEach((sel) => {
