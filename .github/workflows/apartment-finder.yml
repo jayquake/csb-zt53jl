@@ -64,6 +64,14 @@ jobs:
       run:
         working-directory: apartment-finder
 
+    env:
+      # Set at job level, not per step. The Prisma CLI resolves
+      # `url = env("DATABASE_URL")` from the schema itself, so it needs this in
+      # the real environment — the default in src/config.ts only covers the
+      # application code and does not help `prisma generate` or `db push`.
+      # Relative to the working directory above.
+      DATABASE_URL: file:./data/apartments.db
+
     steps:
       - uses: actions/checkout@v4
 
