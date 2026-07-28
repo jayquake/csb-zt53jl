@@ -15,6 +15,7 @@ import type { PrismaClient } from '@prisma/client';
 import type { RawListing, SearchCriteria, AlertKind } from '../types';
 import { evaluate, isSignificantDrop } from '../criteria';
 import { computeFingerprint } from './fingerprint';
+import { translateCity, translateNeighborhood } from '../translate';
 import { log } from '../logger';
 
 export interface PendingAlert {
@@ -34,6 +35,9 @@ export interface PendingAlert {
     floor: number | null;
     city: string;
     neighborhood: string | null;
+    cityEn: string | null;
+    neighborhoodEn: string | null;
+    contactPhone: string | null;
     score: number;
     scoreReasons: string[];
     imageUrls: string[];
@@ -100,18 +104,21 @@ export async function ingest(
       city: raw.city ?? '',
       neighborhood: raw.neighborhood ?? null,
       street: raw.street ?? null,
+      cityEn: translateCity(raw.city) ?? null,
+      neighborhoodEn: translateNeighborhood(raw.neighborhood) ?? null,
       lat: raw.lat ?? null,
       lng: raw.lng ?? null,
-      hasElevator: raw.hasElevator ?? false,
-      hasParking: raw.hasParking ?? false,
-      hasBalcony: raw.hasBalcony ?? false,
-      hasSafeRoom: raw.hasSafeRoom ?? false,
-      isFurnished: raw.isFurnished ?? false,
-      petsAllowed: raw.petsAllowed ?? false,
+      hasElevator: raw.hasElevator ?? null,
+      hasParking: raw.hasParking ?? null,
+      hasBalcony: raw.hasBalcony ?? null,
+      hasSafeRoom: raw.hasSafeRoom ?? null,
+      isFurnished: raw.isFurnished ?? null,
+      petsAllowed: raw.petsAllowed ?? null,
       isRoommates: raw.isRoommates ?? false,
       isAgency: raw.isAgency ?? null,
       imageUrls: JSON.stringify(raw.imageUrls ?? []),
       contact: raw.contact ?? null,
+      contactPhone: raw.contactPhone ?? null,
       postedAt: raw.postedAt ?? null,
       score: verdict.score,
       scoreReasons: JSON.stringify(verdict.reasons),
@@ -207,6 +214,9 @@ function toPendingAlert(
     floor: number | null;
     city: string;
     neighborhood: string | null;
+    cityEn?: string | null;
+    neighborhoodEn?: string | null;
+    contactPhone?: string | null;
     score: number;
   },
   reasons: string[],
@@ -226,6 +236,9 @@ function toPendingAlert(
       floor: row.floor,
       city: row.city,
       neighborhood: row.neighborhood,
+      cityEn: row.cityEn ?? null,
+      neighborhoodEn: row.neighborhoodEn ?? null,
+      contactPhone: row.contactPhone ?? null,
       score: row.score,
       scoreReasons: reasons,
       imageUrls,

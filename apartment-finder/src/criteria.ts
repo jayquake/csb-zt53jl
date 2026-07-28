@@ -15,6 +15,11 @@
  */
 
 import type { RawListing, SearchCriteria, MatchResult } from './types';
+import { normalizeText } from './text';
+import { translateFeature, translateNeighborhood } from './translate';
+
+// Re-exported for the many modules that import it from here.
+export { normalizeText };
 
 /** Weights sum to 100. */
 const WEIGHTS = {
@@ -26,23 +31,6 @@ const WEIGHTS = {
   keywords: 10,
 } as const;
 
-/**
- * Normalizes Hebrew/English text for substring matching: strips niqqud, unifies
- * the several quote characters Hebrew listings use interchangeably (״ ” " and
- * ׳ ’ '), and collapses whitespace. Without this, a criterion of `ממ"ד` fails
- * to match a listing that wrote `ממ״ד`.
- */
-export function normalizeText(input: string | undefined | null): string {
-  if (!input) return '';
-  return input
-    .normalize('NFKD')
-    .replace(/[֑-ׇ]/g, '') // niqqud + cantillation
-    .replace(/[״“”«»]/g, '"') // gershayim + smart quotes
-    .replace(/[׳‘’]/g, "'") // geresh + smart apostrophes
-    .replace(/\s+/g, ' ')
-    .trim()
-    .toLowerCase();
-}
 
 /** The searchable text blob for a listing. */
 function haystack(listing: RawListing): string {
@@ -225,7 +213,8 @@ export function evaluate(listing: RawListing, criteria: SearchCriteria, now: Dat
   const favorite = containsAny(hay, criteria.preferences.favoriteNeighborhoods);
   if (favorite) {
     score += WEIGHTS.neighborhood;
-    reasons.push(`favorite area: ${favorite}`);
+    // English where a translation exists, so the reason reads at a glance.
+    reasons.push(`favourite area: ${translateNeighborhood(favorite) ?? favorite}`);
   } else if (criteria.preferences.favoriteNeighborhoods.length === 0) {
     score += WEIGHTS.neighborhood * 0.5;
   }
@@ -260,7 +249,9 @@ export function evaluate(listing: RawListing, criteria: SearchCriteria, now: Dat
   });
   if (criteria.preferences.bonusKeywords.length > 0) {
     score += (bonus.length / criteria.preferences.bonusKeywords.length) * WEIGHTS.keywords;
-    if (bonus.length > 0) reasons.push(`mentions ${bonus.join(', ')}`);
+    if (bonus.length > 0) {
+      reasons.push(`mentions ${bonus.map((k) => translateFeature(k) ?? k).join(', ')}`);
+    }
   } else {
     score += WEIGHTS.keywords * 0.5;
   }

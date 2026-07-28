@@ -68,6 +68,16 @@ export const config = {
     proxy: process.env.SCRAPE_PROXY || undefined,
   },
 
+  komo: {
+    /**
+     * Fetch each matching listing's detail page for its structured amenity
+     * list (safe room, elevator, parking, furnished). Costs one extra request
+     * per listing, which is why it is bounded below.
+     */
+    enrich: bool(process.env.KOMO_ENRICH, true),
+    enrichLimit: num(process.env.KOMO_ENRICH_LIMIT, 25),
+  },
+
   notify: {
     /** "whatsapp" | "telegram" | "console". Comma-separated for several. */
     channels: list(process.env.NOTIFY_CHANNELS).length ? list(process.env.NOTIFY_CHANNELS) : ['console'],

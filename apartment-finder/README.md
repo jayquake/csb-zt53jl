@@ -173,6 +173,70 @@ Consequences worth knowing up front:
 
 Scraped-site markup changes. When a source breaks it fails soft — the scan continues, the error appears in `/api/status` and in the UI status line, and the other sources still deliver. The Yad2 adapter mines its JSON by *shape* rather than a fixed path like `props.pageProps.feed.private`, specifically so a Yad2 internal reshuffle doesn't break it, and falls back to DOM parsing if the JSON is gone entirely.
 
+### Balcony, safe room and the other amenities
+
+Komo's **result cards carry no amenity data whatsoever** — measured, not
+assumed: parsing 8 cards yielded zero known amenities. So each matching
+listing's detail page is fetched, which does carry a structured feature list:
+
+```html
+<li class='mamad'>ממד</li>          <!-- absent  -->
+<li class='mizug add'>מיזוג</li>    <!-- present -->
+```
+
+The `add` modifier means present. That polarity was verified against four live
+listings by cross-checking against the free text — one said `ללא ממ"ד` (no safe
+room) and had `mamad` without `add`; another said `מרוהטת` (furnished) and had
+`riut add`. Reading it backwards would have labelled flats as having a ממ"ד
+when they explicitly say they do not, so it was checked rather than assumed.
+
+Enrichment is bounded (`KOMO_ENRICH_LIMIT`, default 25) and only runs for
+listings that already passed the price and room filters — there is no point
+spending a request to learn the amenities of a flat that is over budget.
+
+**Amenities are tri-state**, and this is what makes the filters trustworthy:
+
+| Value | Meaning | Effect on a "must have balcony" filter |
+|---|---|---|
+| `true` | the listing says it has one | keeps |
+| `false` | the listing says it does **not** | rejects |
+| `null` | the listing never said | **keeps** |
+
+A description that does not mention a balcony is not a description of a flat
+without one — most simply do not enumerate features. Collapsing that to "no"
+would reject almost the whole market on no evidence. Only the structured detail
+list, or an explicit `ללא מרפסת`, can assert absence.
+
+### Hebrew and English
+
+Cities and neighbourhoods are translated at ingest and stored alongside the
+Hebrew, so the feed is skimmable in English while the Hebrew stays available —
+that is what you paste into Waze or quote to a landlord. Score reasons are in
+English too ("favourite area: Florentin").
+
+Lookup tables rather than machine translation: the vocabulary of a rental
+listing is small and closed, so a table is exact, free and offline where an API
+would be approximate, paid and another failure mode. An unrecognised
+neighbourhood keeps its Hebrew.
+
+There is deliberately **no transliteration fallback**. Hebrew is an abjad, so a
+letter-by-letter mapping produces unreadable consonant clusters — `חרוזים`
+becomes "Chrvzym", which is no more skimmable than the original.
+
+### Phone numbers
+
+Where a poster publishes their number in the listing text or a pasted Facebook
+post, it is normalised to E.164 and rendered as a **WhatsApp** button and a
+tap-to-call link in the UI, plus a `wa.me` link in the digest.
+
+**Komo does not publish phone numbers.** They sit behind a "הצגת מספר טלפון"
+control that is login-gated (`isLogin:'false'`) and resolves through an
+endpoint under `/api/`, which Komo's robots.txt disallows. Automating past a
+login to reach a disallowed endpoint is not something this does, so Komo
+listings show the listing link instead and you tap through to reveal the number
+yourself. Verified: zero phone numbers appear anywhere in a detail page's
+public text.
+
 ### Realtors vs. owners
 
 A broker's fee in Israel is typically **one month's rent**, so who posted a
@@ -263,7 +327,7 @@ Save / Hide / Contacted on each card; hidden listings drop out of the feed but s
 ## Tests
 
 ```bash
-npm test    # 56 tests
+npm test    # 70 tests
 ```
 
 Covers Hebrew parsing (prices with mixed separators, `3.5 חדרים`, `קרקע`/`מרתף` floors, relative dates like `לפני 3 ימים`, and amenity negation — `ללא מעלית` must not read as *has* elevator), scoring and rejection rules, fingerprint dedupe, message formatting, and an integration suite that runs the real ingest pipeline against a throwaway SQLite database to prove the alert-once rules hold.

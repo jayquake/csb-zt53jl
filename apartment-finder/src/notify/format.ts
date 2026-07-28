@@ -9,6 +9,7 @@
  */
 
 import type { PendingAlert } from '../pipeline/ingest';
+import { formatPhoneLocal, whatsappLink } from '../sources/parse';
 
 const MAX_MESSAGE_CHARS = 1500;
 
@@ -26,8 +27,18 @@ function specLine(listing: PendingAlert['listing']): string {
   return parts.join(' · ');
 }
 
+/**
+ * Location in English where known, with the Hebrew kept alongside — the English
+ * is what you skim, the Hebrew is what you paste into Waze or quote to a
+ * landlord. Falls back to Hebrew alone rather than showing nothing.
+ */
 function locationLine(listing: PendingAlert['listing']): string {
-  return [listing.neighborhood, listing.city].filter(Boolean).join(', ');
+  const hebrew = [listing.neighborhood, listing.city].filter(Boolean).join(', ');
+  const english = [listing.neighborhoodEn, listing.cityEn].filter(Boolean).join(', ');
+
+  if (!english) return hebrew;
+  if (!hebrew) return english;
+  return `${english}  ·  ${hebrew}`;
 }
 
 function formatOne(alert: PendingAlert, index: number): string {
@@ -54,6 +65,14 @@ function formatOne(alert: PendingAlert, index: number): string {
   }
 
   lines.push(`   ${listing.url}`);
+
+  // A tappable chat link is the difference between "interesting" and "I have
+  // messaged them" — in this market that gap is measured in hours.
+  // No prefilled text: URL-encoded Hebrew runs to ~200 characters, which would
+  // eat the message budget and push real listings out of the digest.
+  const chat = whatsappLink(listing.contactPhone);
+  if (chat) lines.push(`   💬 ${formatPhoneLocal(listing.contactPhone)} — ${chat}`);
+
   return lines.join('\n');
 }
 

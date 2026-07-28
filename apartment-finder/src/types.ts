@@ -41,6 +41,8 @@ export interface RawListing {
 
   imageUrls?: string[];
   contact?: string;
+  /** E.164, extracted only from text the poster published themselves. */
+  contactPhone?: string;
   postedAt?: Date;
 
   /** Original payload, kept for debugging parser regressions. */

@@ -195,7 +195,11 @@ function listingCard(listing) {
     listing.floor != null ? (listing.floor === 0 ? 'ground floor' : `floor ${listing.floor}`) : null,
   ].filter(Boolean).join(' · ');
 
-  const place = [listing.neighborhood, listing.city].filter(Boolean).join(', ');
+  // English first for skimming, Hebrew kept because that is what you paste
+  // into Waze or quote to a landlord.
+  const placeHe = [listing.neighborhood, listing.city].filter(Boolean).join(', ');
+  const placeEn = [listing.neighborhoodEn, listing.cityEn].filter(Boolean).join(', ');
+  const place = placeEn || placeHe;
 
   // Only a confirmed agent post is badged. `null` means the listing never said,
   // and labelling that "private" would be a claim the data does not support.
@@ -211,7 +215,9 @@ function listingCard(listing) {
     'Safe room': listing.amenities.safeRoom,
     Furnished: listing.amenities.furnished,
   })
-    .filter(([, on]) => on)
+    // Only badge a confirmed amenity. null/undefined means the listing never
+    // said, which is not the same as not having one.
+    .filter(([, on]) => on === true)
     .map(([label]) => `<span class="badge">${label}</span>`)
     .join('');
 
@@ -231,7 +237,8 @@ function listingCard(listing) {
           ${shekels(listing.priceIls)}
           ${isDrop ? `<span class="old">${shekels(firstPrice)}</span>` : ''}
         </div>
-        <div class="meta" dir="auto">${esc(specs)}${specs && place ? ' · ' : ''}${esc(place)}</div>
+        <div class="meta">${esc(specs)}${specs && place ? ' · ' : ''}${esc(place)}</div>
+        ${placeEn && placeHe ? `<div class="meta he" dir="rtl">${esc(placeHe)}</div>` : ''}
         ${reasons ? `<div class="meta">✨ ${esc(reasons)}</div>` : ''}
         <div class="badges">
           <span class="badge score">${listing.score}</span>
@@ -240,6 +247,7 @@ function listingCard(listing) {
           ${amenityBadges}
         </div>
         ${sparkline(history)}
+        ${contactRow(listing)}
         <div class="actions">
           <button class="btn btn-ghost" data-action="SAVED">${listing.status === 'SAVED' ? '★ Saved' : '☆ Save'}</button>
           <button class="btn btn-ghost" data-action="HIDDEN">Hide</button>
@@ -247,6 +255,27 @@ function listingCard(listing) {
         </div>
       </div>
     </article>`;
+}
+
+/** Local display form for an E.164 Israeli number: +972501234567 -> 050-123-4567. */
+function localPhone(phone) {
+  if (!phone || !phone.startsWith('+972')) return phone || '';
+  const local = '0' + phone.slice(4);
+  return local.length === 10
+    ? `${local.slice(0, 3)}-${local.slice(3, 6)}-${local.slice(6)}`
+    : local;
+}
+
+/** Chat and call links, shown only when the poster published a number. */
+function contactRow(listing) {
+  const phone = listing.contactPhone;
+  if (!phone || !/^\+\d{8,15}$/.test(phone)) return '';
+  const wa = `https://wa.me/${phone.slice(1)}`;
+  return `
+    <div class="contact">
+      <a class="btn btn-wa" href="${esc(wa)}" target="_blank" rel="noopener noreferrer">WhatsApp</a>
+      <a class="btn btn-ghost" href="tel:${esc(phone)}">${esc(localPhone(phone))}</a>
+    </div>`;
 }
 
 function renderList(container, listings, emptyMessage) {

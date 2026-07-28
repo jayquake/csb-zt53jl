@@ -88,7 +88,8 @@ test('a favorite neighborhood raises the score', () => {
   const favorite = evaluate(listing({ neighborhood: 'פלורנטין' }), criteria, NOW);
   const other = evaluate(listing({ neighborhood: 'רמת החייל' }), criteria, NOW);
   assert.ok(favorite.score > other.score);
-  assert.ok(favorite.reasons.some((r) => r.includes('פלורנטין')));
+  // The reason is translated so the digest reads at a glance without Hebrew.
+  assert.ok(favorite.reasons.some((r) => r.includes('Florentin')), favorite.reasons.join(' | '));
 });
 
 test('fresh listings outscore stale ones', () => {

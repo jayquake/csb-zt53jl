@@ -309,3 +309,14 @@ body.is-static .card-form textarea {
   line-height: 1.45;
 }
 body.is-static .static-note { display: block; }
+
+/* Hebrew echo under the English location — smaller and dimmer, since it is a
+   reference you copy rather than something you read every time. */
+.meta.he { font-size: 12px; opacity: 0.75; }
+
+/* Contact row: a chat link is the difference between "interesting" and
+   "messaged", so it sits above the triage buttons, not among them. */
+.contact { display: flex; gap: 6px; margin-top: 9px; flex-wrap: wrap; }
+.contact .btn { padding: 7px 14px; font-size: 13px; min-height: 36px; text-decoration: none; display: inline-flex; align-items: center; }
+.btn-wa { background: #25d366; color: #05240f; border-color: #25d366; font-weight: 700; }
+@media (prefers-color-scheme: dark) { .btn-wa { background: #21c05d; color: #041b0b; border-color: #21c05d; } }

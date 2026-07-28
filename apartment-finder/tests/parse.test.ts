@@ -64,7 +64,9 @@ test('detectAmenities finds features in free text', () => {
   assert.equal(found.hasElevator, true);
   assert.equal(found.hasParking, true);
   assert.equal(found.hasSafeRoom, true);
-  assert.equal(found.isFurnished, false);
+  // Not mentioned at all — undefined, not false. Absence of evidence is not
+  // evidence of absence; only a structured source can assert "no".
+  assert.equal(found.isFurnished, undefined);
 });
 
 test('detectAmenities respects negations', () => {
@@ -77,5 +79,5 @@ test('detectAmenities respects negations', () => {
 
 test('detectAmenities flags roommate posts', () => {
   assert.equal(detectAmenities('דרושה שותפה לדירת שותפים').isRoommates, true);
-  assert.equal(detectAmenities('דירת 3 חדרים להשכרה').isRoommates, false);
+  assert.equal(detectAmenities('דירת 3 חדרים להשכרה').isRoommates, undefined);
 });

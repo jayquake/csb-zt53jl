@@ -37,23 +37,31 @@ model Listing {
   city         String
   neighborhood String?
   street       String?
+  /// English renderings, so the feed is skimmable without reading Hebrew.
+  /// The Hebrew is always kept — it is what you paste into Waze.
+  cityEn         String?
+  neighborhoodEn String?
   lat          Float?
   lng          Float?
 
-  // Features that people actually filter on in Tel Aviv
-  hasElevator  Boolean @default(false)
-  hasParking   Boolean @default(false)
-  hasBalcony   Boolean @default(false)
-  hasSafeRoom  Boolean @default(false) // ממ"ד
-  isFurnished  Boolean @default(false)
-  petsAllowed  Boolean @default(false)
+  // Features people actually filter on in Tel Aviv.
+  // Nullable on purpose: null means the listing never said, which must not be
+  // read as "does not have" — see detectAmenities.
+  hasElevator  Boolean?
+  hasParking   Boolean?
+  hasBalcony   Boolean?
+  hasSafeRoom  Boolean? // ממ"ד
+  isFurnished  Boolean?
+  petsAllowed  Boolean?
   isRoommates  Boolean @default(false)
   /// null = the listing never said whether an agent posted it.
   isAgency     Boolean?
 
   // Media + contact
-  imageUrls String? // JSON array of strings
-  contact   String?
+  imageUrls    String? // JSON array of strings
+  contact      String?
+  /// E.164. Only ever populated from text the poster published publicly.
+  contactPhone String?
 
   // Lifecycle
   postedAt    DateTime?

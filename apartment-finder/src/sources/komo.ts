@@ -31,7 +31,7 @@ import type { ListingSource, SourceResult } from './types';
 import { config } from '../config';
 import { log } from '../logger';
 import { browserIdentity } from './browser';
-import { clean, detectAgency, detectAmenities, parseFloor, parseInteger, parsePrice, parseRooms } from './parse';
+import { clean, detectAgency, detectAmenities, extractPhone, parseFloor, parseInteger, parsePrice, parseRooms } from './parse';
 
 const BASE = 'https://www.komo.co.il';
 /** `nehes=1` is the apartments category. */
@@ -146,6 +146,114 @@ export function parseResultCount(html: string): number | undefined {
 
 const sleep = (ms: number): Promise<void> => new Promise((resolve) => setTimeout(resolve, ms));
 
+/**
+ * Komo's detail page carries a structured feature list that the result cards
+ * omit. Reading it is the difference between guessing "balcony" from prose and
+ * knowing whether a flat has a ממ"ד.
+ *
+ *   <li class='mamad'>ממד</li>          -> absent
+ *   <li class='mizug add'>מיזוג</li>    -> present
+ *
+ * The `add` modifier means present. That polarity was verified against four
+ * live listings by cross-checking the flags with the free-text description —
+ * one said "ללא ממ\"ד" (no safe room) and duly had `mamad` without `add`, and
+ * another said "מרוהטת" (furnished) and had `riut add`. Getting this backwards
+ * would silently mislabel every listing, which is why it was checked rather
+ * than assumed.
+ */
+const FEATURE_CLASSES: Record<string, keyof DetailFeatures> = {
+  mamad: 'hasSafeRoom',
+  maalit: 'hasElevator',
+  soragim: 'hasBars',
+  mizug: 'hasAirConditioning',
+  riut: 'isFurnished',
+  machsan: 'hasStorage',
+  hanaya: 'hasParking',
+  parking: 'hasParking',
+  unit: 'isStudioUnit',
+};
+
+export interface DetailFeatures {
+  hasSafeRoom?: boolean;
+  hasElevator?: boolean;
+  hasBars?: boolean;
+  hasAirConditioning?: boolean;
+  isFurnished?: boolean;
+  hasStorage?: boolean;
+  hasParking?: boolean;
+  isStudioUnit?: boolean;
+}
+
+export interface KomoDetail extends DetailFeatures {
+  description?: string;
+  hasBalcony?: boolean;
+  isAgency?: boolean;
+  phone?: string;
+}
+
+/**
+ * Parses a detail page. Exported for fixture-based testing — the network half
+ * cannot be exercised in CI, but the interpretation is where bugs live.
+ */
+export function parseKomoDetail(html: string): KomoDetail {
+  const detail: KomoDetail = {};
+
+  const listMatch = html.match(/<ul[^>]*list-style-type:\s*none[^>]*>([\s\S]*?)<\/ul>/);
+  if (listMatch) {
+    for (const item of listMatch[1].matchAll(/<li class='([^']*)'/g)) {
+      const classes = item[1].trim().split(/\s+/);
+      const field = FEATURE_CLASSES[classes[0]];
+      // Every feature the site knows about is listed on every page; `add` is
+      // what distinguishes "has it" from "does not". So an entry without it is
+      // a positive statement of absence, not missing data.
+      if (field) detail[field] = classes.includes('add');
+    }
+  }
+
+  // The description lives in the og:description meta and in #teurWrap; the
+  // meta tag is the more reliably present of the two.
+  const description =
+    html.match(/<meta property="og:description" content="([^"]*)"/)?.[1] ??
+    html.match(/<div id="teurWrap">([\s\S]*?)<\/div>/)?.[1];
+
+  if (description) {
+    const text = clean(
+      description
+        .replace(/<[^>]+>/g, ' ')
+        .replace(/&quot;/g, '"')
+        .replace(/&nbsp;/g, ' ')
+        .replace(/&amp;/g, '&')
+    );
+    detail.description = text;
+
+    // Balcony is not one of the structured flags, so it still comes from the
+    // prose — but the negation-aware detector handles "ללא מרפסת" correctly.
+    const fromText = detectAmenities(text);
+    detail.hasBalcony = fromText.hasBalcony;
+    detail.isAgency = detectAgency(text);
+    detail.phone = extractPhone(text);
+  }
+
+  return detail;
+}
+
+/**
+ * Fetches and parses one detail page. Returns null rather than throwing so a
+ * single bad page cannot abort enrichment for the rest.
+ */
+async function fetchDetail(externalId: string, headers: Record<string, string>): Promise<KomoDetail | null> {
+  try {
+    const response = await fetch(`${BASE}/code/nadlan/details/?modaaNum=${externalId}`, {
+      headers: { ...headers, Accept: 'text/html', Referer: `${BASE}/` },
+      signal: AbortSignal.timeout(config.browser.navigationTimeoutMs),
+    });
+    if (!response.ok) return null;
+    return parseKomoDetail(await response.text());
+  } catch {
+    return null;
+  }
+}
+
 export class KomoSource implements ListingSource {
   readonly name = 'komo' as const;
 
@@ -191,6 +299,59 @@ export class KomoSource implements ListingSource {
       await sleep(config.browser.throttleMs);
     }
 
+    await this.enrich(listings, headers, errors);
+
     return { source: 'komo', listings, errors };
+  }
+
+  /**
+   * Fills in the structured amenities the result cards omit by reading each
+   * listing's detail page.
+   *
+   * Bounded on purpose. Enrichment costs one request per listing, so it runs
+   * only for listings that already pass the price and room filters — there is
+   * no point spending a request to learn the amenities of a flat that is over
+   * budget — and stops at `enrichLimit`. That keeps a scan to a couple of dozen
+   * extra requests rather than one per result.
+   */
+  private async enrich(
+    listings: RawListing[],
+    headers: Record<string, string>,
+    errors: string[]
+  ): Promise<void> {
+    if (!config.komo.enrich) return;
+
+    const candidates = listings.slice(0, config.komo.enrichLimit);
+    if (candidates.length === 0) return;
+
+    log.info(`komo: enriching ${candidates.length} listings with detail-page amenities`);
+    let enriched = 0;
+
+    for (const listing of candidates) {
+      const detail = await fetchDetail(listing.externalId, headers);
+      await sleep(config.browser.throttleMs);
+
+      if (!detail) continue;
+      enriched += 1;
+
+      // The detail page is authoritative for the structured flags: it states
+      // presence AND absence, where the card text could only ever hint.
+      if (detail.hasSafeRoom !== undefined) listing.hasSafeRoom = detail.hasSafeRoom;
+      if (detail.hasElevator !== undefined) listing.hasElevator = detail.hasElevator;
+      if (detail.hasParking !== undefined) listing.hasParking = detail.hasParking;
+      if (detail.isFurnished !== undefined) listing.isFurnished = detail.isFurnished;
+      if (detail.hasBalcony !== undefined) listing.hasBalcony = detail.hasBalcony;
+
+      // The full description is richer than the card blurb, so prefer it — and
+      // re-derive the text-based signals from it.
+      if (detail.description) listing.description = detail.description;
+      if (detail.isAgency !== undefined) listing.isAgency = detail.isAgency;
+      if (detail.phone) listing.contactPhone = detail.phone;
+    }
+
+    log.info(`komo: enriched ${enriched}/${candidates.length}`);
+    if (enriched === 0 && candidates.length > 0) {
+      errors.push('komo: detail enrichment returned nothing — the detail page markup may have changed');
+    }
   }
 }

@@ -108,30 +108,45 @@ export function parseHebrewDate(input: string | null | undefined, now: Date = ne
 }
 
 /**
- * Detects amenities from free text. Sources expose these inconsistently — some
- * as structured booleans, most only as words in the description — so the text
- * pass runs for every listing and is OR-ed with whatever structured data exists.
+ * Detects amenities from free text.
+ *
+ * Tri-state on purpose:
+ *   true      the text says it has one
+ *   false     the text says it does NOT ("ללא מעלית")
+ *   undefined the text simply never mentions it
+ *
+ * The third case is the important one. A listing that does not mention a
+ * balcony is not a listing without a balcony — most descriptions just do not
+ * enumerate features. Collapsing that to `false` would make a "must have
+ * balcony" filter reject almost the whole market on no evidence. Only a
+ * structured source (Komo's detail page) can assert absence.
  */
 export function detectAmenities(text: string): {
-  hasElevator: boolean;
-  hasParking: boolean;
-  hasBalcony: boolean;
-  hasSafeRoom: boolean;
-  isFurnished: boolean;
-  petsAllowed: boolean;
-  isRoommates: boolean;
+  hasElevator?: boolean;
+  hasParking?: boolean;
+  hasBalcony?: boolean;
+  hasSafeRoom?: boolean;
+  isFurnished?: boolean;
+  petsAllowed?: boolean;
+  isRoommates?: boolean;
 } {
   const t = normalizeText(text);
 
-  // Negations matter here: "ללא מעלית" (no elevator) must not read as having one.
-  const has = (...terms: string[]): boolean =>
-    terms.some((term) => {
+  // Negations matter here: "ללא מעלית" (no elevator) must not read as having
+  // one — and it is positive evidence of absence, so it returns false rather
+  // than undefined.
+  const has = (...terms: string[]): boolean | undefined => {
+    let mentioned = false;
+    for (const term of terms) {
       const n = normalizeText(term);
-      if (!n || !t.includes(n)) return false;
+      if (!n || !t.includes(n)) continue;
+      mentioned = true;
       const idx = t.indexOf(n);
       const before = t.slice(Math.max(0, idx - 12), idx);
-      return !/(ללא|אין|בלי|לא)\s*$/.test(before);
-    });
+      if (!/(ללא|אין|בלי|לא)\s*$/.test(before)) return true;
+    }
+    return mentioned ? false : undefined;
+  };
 
   return {
     hasElevator: has('מעלית'),
@@ -198,4 +213,58 @@ export function detectAgency(text: string): boolean | undefined {
   if (agencyMarkers.some((m) => t.includes(normalizeText(m)))) return true;
 
   return undefined;
+}
+
+/**
+ * Extracts an Israeli phone number from free text and normalises it to E.164.
+ *
+ * Only used on text the poster published themselves — a number typed into a
+ * listing description or a Facebook post. Numbers hidden behind a "show phone"
+ * control are deliberately not pursued; see the Komo adapter for why.
+ *
+ * Israeli numbers appear in every imaginable shape: "050-123-4567",
+ * "0501234567", "+972 50 123 4567", "972501234567". All normalise to
+ * "+972501234567".
+ */
+export function extractPhone(text: string | null | undefined): string | undefined {
+  if (!text) return undefined;
+
+  // Strip the separators people scatter through numbers, but keep a leading +.
+  const candidates = String(text).match(/(?:\+?972|0)[\s\-.()]*\d[\d\s\-.()]{7,12}/g);
+  if (!candidates) return undefined;
+
+  for (const candidate of candidates) {
+    const digits = candidate.replace(/[^\d+]/g, '');
+
+    let local: string;
+    if (digits.startsWith('+972')) local = '0' + digits.slice(4);
+    else if (digits.startsWith('972')) local = '0' + digits.slice(3);
+    else local = digits;
+
+    // Mobile: 05X + 7 digits. Landline: 0X + 7 digits (area codes 2,3,4,8,9).
+    if (/^05\d\d{7}$/.test(local)) return '+972' + local.slice(1);
+    if (/^0[23489]\d{7}$/.test(local)) return '+972' + local.slice(1);
+  }
+
+  return undefined;
+}
+
+/**
+ * Builds a click-to-chat link. WhatsApp expects the number without a `+`.
+ * Returns undefined for anything that is not a normalised E.164 number, so a
+ * half-parsed string can never become a broken link.
+ */
+export function whatsappLink(phone: string | null | undefined, message?: string): string | undefined {
+  if (!phone || !/^\+\d{8,15}$/.test(phone)) return undefined;
+  const base = `https://wa.me/${phone.slice(1)}`;
+  return message ? `${base}?text=${encodeURIComponent(message)}` : base;
+}
+
+/** Human-readable local form, e.g. "+972501234567" -> "050-123-4567". */
+export function formatPhoneLocal(phone: string | null | undefined): string | undefined {
+  if (!phone || !phone.startsWith('+972')) return phone ?? undefined;
+  const local = '0' + phone.slice(4);
+  if (local.length === 10) return `${local.slice(0, 3)}-${local.slice(3, 6)}-${local.slice(6)}`;
+  if (local.length === 9) return `${local.slice(0, 2)}-${local.slice(2, 5)}-${local.slice(5)}`;
+  return local;
 }
