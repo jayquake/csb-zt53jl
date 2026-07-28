@@ -136,43 +136,69 @@ jobs:
             for (const e of run.errors || []) console.log('- error:', e);
           " >> "$GITHUB_STEP_SUMMARY"
 
-      - name: Publish the site to the branch root
-        # This repository's Pages is configured as "deploy from a branch", which
-        # serves the root of gh-pages. The `deploy` job below covers the other
-        # mode ("GitHub Actions"), and publishing both ways means the site is
-        # correct whichever setting is active — the content is identical, so
-        # there is nothing to conflict over.
+      - name: Publish the snapshot and the site
+        # Pages on this repository is "deploy from a branch", which serves the
+        # root of gh-pages, so the built site is copied there. The `deploy` job
+        # below covers "GitHub Actions" mode. Both publish identical content, so
+        # the site is right under either setting.
+        #
+        # Everything written here is a GENERATED file — this run rebuilt it from
+        # the restored snapshot plus a fresh scan — so on divergence this copy is
+        # authoritative. That is why the branch is reset onto the remote tip and
+        # the files re-applied, rather than rebased: a regenerated JSON file
+        # conflicts wholesale against any other version of itself, which is
+        # exactly how the previous approach died ("CONFLICT (content): Merge
+        # conflict in apartment-finder/data/snapshot.json"). There is no
+        # meaningful three-way merge of a generated artifact; last writer wins is
+        # both correct and the only thing that terminates.
         working-directory: .
-        run: |
-          cp apartment-finder/site/index.html \
-             apartment-finder/site/app.js \
-             apartment-finder/site/styles.css \
-             apartment-finder/site/data.json \
-             apartment-finder/site/.nojekyll \
-             .
-
-      - name: Commit the snapshot and the published site
-        working-directory: .
-        run: |
-          git config user.name  "github-actions[bot]"
-          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add apartment-finder/data/snapshot.json index.html app.js styles.css data.json .nojekyll
-          # Nothing changed is a normal outcome, not a failure.
-          if git diff --staged --quiet; then
-            echo "nothing to publish"
-          else
-            git commit -m "chore: apartment snapshot $(date -u +%Y-%m-%d)"
-            # Rebase first: a push during the scan would otherwise reject this
-            # and lose the run's state.
-            #
-            # The snapshot goes back to the branch the run started from rather
-            # than a hardcoded one, so a manual dispatch from a feature branch
-            # updates that branch instead of writing to the default.
-            git pull --rebase --autostash origin "$BRANCH"
-            git push origin "HEAD:$BRANCH"
-          fi
         env:
           BRANCH: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          # snapshot.json is tracked, so a hard reset would revert it — keep a
+          # copy outside the work tree. The built site/ is gitignored and
+          # therefore survives the reset untouched.
+          SNAPSHOT_BACKUP="$(mktemp)"
+          cp apartment-finder/data/snapshot.json "$SNAPSHOT_BACKUP"
+
+          for attempt in 1 2 3; do
+            git fetch origin "$BRANCH"
+            git reset --hard "origin/$BRANCH"
+
+            cp "$SNAPSHOT_BACKUP" apartment-finder/data/snapshot.json
+            cp apartment-finder/site/index.html \
+               apartment-finder/site/app.js \
+               apartment-finder/site/styles.css \
+               apartment-finder/site/data.json \
+               .
+            # Stops Pages running the upload through Jekyll.
+            touch .nojekyll
+
+            git add apartment-finder/data/snapshot.json index.html app.js styles.css data.json .nojekyll
+
+            # Nothing changed is a normal outcome, not a failure.
+            if git diff --staged --quiet; then
+              echo "nothing to publish"
+              exit 0
+            fi
+
+            git commit -m "chore: apartment snapshot $(date -u +%Y-%m-%d)"
+
+            if git push origin "HEAD:$BRANCH"; then
+              echo "published on attempt $attempt"
+              exit 0
+            fi
+
+            echo "push raced with another commit, retrying ($attempt/3)"
+          done
+
+          echo "could not publish after 3 attempts" >&2
+          exit 1
 
       - uses: actions/upload-pages-artifact@v3
         with:
