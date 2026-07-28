@@ -180,10 +180,20 @@ jobs:
             cp -R apartment-finder/site/. .
 
             git add apartment-finder/data/snapshot.json
-            # Stage whatever the build actually produced.
-            (cd apartment-finder/site && find . -type f -printf '%P\\n') \
-              | while read -r f; do git add -f "$f"; done
-            git add -f .nojekyll
+
+            # Stage whatever the build produced, by name. Iterating the built
+            # directory's own entries means a new asset is picked up without
+            # anyone updating this list, and `git add` on a directory stages it
+            # recursively, so vendor/ comes along.
+            #
+            # Deliberately not `find ... -printf` piped into a loop: that form
+            # needs a backslash escape that is easy to get wrong in YAML, and
+            # when it is wrong every path arrives mangled, `git add` fails, and
+            # the pipeline swallows the error so the step still reports success.
+            for entry in apartment-finder/site/* apartment-finder/site/.nojekyll; do
+              [ -e "$entry" ] || continue
+              git add -f "$(basename "$entry")"
+            done
 
             # Nothing changed is a normal outcome, not a failure.
             if git diff --staged --quiet; then
