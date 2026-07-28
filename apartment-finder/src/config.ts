@@ -78,6 +78,21 @@ export const config = {
     enrichLimit: num(process.env.KOMO_ENRICH_LIMIT, 25),
   },
 
+  geocode: {
+    enabled: bool(process.env.GEOCODE_ENABLED, true),
+    /**
+     * Nominatim asks for one request per second at most; this leaves headroom.
+     * Do not lower it — the service is free and community-run.
+     */
+    throttleMs: num(process.env.GEOCODE_THROTTLE_MS, 1200),
+    /** New lookups per scan. Cached addresses do not count against this. */
+    limit: num(process.env.GEOCODE_LIMIT, 40),
+    /** Nominatim requires a User-Agent that identifies the application. */
+    userAgent:
+      process.env.GEOCODE_USER_AGENT ||
+      'tlv-apartment-finder/1.0 (personal apartment search; https://github.com/jayquake/csb-zt53jl)',
+  },
+
   notify: {
     /** "whatsapp" | "telegram" | "console". Comma-separated for several. */
     channels: list(process.env.NOTIFY_CHANNELS).length ? list(process.env.NOTIFY_CHANNELS) : ['console'],

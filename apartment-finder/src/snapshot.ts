@@ -40,6 +40,8 @@ interface SnapshotListing {
   cityEn: string | null;
   neighborhoodEn: string | null;
   contactPhone: string | null;
+  lat: number | null;
+  lng: number | null;
   hasElevator: boolean;
   hasParking: boolean;
   hasBalcony: boolean;
@@ -123,6 +125,8 @@ export async function exportSnapshot(prisma: PrismaClient, outputPath: string): 
     cityEn: row.cityEn,
     neighborhoodEn: row.neighborhoodEn,
     contactPhone: row.contactPhone,
+    lat: row.lat,
+    lng: row.lng,
     hasElevator: row.hasElevator,
     hasParking: row.hasParking,
     hasBalcony: row.hasBalcony,

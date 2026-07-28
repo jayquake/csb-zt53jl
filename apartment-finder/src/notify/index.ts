@@ -16,13 +16,18 @@
 import { config } from '../config';
 import { log } from '../logger';
 
+import type { Flavor } from './format';
+
 export interface Notifier {
   readonly channel: string;
+  /** How the digest should be rendered for this channel. */
+  readonly flavor: Flavor;
   send(message: string): Promise<void>;
 }
 
 class ConsoleNotifier implements Notifier {
   readonly channel = 'console';
+  readonly flavor: Flavor = 'whatsapp';
 
   async send(message: string): Promise<void> {
     console.log('\n───── notification ─────\n' + message + '\n────────────────────────\n');
@@ -31,6 +36,7 @@ class ConsoleNotifier implements Notifier {
 
 class TwilioWhatsAppNotifier implements Notifier {
   readonly channel = 'whatsapp';
+  readonly flavor: Flavor = 'whatsapp';
 
   constructor(
     private readonly accountSid: string,
@@ -72,6 +78,7 @@ class TwilioWhatsAppNotifier implements Notifier {
 
 class TelegramNotifier implements Notifier {
   readonly channel = 'telegram';
+  readonly flavor: Flavor = 'telegram';
 
   constructor(
     private readonly botToken: string,
@@ -84,10 +91,12 @@ class TelegramNotifier implements Notifier {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         chat_id: this.chatId,
-        // The formatter emits WhatsApp-style *bold*, which Telegram's legacy
-        // Markdown parser understands too.
-        parse_mode: 'Markdown',
-        disable_web_page_preview: false,
+        // HTML rather than Markdown: it gives real strikethrough for price
+        // drops and named links, and it does not choke on the underscores and
+        // asterisks that appear in listing titles.
+        parse_mode: 'HTML',
+        // A link preview would push the listings off the screen.
+        disable_web_page_preview: true,
         text: message,
       }),
     });

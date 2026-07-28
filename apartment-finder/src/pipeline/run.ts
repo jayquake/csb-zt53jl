@@ -13,6 +13,7 @@ import { log } from '../logger';
 import { resolveSources } from '../sources';
 import { closeBrowser } from '../sources/browser';
 import { ingest, markStale, type PendingAlert } from './ingest';
+import { geocodeMissing } from '../geocode';
 import { buildNotifiers, ConsoleNotifier, type Notifier } from '../notify';
 import { formatDigest } from '../notify/format';
 import type { RawListing } from '../types';
@@ -75,6 +76,18 @@ export async function runScan(options: ScanOptions = {}): Promise<ScanSummary> {
     log.info(
       `ingest: ${result.created} new, ${result.updated} updated, ${result.rejected} rejected, ${result.alerts.length} to alert`
     );
+
+    // After ingest so only listings that survived the filters are geocoded,
+    // and before notifying so a fresh listing can be mapped straight away.
+    try {
+      await geocodeMissing(prisma);
+    } catch (err) {
+      // A geocoding outage must not cost the whole scan — the listings are
+      // still useful, they just have no pin yet, and the next run retries.
+      const message = err instanceof Error ? err.message : String(err);
+      errors.push(`geocode: ${message}`);
+      log.warn('geocoding failed', message);
+    }
 
     const staleCount = await markStale(prisma, config.staleAfterDays, startedAt);
     if (staleCount > 0) log.info(`marked ${staleCount} listings inactive`);
@@ -144,15 +157,18 @@ export async function runScan(options: ScanOptions = {}): Promise<ScanSummary> {
  * a Telegram success is not lost because WhatsApp failed.
  */
 async function deliver(alerts: PendingAlert[], dryRun: boolean): Promise<void> {
-  const message = formatDigest(alerts, {
-    appUrl: config.publicBaseUrl,
-    totalMatched: alerts.length,
-  });
-  if (!message) return;
-
   const notifiers: Notifier[] = dryRun ? [new ConsoleNotifier()] : buildNotifiers();
 
   for (const notifier of notifiers) {
+    // Rendered per channel: Telegram gets HTML and twice the length budget,
+    // WhatsApp gets its own markup and a tighter cap.
+    const message = formatDigest(alerts, {
+      appUrl: config.publicBaseUrl,
+      totalMatched: alerts.length,
+      flavor: notifier.flavor,
+    });
+    if (!message) return;
+
     let ok = true;
     let error: string | null = null;
 

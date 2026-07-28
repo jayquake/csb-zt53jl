@@ -284,9 +284,55 @@ The compliant substitute is the **Add** tab: paste a group post and the parser p
 
 The error message in the logs names this explicitly rather than just echoing the code.
 
-### Telegram (free alternative)
+### Telegram
 
-No per-message cost and no template approval. Create a bot with [@BotFather](https://t.me/botfather), get your chat ID from [@userinfobot](https://t.me/userinfobot), set `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID`, and put `telegram` in `NOTIFY_CHANNELS`. Both channels can run at once.
+Strictly easier than WhatsApp for a scheduled digest: free, no per-message
+cost, **no 24-hour session window** and no template approval. Setup:
+
+1. Message [@BotFather](https://t.me/botfather) → `/newbot` → copy the token.
+2. **Send your bot a message.** A bot cannot open a conversation with you, so
+   without this first message every send fails with `chat not found`.
+3. Message [@userinfobot](https://t.me/userinfobot) for your numeric chat ID.
+4. Set `TELEGRAM_BOT_TOKEN` / `TELEGRAM_CHAT_ID`, put `telegram` in
+   `NOTIFY_CHANNELS`, then `npm run notify:test`.
+
+Both channels can run at once — the digest is rendered per channel, so each
+gets markup it actually understands:
+
+| | WhatsApp | Telegram |
+|---|---|---|
+| Markup | `*bold*`, bare URLs | HTML — real strikethrough, named links |
+| Length | ~1,500 chars | 3,500 chars (≈2× the listings) |
+| Session window | 24h, needs a template outside it | none |
+| Cost | ~cents/month | free |
+
+Listing titles are HTML-escaped for Telegram — one unescaped `<` in a title
+would make Telegram reject the entire digest with "can't parse entities".
+
+## Map
+
+The **Map** tab plots listings as pins coloured by match score, honouring the
+same filters as the feed. Tap a pin for price, size, area and a link out.
+
+No source publishes coordinates — Komo's detail pages carry none — so addresses
+are geocoded with Nominatim (OpenStreetMap). Notes that matter:
+
+- **Queries go out in Hebrew.** Transliterated English is materially worse:
+  "Sheinkin, Tel Aviv" resolves to a street in *Givatayim*, the wrong city;
+  the Hebrew form lands correctly.
+- **Every address is cached forever**, including failures, so an address is
+  looked up once ever and an unresolvable one is not retried each morning.
+- Requests are throttled to ~1/sec with an identifying User-Agent, and capped
+  per run (`GEOCODE_LIMIT`), per Nominatim's usage policy. Don't lower the
+  throttle — it's a free community service.
+- Geocoding runs *after* filtering, so only listings you might actually want
+  cost a lookup.
+- A backlog is worked through a batch at a time, and the map states its own
+  coverage ("24 of 55 shown") rather than quietly implying the rest don't exist.
+
+Leaflet is vendored into `public/vendor/` rather than loaded from a CDN, so the
+published page has no third-party runtime dependency. Map tiles come from
+OpenStreetMap.
 
 ---
 
@@ -327,7 +373,7 @@ Save / Hide / Contacted on each card; hidden listings drop out of the feed but s
 ## Tests
 
 ```bash
-npm test    # 70 tests
+npm test    # 74 tests
 ```
 
 Covers Hebrew parsing (prices with mixed separators, `3.5 חדרים`, `קרקע`/`מרתף` floors, relative dates like `לפני 3 ימים`, and amenity negation — `ללא מעלית` must not read as *has* elevator), scoring and rejection rules, fingerprint dedupe, message formatting, and an integration suite that runs the real ingest pipeline against a throwaway SQLite database to prove the alert-once rules hold.

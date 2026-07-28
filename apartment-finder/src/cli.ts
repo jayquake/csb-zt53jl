@@ -105,13 +105,13 @@ async function main(): Promise<void> {
     }
 
     case 'notify-test': {
-      const message = formatDigest(SAMPLE_ALERTS, { appUrl: config.publicBaseUrl });
-      if (!message) {
-        log.error('nothing to send');
-        break;
-      }
       const notifiers = buildNotifiers();
       for (const notifier of notifiers) {
+        const message = formatDigest(SAMPLE_ALERTS, {
+          appUrl: config.publicBaseUrl,
+          flavor: notifier.flavor,
+        });
+        if (!message) continue;
         try {
           await notifier.send(message);
           log.info(`✓ ${notifier.channel} delivered`);

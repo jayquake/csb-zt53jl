@@ -137,6 +137,16 @@ model Criteria {
   updatedAt DateTime @updatedAt
 }
 
+/// Address -> coordinates, cached indefinitely. Streets do not move, so an
+/// address is geocoded once ever. A row with null coordinates is a cached
+/// miss, which stops an unresolvable address being retried every morning.
+model Geocode {
+  address   String   @id
+  lat       Float?
+  lng       Float?
+  createdAt DateTime @default(now())
+}
+
 // One row per scan, so the UI can show when the last check ran and what it found.
 model ScanRun {
   id           String    @id @default(cuid())

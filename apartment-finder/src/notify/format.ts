@@ -11,7 +11,51 @@
 import type { PendingAlert } from '../pipeline/ingest';
 import { formatPhoneLocal, whatsappLink } from '../sources/parse';
 
-const MAX_MESSAGE_CHARS = 1500;
+/**
+ * Per-channel rendering.
+ *
+ * WhatsApp and Telegram are not interchangeable targets. WhatsApp takes
+ * `*bold*`, linkifies bare URLs, and splits past ~1600 characters. Telegram
+ * takes real HTML, renders proper strikethrough, allows 4096 characters, and —
+ * unlike WhatsApp — has no 24-hour session window and no template approval, so
+ * a scheduled digest can simply be sent. That extra headroom is worth using:
+ * it fits roughly twice as many listings in one message.
+ */
+export type Flavor = 'whatsapp' | 'telegram';
+
+const LIMITS: Record<Flavor, number> = {
+  whatsapp: 1500,
+  telegram: 3500,
+};
+
+/** Telegram parses HTML, so anything interpolated into it must be escaped. */
+function escapeHtml(value: string): string {
+  return value.replace(/[&<>]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' })[c]!);
+}
+
+interface Style {
+  bold: (t: string) => string;
+  strike: (t: string) => string;
+  link: (url: string, label?: string) => string;
+  text: (t: string) => string;
+}
+
+const STYLES: Record<Flavor, Style> = {
+  whatsapp: {
+    bold: (t) => `*${t}*`,
+    strike: (t) => `~${t}~`,
+    // A bare URL is what WhatsApp makes tappable; markdown link syntax would
+    // render literally.
+    link: (url) => url,
+    text: (t) => t,
+  },
+  telegram: {
+    bold: (t) => `<b>${t}</b>`,
+    strike: (t) => `<s>${t}</s>`,
+    link: (url, label) => `<a href="${escapeHtml(url)}">${escapeHtml(label ?? url)}</a>`,
+    text: escapeHtml,
+  },
+};
 
 function shekels(amount: number | null | undefined): string {
   if (amount == null) return 'price not listed';
@@ -41,37 +85,38 @@ function locationLine(listing: PendingAlert['listing']): string {
   return `${english}  ·  ${hebrew}`;
 }
 
-function formatOne(alert: PendingAlert, index: number): string {
+function formatOne(alert: PendingAlert, index: number, style: Style): string {
   const { listing } = alert;
   const lines: string[] = [];
+  const title = style.text(listing.title);
 
   if (alert.kind === 'PRICE_DROP' && alert.oldPrice != null && alert.newPrice != null) {
     const dropPct = Math.round(((alert.oldPrice - alert.newPrice) / alert.oldPrice) * 100);
-    lines.push(`${index}. 📉 *Price drop ${dropPct}%* — ${listing.title}`);
-    lines.push(`   ~${shekels(alert.oldPrice)}~ → *${shekels(alert.newPrice)}*`);
+    lines.push(`${index}. 📉 ${style.bold(`Price drop ${dropPct}%`)} — ${title}`);
+    lines.push(`   ${style.strike(shekels(alert.oldPrice))} → ${style.bold(shekels(alert.newPrice))}`);
   } else {
-    lines.push(`${index}. 🏠 *${listing.title}*`);
-    lines.push(`   *${shekels(listing.priceIls)}*/mo`);
+    lines.push(`${index}. 🏠 ${style.bold(title)}`);
+    lines.push(`   ${style.bold(shekels(listing.priceIls))}/mo`);
   }
 
   const specs = specLine(listing);
   if (specs) lines.push(`   ${specs}`);
 
   const location = locationLine(listing);
-  if (location) lines.push(`   📍 ${location}`);
+  if (location) lines.push(`   📍 ${style.text(location)}`);
 
   if (listing.scoreReasons.length > 0) {
-    lines.push(`   ✨ ${listing.scoreReasons.slice(0, 2).join(' · ')}`);
+    lines.push(`   ✨ ${style.text(listing.scoreReasons.slice(0, 2).join(' · '))}`);
   }
 
-  lines.push(`   ${listing.url}`);
+  lines.push(`   ${style.link(listing.url, 'Open listing')}`);
 
   // A tappable chat link is the difference between "interesting" and "I have
   // messaged them" — in this market that gap is measured in hours.
   // No prefilled text: URL-encoded Hebrew runs to ~200 characters, which would
   // eat the message budget and push real listings out of the digest.
   const chat = whatsappLink(listing.contactPhone);
-  if (chat) lines.push(`   💬 ${formatPhoneLocal(listing.contactPhone)} — ${chat}`);
+  if (chat) lines.push(`   💬 ${style.link(chat, formatPhoneLocal(listing.contactPhone) ?? 'WhatsApp')}`);
 
   return lines.join('\n');
 }
@@ -81,6 +126,8 @@ export interface DigestOptions {
   appUrl?: string;
   /** Total matches found, when more were found than are shown. */
   totalMatched?: number;
+  /** Which channel this is being rendered for. Defaults to WhatsApp. */
+  flavor?: Flavor;
 }
 
 /**
@@ -90,10 +137,14 @@ export interface DigestOptions {
 export function formatDigest(alerts: PendingAlert[], options: DigestOptions = {}): string | null {
   if (alerts.length === 0) return null;
 
+  const flavor: Flavor = options.flavor ?? 'whatsapp';
+  const style = STYLES[flavor];
+  const maxChars = LIMITS[flavor];
+
   const drops = alerts.filter((a) => a.kind === 'PRICE_DROP');
   const fresh = alerts.filter((a) => a.kind === 'NEW');
 
-  const header: string[] = ['*🔍 Morning apartment update*'];
+  const header: string[] = [style.bold('🔍 Morning apartment update')];
   const summary: string[] = [];
   if (fresh.length) summary.push(`${fresh.length} new`);
   if (drops.length) summary.push(`${drops.length} price drop${drops.length > 1 ? 's' : ''}`);
@@ -106,8 +157,8 @@ export function formatDigest(alerts: PendingAlert[], options: DigestOptions = {}
 
   // Price drops first: they are the more actionable signal.
   for (const alert of [...drops, ...fresh]) {
-    const block = formatOne(alert, index);
-    if (used + block.length + 2 > MAX_MESSAGE_CHARS) {
+    const block = formatOne(alert, index, style);
+    if (used + block.length + 2 > maxChars) {
       omitted += 1;
       continue;
     }
@@ -118,7 +169,7 @@ export function formatDigest(alerts: PendingAlert[], options: DigestOptions = {}
 
   const footer: string[] = [];
   if (omitted > 0) footer.push(`…and ${omitted} more`);
-  if (options.appUrl) footer.push(`All results: ${options.appUrl}`);
+  if (options.appUrl) footer.push(`All results: ${style.link(options.appUrl, options.appUrl)}`);
 
   return [header.join('\n'), '', body.join('\n\n'), footer.length ? `\n${footer.join('\n')}` : '']
     .filter((s) => s !== '')
@@ -127,7 +178,7 @@ export function formatDigest(alerts: PendingAlert[], options: DigestOptions = {}
 }
 
 /** Single-listing message, used by the "notify me about this one" action. */
-export function formatSingle(alert: PendingAlert, appUrl?: string): string {
-  const block = formatOne(alert, 1);
+export function formatSingle(alert: PendingAlert, appUrl?: string, flavor: Flavor = 'whatsapp'): string {
+  const block = formatOne(alert, 1, STYLES[flavor]);
   return appUrl ? `${block}\n\n${appUrl}` : block;
 }

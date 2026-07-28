@@ -83,3 +83,48 @@ test('missing optional fields are omitted, not rendered as undefined', () => {
   assert.doesNotMatch(message, /undefined|null|NaN/);
   assert.match(message, /price not listed/);
 });
+
+test('the telegram flavor emits valid HTML, not WhatsApp markup', () => {
+  const message = formatDigest(
+    [alert({ kind: 'PRICE_DROP', oldPrice: 8000, newPrice: 7000 })],
+    { flavor: 'telegram', appUrl: 'https://example.com' }
+  )!;
+
+  assert.match(message, /<b>/);
+  assert.match(message, /<s>₪8,000<\/s>/); // real strikethrough, not ~...~
+  assert.match(message, /<a href="https:\/\/www\.yad2\.co\.il\/item\/abc">/);
+  assert.doesNotMatch(message, /\*Price drop/);
+  assert.doesNotMatch(message, /~₪/);
+});
+
+test('listing titles are HTML-escaped for telegram', () => {
+  // An unescaped < in a title would make Telegram reject the whole message
+  // with "can't parse entities", losing the entire digest.
+  const message = formatDigest(
+    [alert({ listing: { ...alert().listing, title: 'דירה <script> & "quotes"' } })],
+    { flavor: 'telegram' }
+  )!;
+  assert.match(message, /&lt;script&gt;/);
+  assert.match(message, /&amp;/);
+  assert.doesNotMatch(message, /<script>/);
+});
+
+test('telegram gets a larger budget than whatsapp', () => {
+  const many = Array.from({ length: 40 }, (_, i) =>
+    alert({ listingId: `l${i}`, listing: { ...alert().listing, id: `l${i}` } })
+  );
+  const wa = formatDigest(many, { flavor: 'whatsapp' })!;
+  const tg = formatDigest(many, { flavor: 'telegram' })!;
+
+  assert.ok(wa.length <= 1600, `whatsapp was ${wa.length}`);
+  assert.ok(tg.length <= 4096, `telegram was ${tg.length}`);
+  // Telegram has no 24h window and a 4096 limit, so it should carry more.
+  const count = (s: string) => (s.match(/^\d+\. /gm) || []).length;
+  assert.ok(count(tg) > count(wa), `telegram ${count(tg)} vs whatsapp ${count(wa)}`);
+});
+
+test('whatsapp rendering is unchanged by the flavor work', () => {
+  const message = formatDigest([alert()], { flavor: 'whatsapp' })!;
+  assert.match(message, /\*/);
+  assert.doesNotMatch(message, /<b>|<a href/);
+});
