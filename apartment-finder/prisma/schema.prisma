@@ -1,0 +1,145 @@
+// Tel Aviv apartment finder — data model.
+//
+// A Listing is the deduplicated, canonical record of one apartment offer, which
+// may have been seen on more than one source. Price changes are appended to
+// PriceHistory so a drop can be detected by comparing the two most recent rows.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Listing {
+  id String @id @default(cuid())
+
+  // Identity / provenance
+  source     String // "yad2" | "homeless" | "manual"
+  externalId String // id as given by the source
+  url        String
+  // Stable hash of the defining attributes, used to merge the same apartment
+  // when it is re-posted or cross-posted with a different externalId.
+  fingerprint String
+
+  // Core attributes
+  title       String
+  description String?
+  priceIls    Int? // monthly rent in ILS; null when the source hides it
+  rooms       Float?
+  sizeSqm     Int?
+  floor       Int?
+  totalFloors Int?
+
+  // Location
+  city         String
+  neighborhood String?
+  street       String?
+  lat          Float?
+  lng          Float?
+
+  // Features that people actually filter on in Tel Aviv
+  hasElevator  Boolean @default(false)
+  hasParking   Boolean @default(false)
+  hasBalcony   Boolean @default(false)
+  hasSafeRoom  Boolean @default(false) // ממ"ד
+  isFurnished  Boolean @default(false)
+  petsAllowed  Boolean @default(false)
+  isRoommates  Boolean @default(false)
+  /// null = the listing never said whether an agent posted it.
+  isAgency     Boolean?
+
+  // Media + contact
+  imageUrls String? // JSON array of strings
+  contact   String?
+
+  // Lifecycle
+  postedAt    DateTime?
+  firstSeenAt DateTime  @default(now())
+  lastSeenAt  DateTime  @default(now())
+  isActive    Boolean   @default(true)
+
+  // Scoring against the saved criteria (0-100), recomputed on each scan
+  score       Int     @default(0)
+  scoreReasons String? // JSON array of strings
+
+  raw String? // original payload, for debugging a parser regression
+
+  priceHistory PriceHistory[]
+  alerts       Alert[]
+  action       UserAction?
+
+  @@unique([source, externalId])
+  @@index([fingerprint])
+  @@index([isActive, score])
+  @@index([firstSeenAt])
+}
+
+model PriceHistory {
+  id        String   @id @default(cuid())
+  listingId String
+  priceIls  Int
+  seenAt    DateTime @default(now())
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId, seenAt])
+}
+
+model Alert {
+  id        String   @id @default(cuid())
+  listingId String
+  // "NEW" | "PRICE_DROP"
+  kind      String
+  // For PRICE_DROP: what it moved from/to.
+  oldPrice  Int?
+  newPrice  Int?
+  channel   String // "whatsapp" | "telegram" | "console"
+  sentAt    DateTime @default(now())
+  ok        Boolean  @default(true)
+  error     String?
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([listingId, kind])
+  @@index([sentAt])
+}
+
+// What the user did with a listing in the UI, so the feed can be triaged.
+model UserAction {
+  id        String   @id @default(cuid())
+  listingId String   @unique
+  // "SAVED" | "HIDDEN" | "CONTACTED"
+  status    String
+  notes     String?
+  updatedAt DateTime @updatedAt
+
+  listing Listing @relation(fields: [listingId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+}
+
+// Search criteria, stored so the mobile UI can edit them without a redeploy.
+// A single row with id = "default" is used unless more profiles are added.
+model Criteria {
+  id        String   @id @default("default")
+  json      String // serialized SearchCriteria
+  updatedAt DateTime @updatedAt
+}
+
+// One row per scan, so the UI can show when the last check ran and what it found.
+model ScanRun {
+  id           String    @id @default(cuid())
+  startedAt    DateTime  @default(now())
+  finishedAt   DateTime?
+  ok           Boolean   @default(false)
+  seenCount    Int       @default(0)
+  newCount     Int       @default(0)
+  dropCount    Int       @default(0)
+  errors       String? // JSON array of per-source error strings
+  sourceStats  String? // JSON map of source -> count
+
+  @@index([startedAt])
+}

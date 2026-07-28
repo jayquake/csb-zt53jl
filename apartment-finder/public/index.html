@@ -1,0 +1,175 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#0f172a" />
+    <meta name="color-scheme" content="light dark" />
+    <title>Apartment Finder — Tel Aviv</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <header class="topbar">
+      <div class="topbar-row">
+        <h1>TLV Apartments</h1>
+        <button id="scan-btn" class="btn btn-primary" type="button">Scan now</button>
+      </div>
+      <div id="status-line" class="status-line">Loading…</div>
+    </header>
+
+    <nav class="tabs" role="tablist">
+      <button class="tab is-active" role="tab" data-tab="feed" aria-selected="true">Feed</button>
+      <button class="tab" role="tab" data-tab="saved" aria-selected="false">Saved</button>
+      <button class="tab" role="tab" data-tab="add" aria-selected="false">Add</button>
+      <button class="tab" role="tab" data-tab="settings" aria-selected="false">Criteria</button>
+    </nav>
+
+    <main>
+      <!-- Feed -->
+      <section id="panel-feed" class="panel is-active">
+        <div class="filters">
+          <input id="filter-q" class="input" type="search" placeholder="Search…" aria-label="Search listings" />
+          <select id="filter-sort" class="input" aria-label="Sort by">
+            <option value="score">Best match</option>
+            <option value="newest">Newest first</option>
+            <option value="oldest">Oldest first</option>
+            <option value="price">Price: low to high</option>
+            <option value="price_desc">Price: high to low</option>
+            <option value="size">Largest</option>
+            <option value="rooms">Most rooms</option>
+            <option value="updated">Recently updated</option>
+          </select>
+          <div class="range">
+            <input
+              id="filter-min-price"
+              class="input"
+              type="number"
+              inputmode="numeric"
+              placeholder="Min ₪"
+              aria-label="Minimum price"
+            />
+            <span class="range-sep" aria-hidden="true">–</span>
+            <input
+              id="filter-max-price"
+              class="input"
+              type="number"
+              inputmode="numeric"
+              placeholder="Max ₪"
+              aria-label="Maximum price"
+            />
+          </div>
+          <select id="filter-poster" class="input" aria-label="Posted by">
+            <option value="">Anyone</option>
+            <option value="private">No realtors</option>
+            <option value="agency">Realtors only</option>
+          </select>
+          <select id="filter-source" class="input" aria-label="Source">
+            <option value="">All sources</option>
+            <option value="komo">Komo</option>
+            <option value="yad2">Yad2</option>
+            <option value="homeless">Homeless</option>
+            <option value="manual">Added by me</option>
+          </select>
+        </div>
+        <div class="filter-meta">
+          <span id="result-count" class="muted"></span>
+          <button id="filter-reset" class="linkbtn" type="button">Reset</button>
+        </div>
+        <p class="static-note">
+          Published snapshot — updated by the scheduled scan. Save and Hide are kept in this browser.
+          To change the search criteria or add a listing, run the app locally or edit the workflow.
+        </p>
+        <div id="feed-list" class="list"></div>
+        <button id="load-more" class="btn btn-ghost" type="button" hidden>Load more</button>
+      </section>
+
+      <!-- Saved -->
+      <section id="panel-saved" class="panel">
+        <div id="saved-list" class="list"></div>
+      </section>
+
+      <!-- Manual add -->
+      <section id="panel-add" class="panel">
+        <div class="card card-form">
+          <h2>Add a listing by hand</h2>
+          <p class="muted">
+            Copy a post from a Facebook group (or anywhere else) and paste it here. The price, room count, size and
+            area are pulled out automatically, and the listing is then tracked for price drops exactly like a scraped
+            one.
+          </p>
+          <textarea
+            id="manual-text"
+            class="input textarea"
+            rows="8"
+            dir="auto"
+            placeholder="Paste the post text here…"
+          ></textarea>
+          <input id="manual-url" class="input" type="url" placeholder="Link (optional)" />
+          <button id="manual-submit" class="btn btn-primary" type="button">Add listing</button>
+          <div id="manual-result" class="result" hidden></div>
+        </div>
+      </section>
+
+      <!-- Settings -->
+      <section id="panel-settings" class="panel">
+        <div class="card card-form">
+          <h2>Search criteria</h2>
+          <p class="static-note">Read-only here. Edit these by running the app locally, then commit the snapshot.</p>
+          <div class="grid-2">
+            <label>Min price ₪<input id="c-minPrice" class="input" type="number" inputmode="numeric" /></label>
+            <label>Max price ₪<input id="c-maxPrice" class="input" type="number" inputmode="numeric" /></label>
+            <label>Min rooms<input id="c-minRooms" class="input" type="number" step="0.5" /></label>
+            <label>Max rooms<input id="c-maxRooms" class="input" type="number" step="0.5" /></label>
+            <label>Min size (m²)<input id="c-minSize" class="input" type="number" inputmode="numeric" /></label>
+            <label>Ideal price ₪<input id="c-idealPrice" class="input" type="number" inputmode="numeric" /></label>
+          </div>
+
+          <label>
+            Cities (comma separated, in Hebrew)
+            <input id="c-cities" class="input" type="text" dir="auto" />
+          </label>
+          <label>
+            Favourite neighbourhoods
+            <input id="c-favAreas" class="input" type="text" dir="auto" />
+          </label>
+          <label>
+            Blocked keywords
+            <input id="c-exclude" class="input" type="text" dir="auto" />
+          </label>
+
+          <div class="grid-2">
+            <label>Min score to alert<input id="c-minScore" class="input" type="number" min="0" max="100" /></label>
+            <label>Min price drop %<input id="c-minDrop" class="input" type="number" min="0" max="100" /></label>
+          </div>
+
+          <label>
+            Posted by
+            <select id="c-posterType" class="input">
+              <option value="any">Anyone</option>
+              <option value="private_only">Owners only (no realtor fee)</option>
+              <option value="agency_only">Realtors only</option>
+            </select>
+          </label>
+          <label class="chip chip-block">
+            <input id="c-strictPoster" type="checkbox" />
+            <span>Also drop listings that don't say who posted them</span>
+          </label>
+
+          <fieldset class="chips">
+            <legend>Must have</legend>
+            <label class="chip"><input id="c-reqElevator" type="checkbox" /><span>Elevator</span></label>
+            <label class="chip"><input id="c-reqParking" type="checkbox" /><span>Parking</span></label>
+            <label class="chip"><input id="c-reqBalcony" type="checkbox" /><span>Balcony</span></label>
+            <label class="chip"><input id="c-reqSafeRoom" type="checkbox" /><span>Safe room</span></label>
+          </fieldset>
+
+          <button id="criteria-save" class="btn btn-primary" type="button">Save</button>
+          <div id="criteria-result" class="result" hidden></div>
+        </div>
+      </section>
+    </main>
+
+    <div id="toast" class="toast" hidden></div>
+    <script src="app.js"></script>
+  </body>
+</html>

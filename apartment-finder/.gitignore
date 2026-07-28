@@ -1,0 +1,12 @@
+node_modules/
+dist/
+# The snapshot is committed on purpose: it carries price history between
+# GitHub Actions runs, which each start from a fresh checkout.
+data/*
+!data/snapshot.json
+site/
+*.db
+*.db-journal
+.env
+.env.local
+npm-debug.log*

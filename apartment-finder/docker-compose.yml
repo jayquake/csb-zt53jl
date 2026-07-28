@@ -1,0 +1,28 @@
+services:
+  apartment-finder:
+    build: .
+    container_name: apartment-finder
+    restart: unless-stopped
+    ports:
+      - '8080:8080'
+    env_file:
+      - .env
+    environment:
+      DATABASE_URL: file:/app/data/apartments.db
+      BROWSER_PROFILE_DIR: /app/data/browser-profile
+    volumes:
+      # Persists the SQLite database (price history) and the browser profile
+      # (the solved bot-challenge cookie).
+      - apartment-data:/app/data
+    # Chromium needs more than Docker's default 64MB of shared memory or it
+    # crashes on content-heavy pages.
+    shm_size: '1gb'
+    healthcheck:
+      test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:8080/health']
+      interval: 60s
+      timeout: 10s
+      retries: 3
+      start_period: 20s
+
+volumes:
+  apartment-data:

@@ -1,0 +1,165 @@
+# Apartment finder — scheduled scan + GitHub Pages publish.
+#
+# How it works, and why:
+#
+#   GitHub Pages is static hosting — it cannot run Express, cron, Playwright or
+#   SQLite. So the work is split: Actions does the scraping and alerting on a
+#   schedule, and Pages serves the result as a read-only page.
+#
+#   import → scan → export → commit → deploy
+#
+#   The committed data/snapshot.json is what carries price history between
+#   runs. Every job starts from a fresh checkout with no database, so without
+#   it each morning would treat every listing as brand new and alert on all of
+#   them.
+#
+# Two caveats worth reading before relying on this:
+#
+#   1. GitHub-hosted runners use Azure datacenter IP ranges, which Radware and
+#      Cloudflare challenge far more aggressively than a home connection. Komo
+#      needs no browser and should work fine here; Yad2 and Homeless may well
+#      be blocked. The workflow carries on and reports per-source counts rather
+#      than failing, and `sources` below can be narrowed to komo.
+#
+#   2. GitHub only fires `schedule:` triggers from the repository's DEFAULT
+#      branch. On any other branch the cron silently never runs and only
+#      `workflow_dispatch` works. This repository's default branch is
+#      `gh-pages`, so that is where this file has to live for the morning scan
+#      to happen on its own.
+
+name: Apartment Finder
+
+on:
+  schedule:
+    # 04:30 UTC = 07:30 Asia/Jerusalem in IDT (summer, UTC+3).
+    # Israel observes DST, so in winter (IST, UTC+2) this lands at 06:30 local.
+    # GitHub cron has no timezone support; pick whichever half-year matters
+    # more, or add a second entry and guard it in the job.
+    - cron: '30 4 * * *'
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Scrape and score but send no notifications
+        type: boolean
+        default: false
+      sources:
+        description: Comma-separated sources to scan
+        type: string
+        default: komo,yad2,homeless
+
+concurrency:
+  # Never let two scans overlap — they would both write the snapshot.
+  group: apartment-finder
+  cancel-in-progress: false
+
+permissions:
+  contents: write # committing the snapshot back
+  pages: write
+  id-token: write
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apartment-finder
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: apartment-finder/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install Chromium
+        # Only Yad2 and Homeless need it. `--with-deps` pulls the system
+        # libraries the runner does not ship.
+        run: npx playwright install --with-deps chromium
+
+      - name: Prepare database
+        run: |
+          npx prisma generate
+          npx prisma db push --skip-generate --accept-data-loss
+
+      - name: Restore previous state
+        # No-op on the very first run, when no snapshot exists yet.
+        run: npm run snapshot:import
+
+      - name: Scan
+        env:
+          SOURCES: ${{ github.event.inputs.sources || 'komo,yad2,homeless' }}
+          NOTIFY_CHANNELS: ${{ vars.NOTIFY_CHANNELS || 'whatsapp' }}
+          TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
+          TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
+          TWILIO_WHATSAPP_FROM: ${{ secrets.TWILIO_WHATSAPP_FROM }}
+          TWILIO_WHATSAPP_TO: ${{ secrets.TWILIO_WHATSAPP_TO }}
+          TELEGRAM_BOT_TOKEN: ${{ secrets.TELEGRAM_BOT_TOKEN }}
+          TELEGRAM_CHAT_ID: ${{ secrets.TELEGRAM_CHAT_ID }}
+          PUBLIC_BASE_URL: ${{ vars.PUBLIC_BASE_URL }}
+          SCRAPE_THROTTLE_MS: '5000'
+          LOG_LEVEL: info
+        # A blocked source must not lose the run: the scan already failed soft
+        # per source, and the snapshot still needs writing and publishing.
+        continue-on-error: true
+        run: |
+          if [ "${{ github.event.inputs.dry_run }}" = "true" ]; then
+            npm run scan:dry
+          else
+            npm run scan
+          fi
+
+      - name: Export snapshot and build the site
+        run: npm run snapshot:export
+
+      - name: Report what each source returned
+        run: |
+          node -e "
+            const s = require('./data/snapshot.json');
+            const run = s.lastRun || {};
+            console.log('## Scan result');
+            console.log('- listings:', s.counts.active);
+            console.log('- new:', run.new ?? 0, ' drops:', run.drops ?? 0);
+            console.log('- per source:', JSON.stringify(run.sourceStats || {}));
+            for (const e of run.errors || []) console.log('- error:', e);
+          " >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Commit the snapshot
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/snapshot.json
+          # Nothing changed is a normal outcome, not a failure.
+          if git diff --staged --quiet; then
+            echo "snapshot unchanged"
+          else
+            git commit -m "chore: apartment snapshot $(date -u +%Y-%m-%d)"
+            # Rebase first: a push during the scan would otherwise reject this
+            # and lose the run's state.
+            #
+            # The snapshot goes back to the branch the run started from rather
+            # than a hardcoded one, so a manual dispatch from a feature branch
+            # updates that branch instead of writing to the default.
+            git pull --rebase --autostash origin "$BRANCH"
+            git push origin "HEAD:$BRANCH"
+          fi
+        env:
+          BRANCH: ${{ github.ref_name }}
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: apartment-finder/site
+
+  deploy:
+    needs: scan
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
