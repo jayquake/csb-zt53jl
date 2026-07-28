@@ -1,0 +1,311 @@
+/* Mobile-first. The layout is a single column up to 640px, which is how this
+   will actually be used — checking the morning's finds on a phone. */
+
+:root {
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --border: #e2e8f0;
+  --text: #0f172a;
+  --muted: #64748b;
+  --accent: #2563eb;
+  --accent-contrast: #ffffff;
+  --good: #059669;
+  --drop: #dc2626;
+  --shadow: 0 1px 3px rgb(15 23 42 / 0.08), 0 1px 2px rgb(15 23 42 / 0.04);
+  --radius: 14px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0b1220;
+    --surface: #131c2e;
+    --border: #24304a;
+    --text: #e6edf7;
+    --muted: #93a3b8;
+    --accent: #4f8cff;
+    --accent-contrast: #06101f;
+    --good: #34d399;
+    --drop: #f87171;
+    --shadow: none;
+  }
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: system-ui, -apple-system, "Segoe UI", Rubik, Arial, sans-serif;
+  font-size: 15px;
+  line-height: 1.5;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* ---- Top bar ---- */
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  background: var(--surface);
+  border-bottom: 1px solid var(--border);
+  padding: max(10px, env(safe-area-inset-top)) 14px 10px;
+}
+
+.topbar-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.topbar h1 { font-size: 18px; margin: 0; letter-spacing: -0.01em; }
+
+.status-line { color: var(--muted); font-size: 12.5px; margin-top: 4px; }
+
+/* ---- Tabs ---- */
+.tabs {
+  position: sticky;
+  top: 62px;
+  z-index: 19;
+  display: flex;
+  gap: 4px;
+  padding: 8px 10px;
+  background: var(--bg);
+  border-bottom: 1px solid var(--border);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabs::-webkit-scrollbar { display: none; }
+
+.tab {
+  flex: 0 0 auto;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--muted);
+  border-radius: 999px;
+  padding: 7px 15px;
+  font-size: 14px;
+  font-family: inherit;
+  cursor: pointer;
+  /* Comfortably tappable without a stylus. */
+  min-height: 38px;
+}
+
+.tab.is-active {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--accent-contrast);
+  font-weight: 600;
+}
+
+/* ---- Panels ---- */
+main { padding: 12px 10px 40px; max-width: 720px; margin: 0 auto; }
+.panel { display: none; }
+.panel.is-active { display: block; }
+
+/* ---- Filters ---- */
+.filters {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+/* Search and the price range each want the full width on a phone. */
+.filters #filter-q,
+.filters .range { grid-column: 1 / -1; }
+
+.range { display: flex; align-items: center; gap: 6px; }
+.range .input { flex: 1; min-width: 0; }
+.range-sep { color: var(--muted); flex: 0 0 auto; }
+
+.filter-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 8px 2px 12px;
+  min-height: 20px;
+}
+
+.linkbtn {
+  background: none;
+  border: none;
+  color: var(--accent);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+  padding: 4px;
+}
+
+/* ---- Forms ---- */
+.input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--text);
+  font-family: inherit;
+  /* 16px stops iOS Safari zooming the viewport on focus. */
+  font-size: 16px;
+  min-height: 42px;
+}
+
+.input:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+
+.textarea { resize: vertical; line-height: 1.45; }
+
+label { display: block; font-size: 13px; color: var(--muted); margin-bottom: 10px; }
+label .input { margin-top: 4px; }
+
+.grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; }
+
+.chips { border: 1px solid var(--border); border-radius: 10px; padding: 8px 12px 12px; margin: 4px 0 14px; }
+.chips legend { font-size: 12px; color: var(--muted); padding: 0 4px; }
+.chip { display: inline-flex; align-items: center; gap: 6px; margin: 4px 0 0 10px; font-size: 14px; color: var(--text); }
+.chip input { width: 18px; height: 18px; accent-color: var(--accent); }
+/* A checkbox with a full sentence beside it, rather than a one-word chip. */
+.chip-block { display: flex; align-items: flex-start; gap: 8px; margin: 0 0 14px; line-height: 1.4; }
+.chip-block input { flex: 0 0 auto; margin-top: 2px; }
+
+/* ---- Buttons ---- */
+.btn {
+  border: 1px solid transparent;
+  border-radius: 10px;
+  padding: 10px 16px;
+  font-family: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  min-height: 42px;
+}
+.btn-primary { background: var(--accent); color: var(--accent-contrast); }
+.btn-primary:disabled { opacity: 0.55; cursor: not-allowed; }
+.btn-ghost { background: transparent; border-color: var(--border); color: var(--text); }
+/* Full width only as a standalone block button (e.g. "Load more"). Inside a
+   card's action row the buttons sit side by side. */
+#load-more.btn-ghost { width: 100%; margin-top: 12px; }
+
+/* ---- Cards ---- */
+.list { display: grid; gap: 10px; }
+
+.card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 12px;
+}
+
+.card-form h2 { margin: 0 0 6px; font-size: 16px; }
+
+.listing { display: grid; grid-template-columns: 92px 1fr; gap: 12px; align-items: start; }
+.listing.no-image { grid-template-columns: 1fr; }
+
+.thumb {
+  width: 92px;
+  height: 92px;
+  border-radius: 10px;
+  object-fit: cover;
+  background: var(--border);
+}
+
+.listing-title {
+  font-weight: 600;
+  font-size: 15px;
+  margin: 0 0 2px;
+  /* Long Hebrew titles must not push the card wide on a narrow phone. */
+  overflow-wrap: anywhere;
+}
+
+.price { font-size: 17px; font-weight: 700; }
+.price .old { color: var(--muted); text-decoration: line-through; font-weight: 400; font-size: 14px; margin-inline-start: 6px; }
+.price.is-drop { color: var(--drop); }
+
+.meta { color: var(--muted); font-size: 13px; margin-top: 2px; }
+
+.badges { display: flex; flex-wrap: wrap; gap: 5px; margin-top: 7px; }
+.badge {
+  font-size: 11.5px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--accent) 12%, transparent);
+  color: var(--accent);
+  border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+}
+.badge.score { background: color-mix(in srgb, var(--good) 14%, transparent); color: var(--good); border-color: color-mix(in srgb, var(--good) 30%, transparent); }
+.badge.src { background: transparent; color: var(--muted); border-color: var(--border); }
+/* A realtor listing usually carries a broker fee of about one month's rent,
+   so it is flagged rather than shown neutrally. */
+.badge.warn { background: color-mix(in srgb, var(--drop) 13%, transparent); color: var(--drop); border-color: color-mix(in srgb, var(--drop) 30%, transparent); }
+.badge.ok { background: color-mix(in srgb, var(--good) 13%, transparent); color: var(--good); border-color: color-mix(in srgb, var(--good) 30%, transparent); }
+
+.actions { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
+.actions .btn { padding: 7px 12px; font-size: 13px; min-height: 36px; }
+
+/* A price trend indicator, not a chart — deliberately small so it reads at a
+   glance without competing with the price itself. */
+.spark { display: block; margin-top: 8px; width: 100%; max-width: 160px; height: 24px; opacity: 0.85; }
+
+.empty { text-align: center; color: var(--muted); padding: 40px 12px; }
+
+.muted { color: var(--muted); font-size: 13px; }
+
+.result { margin-top: 10px; padding: 10px 12px; border-radius: 10px; font-size: 13.5px; }
+.result.ok { background: color-mix(in srgb, var(--good) 12%, transparent); color: var(--good); }
+.result.err { background: color-mix(in srgb, var(--drop) 12%, transparent); color: var(--drop); }
+
+/* ---- Toast ---- */
+.toast {
+  position: fixed;
+  left: 50%;
+  transform: translateX(-50%);
+  bottom: max(18px, env(safe-area-inset-bottom));
+  background: var(--text);
+  color: var(--bg);
+  padding: 10px 18px;
+  border-radius: 999px;
+  font-size: 14px;
+  z-index: 50;
+  box-shadow: 0 4px 14px rgb(0 0 0 / 0.2);
+}
+
+@media (min-width: 640px) {
+  .filters { grid-template-columns: 2fr 1fr 1fr 1fr; }
+  .filters #filter-q { grid-column: span 2; }
+  .filters .range { grid-column: span 2; }
+  .listing { grid-template-columns: 120px 1fr; }
+  .thumb { width: 120px; height: 110px; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation: none !important; transition: none !important; }
+}
+
+/* ---- Static mode (GitHub Pages) ----
+   With no server there is nothing to POST to, so the controls that would write
+   are hidden rather than left present and silently broken. Save/Hide still
+   work — they are kept in localStorage. */
+body.is-static #scan-btn,
+body.is-static [data-tab='add'],
+body.is-static #criteria-save { display: none; }
+
+body.is-static .card-form input,
+body.is-static .card-form select,
+body.is-static .card-form textarea {
+  opacity: 0.75;
+  pointer-events: none;
+}
+
+.static-note {
+  display: none;
+  margin: 0 0 12px;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.45;
+}
+body.is-static .static-note { display: block; }
