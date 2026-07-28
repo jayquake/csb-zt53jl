@@ -6,8 +6,8 @@
     <meta name="theme-color" content="#0f172a" />
     <meta name="color-scheme" content="light dark" />
     <title>Apartment Finder — Tel Aviv</title>
-    <link rel="stylesheet" href="vendor/leaflet.css" />
-    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="vendor/leaflet.css?v=ec929f11" />
+    <link rel="stylesheet" href="styles.css?v=87c71cc0" />
   </head>
   <body>
     <header class="topbar">
@@ -65,6 +65,9 @@
             <option value="private">No realtors</option>
             <option value="agency">Realtors only</option>
           </select>
+          <select id="filter-area" class="input" aria-label="Area">
+            <option value="">All areas</option>
+          </select>
           <select id="filter-source" class="input" aria-label="Source">
             <option value="">All sources</option>
             <option value="komo">Komo</option>
@@ -87,6 +90,10 @@
 
       <!-- Map -->
       <section id="panel-map" class="panel">
+        <div class="map-bar">
+          <button id="locate-btn" class="btn btn-ghost" type="button">📍 My location</button>
+          <span id="locate-status" class="muted"></span>
+        </div>
         <div id="map"></div>
         <p id="map-note" class="muted map-note"></p>
       </section>
@@ -137,8 +144,13 @@
             <input id="c-cities" class="input" type="text" dir="auto" />
           </label>
           <label>
-            Favourite neighbourhoods
-            <input id="c-favAreas" class="input" type="text" dir="auto" />
+            Areas to search
+            <span class="hint">Leave all unselected to search everywhere</span>
+            <select id="c-neighborhoods" class="input select-multi" multiple size="8"></select>
+          </label>
+          <label>
+            Favourite areas <span class="hint">scored higher, never required</span>
+            <select id="c-favAreas" class="input select-multi" multiple size="6"></select>
           </label>
           <label>
             Blocked keywords
@@ -178,7 +190,7 @@
     </main>
 
     <div id="toast" class="toast" hidden></div>
-    <script src="vendor/leaflet.js"></script>
-    <script src="app.js"></script>
+    <script src="vendor/leaflet.js?v=5a640ff8"></script>
+    <script src="app.js?v=0bf13853"></script>
   </body>
 </html>

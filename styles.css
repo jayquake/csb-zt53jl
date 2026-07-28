@@ -363,3 +363,22 @@ body.is-static .static-note { display: block; }
 .popup-links { display: flex; gap: 6px; flex-wrap: wrap; }
 .popup-links a { font-size: 12.5px; font-weight: 600; text-decoration: none; padding: 4px 9px; border-radius: 7px; background: #2563eb; color: #fff; }
 .popup-links a.wa { background: #25d366; color: #05240f; }
+
+/* Multi-selects: a native <select multiple> is the right control on a phone —
+   it gets the platform picker and needs no custom scroll handling. */
+.select-multi { height: auto; padding: 6px; font-size: 15px; }
+.select-multi option { padding: 7px 6px; border-radius: 6px; }
+.hint { display: block; font-weight: 400; font-size: 11.5px; opacity: 0.75; margin-top: 1px; }
+
+.map-bar { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; flex-wrap: wrap; }
+.map-bar .btn { padding: 7px 13px; font-size: 13px; min-height: 36px; }
+
+/* "You are here" — deliberately unlike a listing pin so it cannot be mistaken
+   for one. */
+.me-dot {
+  width: 16px; height: 16px; margin: -8px 0 0 -8px;
+  border-radius: 50%;
+  background: #2563eb;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 2px rgb(37 99 235 / 0.45);
+}

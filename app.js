@@ -19,6 +19,7 @@ const state = {
    */
   static: false,
   snapshot: null,
+  areas: null,
 };
 
 const $ = (sel) => document.querySelector(sel);
@@ -123,6 +124,7 @@ function filterAndSort(listings) {
   const maxPrice = Number($('#filter-max-price').value) || null;
   const poster = $('#filter-poster').value;
   const source = $('#filter-source').value;
+  const area = $('#filter-area').value;
   const sort = $('#filter-sort').value;
 
   let out = listings.filter((l) => {
@@ -133,6 +135,7 @@ function filterAndSort(listings) {
     if (poster === 'private' && l.isAgency === true) return false;
     if (poster === 'agency' && l.isAgency !== true) return false;
     if (source && l.source !== source) return false;
+    if (area && l.neighborhood !== area) return false;
     if (q) {
       const hay = `${l.title} ${l.description || ''} ${l.neighborhood || ''}`.toLowerCase();
       if (!hay.includes(q)) return false;
@@ -301,6 +304,77 @@ function renderList(container, listings, emptyMessage) {
   });
 }
 
+/* ---------- areas ---------- */
+
+/**
+ * Builds the area lists from the listings themselves rather than a fixed
+ * catalogue, so the options are always ones that currently have results —
+ * offering a neighbourhood with nothing in it is just a dead end.
+ *
+ * The value is the Hebrew name (that is what the criteria and the sources
+ * match on); the label is English where a translation exists.
+ */
+function areaOptions() {
+  // In server mode the authoritative list comes from /api/areas, which covers
+  // every listing rather than just the page currently rendered.
+  if (!state.static && state.areas) return state.areas;
+
+  const source = state.static ? state.snapshot?.listings || [] : state.listings;
+  const areas = new Map(); // hebrew -> { label, count }
+  for (const listing of source) {
+    const he = listing.neighborhood;
+    if (!he) continue;
+    const existing = areas.get(he);
+    if (existing) existing.count += 1;
+    else areas.set(he, { label: listing.neighborhoodEn || he, count: 1 });
+  }
+
+  return [...areas.entries()]
+    .map(([value, { label, count }]) => ({ value, label, count }))
+    .sort((a, b) => a.label.localeCompare(b.label));
+}
+
+function fillAreaFilter() {
+  const select = $('#filter-area');
+  if (!select) return;
+  const previous = select.value;
+  const options = areaOptions();
+
+  select.innerHTML =
+    '<option value="">All areas</option>' +
+    options.map((o) => `<option value="${esc(o.value)}">${esc(o.label)} (${o.count})</option>`).join('');
+
+  // Keep the selection across refreshes, unless that area no longer exists.
+  if (previous && options.some((o) => o.value === previous)) select.value = previous;
+}
+
+/** Populates the two criteria multi-selects, preserving what is already chosen. */
+function fillAreaSelects(selectedAreas = [], favouriteAreas = []) {
+  const options = areaOptions();
+  const render = (id, selected) => {
+    const select = $(id);
+    if (!select) return;
+    // Anything already saved but absent from the current data must still show,
+    // or saving the form would silently drop it.
+    const values = new Set(options.map((o) => o.value));
+    const extras = selected.filter((v) => !values.has(v)).map((v) => ({ value: v, label: v, count: 0 }));
+    select.innerHTML = [...options, ...extras]
+      .map((o) => {
+        const on = selected.includes(o.value) ? ' selected' : '';
+        const suffix = o.count ? ` (${o.count})` : '';
+        return `<option value="${esc(o.value)}"${on}>${esc(o.label)}${suffix}</option>`;
+      })
+      .join('');
+  };
+  render('#c-neighborhoods', selectedAreas);
+  render('#c-favAreas', favouriteAreas);
+}
+
+function selectedValues(id) {
+  const select = $(id);
+  return select ? [...select.selectedOptions].map((o) => o.value) : [];
+}
+
 /* ---------- map ---------- */
 
 let map = null;
@@ -380,6 +454,69 @@ function renderMap(listings) {
   setTimeout(() => map.invalidateSize(), 0);
 }
 
+let meLayer = null;
+
+/**
+ * Centres the map on the browser's reported position.
+ *
+ * Geolocation needs a secure context, so this works on the published HTTPS
+ * page and on localhost, but not over plain HTTP on a LAN address — worth
+ * knowing before concluding it is broken.
+ */
+function locateMe() {
+  const status = $('#locate-status');
+
+  if (!navigator.geolocation) {
+    status.textContent = 'This browser has no location support.';
+    return;
+  }
+  if (!map) {
+    status.textContent = 'Open the map first.';
+    return;
+  }
+
+  status.textContent = 'Locating…';
+
+  navigator.geolocation.getCurrentPosition(
+    (position) => {
+      const { latitude, longitude, accuracy } = position.coords;
+
+      if (!meLayer) meLayer = L.layerGroup().addTo(map);
+      meLayer.clearLayers();
+
+      L.marker([latitude, longitude], {
+        icon: L.divIcon({ className: '', html: '<div class="me-dot"></div>', iconSize: [0, 0] }),
+        zIndexOffset: 1000,
+      })
+        .bindPopup('You are here')
+        .addTo(meLayer);
+
+      // The accuracy circle is the honest part: a 2km fix rendered as a precise
+      // dot would imply a certainty the browser never claimed.
+      if (accuracy && accuracy > 25) {
+        L.circle([latitude, longitude], {
+          radius: accuracy,
+          color: '#2563eb',
+          weight: 1,
+          fillOpacity: 0.08,
+        }).addTo(meLayer);
+      }
+
+      map.setView([latitude, longitude], 15);
+      status.textContent = `Located to ±${Math.round(accuracy)}m.`;
+    },
+    (error) => {
+      const reasons = {
+        1: 'Permission denied — allow location for this site in your browser settings.',
+        2: 'Position unavailable.',
+        3: 'Timed out.',
+      };
+      status.textContent = reasons[error.code] || 'Could not get your location.';
+    },
+    { enableHighAccuracy: true, timeout: 10000, maximumAge: 60000 }
+  );
+}
+
 /** Loads every match (not just the current page) so the map is complete. */
 async function loadMap() {
   try {
@@ -407,6 +544,7 @@ const FILTER_FIELDS = [
   ['#filter-max-price', 'maxPrice'],
   ['#filter-poster', 'poster'],
   ['#filter-source', 'source'],
+  ['#filter-area', 'area'],
 ];
 
 function feedQuery(offset) {
@@ -429,6 +567,7 @@ async function loadFeed(append = false) {
     state.offset = offset;
     state.total = data.total;
     state.listings = append ? state.listings.concat(data.listings) : data.listings;
+    fillAreaFilter();
     renderList($('#feed-list'), state.listings, 'No listings match. Try widening the filters, or tap "Scan now".');
     $('#result-count').textContent =
       data.total === 0 ? '' : `${state.listings.length} of ${data.total}`;
@@ -460,6 +599,17 @@ async function loadSaved() {
     renderList($('#saved-list'), data.listings, 'Nothing saved yet.');
   } catch (err) {
     $('#saved-list').innerHTML = `<p class="empty">Error: ${esc(err.message)}</p>`;
+  }
+}
+
+/** Server mode only: the complete area list, refreshed after each scan. */
+async function loadAreas() {
+  if (state.static) return;
+  try {
+    const data = await api('/areas');
+    state.areas = data.areas;
+  } catch {
+    state.areas = null; // fall back to deriving from the visible page
   }
 }
 
@@ -519,7 +669,7 @@ function renderCriteria(c) {
   set('#c-minSize', c.minSizeSqm);
   set('#c-idealPrice', c.preferences.idealMaxPriceIls);
   set('#c-cities', (c.cities || []).join(', '));
-  set('#c-favAreas', (c.preferences.favoriteNeighborhoods || []).join(', '));
+  fillAreaSelects(c.neighborhoods || [], c.preferences.favoriteNeighborhoods || []);
   set('#c-exclude', (c.excludeKeywords || []).join(', '));
   set('#c-minScore', c.minScoreToAlert);
   set('#c-minDrop', c.minPriceDropPercent);
@@ -657,6 +807,7 @@ $('#criteria-save').addEventListener('click', async () => {
         maxRooms: numberOrUndefined('#c-maxRooms'),
         minSizeSqm: numberOrUndefined('#c-minSize'),
         cities: csv('#c-cities'),
+        neighborhoods: selectedValues('#c-neighborhoods'),
         excludeKeywords: csv('#c-exclude'),
         minScoreToAlert: numberOrUndefined('#c-minScore') ?? 55,
         minPriceDropPercent: numberOrUndefined('#c-minDrop') ?? 3,
@@ -668,7 +819,7 @@ $('#criteria-save').addEventListener('click', async () => {
         requireSafeRoom: $('#c-reqSafeRoom').checked,
         preferences: {
           idealMaxPriceIls: numberOrUndefined('#c-idealPrice'),
-          favoriteNeighborhoods: csv('#c-favAreas'),
+          favoriteNeighborhoods: selectedValues('#c-favAreas'),
         },
       },
     });
@@ -689,7 +840,7 @@ let debounce;
     debounce = setTimeout(() => loadFeed(), 350);
   });
 });
-['#filter-sort', '#filter-poster', '#filter-source'].forEach((sel) => {
+['#filter-sort', '#filter-poster', '#filter-source', '#filter-area'].forEach((sel) => {
   $(sel).addEventListener('change', () => loadFeed());
 });
 
@@ -701,8 +852,10 @@ loadFeed = async function (append = false) {
   if (state.tab === 'map') loadMap();
 };
 
+$('#locate-btn').addEventListener('click', locateMe);
+
 $('#filter-reset').addEventListener('click', () => {
-  ['#filter-q', '#filter-min-price', '#filter-max-price', '#filter-poster', '#filter-source'].forEach((sel) => {
+  ['#filter-q', '#filter-min-price', '#filter-max-price', '#filter-poster', '#filter-source', '#filter-area'].forEach((sel) => {
     $(sel).value = '';
   });
   $('#filter-sort').value = 'score';
@@ -740,6 +893,7 @@ async function boot() {
     }
   }
 
+  await loadAreas();
   loadStatus();
   loadFeed();
 }
