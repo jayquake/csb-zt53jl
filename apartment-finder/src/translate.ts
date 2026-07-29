@@ -39,7 +39,12 @@ const CITIES: Record<string, string> = {
 };
 
 /**
- * Tel Aviv neighbourhoods. Transliterated rather than literally translated
+ * Neighbourhoods, mostly Tel Aviv but also the neighbouring cities — Tel Ganim,
+ * Borochov, Givat Rambam and Hillel are Givatayim, not Tel Aviv. The table is
+ * only for display, so covering them costs nothing; which cities are actually
+ * searched is decided by `cities` in the criteria.
+ *
+ * Transliterated rather than literally translated
  * where that is how people actually refer to them in English — nobody says
  * "Old North" in a WhatsApp message, they say "Tzafon Yashan"; but "Florentin"
  * is simply Florentin.
@@ -107,6 +112,9 @@ const NEIGHBORHOODS: Record<string, string> = {
   'רמת ישראל': 'Ramat Yisrael',
   'כפר שלם': 'Kfar Shalem',
   'נוה שאנן': 'Neve Sha\'anan',
+  לבנה: 'Levana',
+  'נווה ברבור': 'Neve Barbur',
+  'כרם הזיתים': 'Kerem HaZeitim',
 };
 
 /**

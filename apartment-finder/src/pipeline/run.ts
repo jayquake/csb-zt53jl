@@ -12,7 +12,7 @@ import { config } from '../config';
 import { log } from '../logger';
 import { resolveSources } from '../sources';
 import { closeBrowser } from '../sources/browser';
-import { ingest, markStale, type PendingAlert } from './ingest';
+import { ingest, markStale, pruneOutOfScope, type PendingAlert } from './ingest';
 import { geocodeMissing } from '../geocode';
 import { buildNotifiers, ConsoleNotifier, type Notifier } from '../notify';
 import { formatDigest } from '../notify/format';
@@ -88,6 +88,10 @@ export async function runScan(options: ScanOptions = {}): Promise<ScanSummary> {
       errors.push(`geocode: ${message}`);
       log.warn('geocoding failed', message);
     }
+
+    // Before staleness, so a narrowed search takes effect immediately rather
+    // than waiting out staleAfterDays.
+    await pruneOutOfScope(prisma, criteria);
 
     const staleCount = await markStale(prisma, config.staleAfterDays, startedAt);
     if (staleCount > 0) log.info(`marked ${staleCount} listings inactive`);

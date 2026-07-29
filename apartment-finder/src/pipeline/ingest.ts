@@ -13,7 +13,7 @@
 
 import type { PrismaClient } from '@prisma/client';
 import type { RawListing, SearchCriteria, AlertKind } from '../types';
-import { evaluate, isSignificantDrop } from '../criteria';
+import { cityMatches, evaluate, isSignificantDrop } from '../criteria';
 import { computeFingerprint } from './fingerprint';
 import { translateCity, translateNeighborhood } from '../translate';
 import { log } from '../logger';
@@ -244,6 +244,32 @@ function toPendingAlert(
       imageUrls,
     },
   };
+}
+
+/**
+ * Retires listings that no longer match the criteria at all.
+ *
+ * Narrowing the search — dropping a city, say — otherwise leaves the old
+ * listings sitting in the feed until they age out, which for `staleAfterDays`
+ * of 14 means a fortnight of results you have explicitly said you do not want.
+ * Only the city is checked here, deliberately: it is the one criterion where a
+ * change means "these were never relevant", whereas a tightened budget is a
+ * preference change and those listings are still real.
+ */
+export async function pruneOutOfScope(prisma: PrismaClient, criteria: SearchCriteria): Promise<number> {
+  if (criteria.cities.length === 0) return 0;
+
+  const active = await prisma.listing.findMany({
+    where: { isActive: true },
+    select: { id: true, city: true },
+  });
+
+  const outOfScope = active.filter((l) => l.city && !cityMatches(l.city, criteria.cities)).map((l) => l.id);
+  if (outOfScope.length === 0) return 0;
+
+  await prisma.listing.updateMany({ where: { id: { in: outOfScope } }, data: { isActive: false } });
+  log.info(`retired ${outOfScope.length} listings outside the configured cities`);
+  return outOfScope.length;
 }
 
 /**

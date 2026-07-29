@@ -179,3 +179,42 @@ test('the private-poster query must not drop unknown-provenance rows', () => {
     assert.equal(await prisma.listing.count({ where: { isAgency: true } }), 1);
   })();
 });
+
+test('narrowing the cities retires out-of-scope listings immediately', () => {
+  // Dropping a city should take effect at once. Leaving those listings to age
+  // out via staleAfterDays would mean a fortnight of results you have
+  // explicitly excluded — which is exactly what happened when the default
+  // included Ramat Gan and Givatayim.
+  return (async () => {
+    const { pruneOutOfScope } = await import('../src/pipeline/ingest');
+    await prisma.listing.deleteMany();
+
+    const base = { source: 'komo', url: 'https://example.com/x', fingerprint: 'f', title: 't', priceIls: 6000 };
+    await prisma.listing.create({ data: { ...base, externalId: 'tlv-1', city: 'תל אביב יפו', fingerprint: 'f1' } });
+    await prisma.listing.create({ data: { ...base, externalId: 'tlv-2', city: 'תל אביב', fingerprint: 'f2' } });
+    await prisma.listing.create({ data: { ...base, externalId: 'rg-1', city: 'רמת גן', fingerprint: 'f3' } });
+    await prisma.listing.create({ data: { ...base, externalId: 'gv-1', city: 'גבעתיים', fingerprint: 'f4' } });
+
+    const retired = await pruneOutOfScope(prisma, { ...criteria, cities: ['תל אביב יפו'] });
+
+    assert.equal(retired, 2, 'Ramat Gan and Givatayim should be retired');
+    assert.equal(await prisma.listing.count({ where: { isActive: true } }), 2);
+
+    // "תל אביב" must survive a "תל אביב יפו" filter — the sources spell the
+    // same city both ways, and rejecting one would halve the real results.
+    const kept = await prisma.listing.findMany({ where: { isActive: true }, select: { city: true } });
+    assert.deepEqual(kept.map((k) => k.city).sort(), ['תל אביב', 'תל אביב יפו']);
+  })();
+});
+
+test('an empty city list prunes nothing', () => {
+  // No cities configured means "anywhere", not "nowhere" — pruning everything
+  // would silently empty the feed.
+  return (async () => {
+    const { pruneOutOfScope } = await import('../src/pipeline/ingest');
+    await prisma.listing.updateMany({ data: { isActive: true } });
+    const before = await prisma.listing.count({ where: { isActive: true } });
+    assert.equal(await pruneOutOfScope(prisma, { ...criteria, cities: [] }), 0);
+    assert.equal(await prisma.listing.count({ where: { isActive: true } }), before);
+  })();
+});

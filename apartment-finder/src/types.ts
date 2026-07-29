@@ -133,7 +133,10 @@ export const DEFAULT_CRITERIA: SearchCriteria = {
   minRooms: 2,
   maxRooms: 4,
   minSizeSqm: 45,
-  cities: ['תל אביב יפו', 'רמת גן', 'גבעתיים'],
+  // Tel Aviv only. Neighbouring cities are a different housing market with
+  // different prices and commutes — adding them buries the Tel Aviv results
+  // rather than supplementing them. Add them back here if that changes.
+  cities: ['תל אביב יפו'],
   neighborhoods: [],
   excludeKeywords: ['סאבלט', 'שותף', 'שותפה'],
   allowRoommates: false,

@@ -18,6 +18,7 @@ import * as path from 'path';
 import { createHash } from 'crypto';
 import type { PrismaClient } from '@prisma/client';
 import { log } from './logger';
+import { translateCity, translateNeighborhood } from './translate';
 import type { SearchCriteria } from './types';
 
 export const SNAPSHOT_VERSION = 1;
@@ -87,6 +88,15 @@ export interface Snapshot {
  */
 interface SnapshotFile extends Snapshot {
   alerts: Array<{ listingId: string; kind: string; oldPrice: number | null; newPrice: number | null; sentAt: string }>;
+  /**
+   * The address cache, including failures (null coordinates).
+   *
+   * Without this every CI run starts with an empty cache, and an address
+   * Nominatim cannot resolve is looked up again every single morning — the
+   * precise waste the cache exists to prevent, against a free community
+   * service.
+   */
+  geocodes?: Array<{ address: string; lat: number | null; lng: number | null }>;
 }
 
 function toIso(value: Date | null | undefined): string | null {
@@ -94,7 +104,7 @@ function toIso(value: Date | null | undefined): string | null {
 }
 
 export async function exportSnapshot(prisma: PrismaClient, outputPath: string): Promise<Snapshot> {
-  const [rows, lastRun, alerts, criteriaRow] = await Promise.all([
+  const [rows, lastRun, alerts, criteriaRow, geocodes] = await Promise.all([
     prisma.listing.findMany({
       // Inactive listings are dropped: they are off the market, and keeping
       // them would grow the committed file without bound.
@@ -105,6 +115,7 @@ export async function exportSnapshot(prisma: PrismaClient, outputPath: string): 
     prisma.scanRun.findFirst({ orderBy: { startedAt: 'desc' } }),
     prisma.alert.findMany({ orderBy: { sentAt: 'desc' }, take: 2000 }),
     prisma.criteria.findUnique({ where: { id: 'default' } }),
+    prisma.geocode.findMany({ select: { address: true, lat: true, lng: true } }),
   ]);
 
   const listings: SnapshotListing[] = rows.map((row: any) => ({
@@ -165,6 +176,7 @@ export async function exportSnapshot(prisma: PrismaClient, outputPath: string): 
       : null,
     counts: { active: listings.length, total: await prisma.listing.count() },
     listings,
+    geocodes,
     alerts: alerts.map((a: any) => ({
       listingId: a.listingId,
       kind: a.kind,
@@ -207,7 +219,18 @@ export async function importSnapshot(prisma: PrismaClient, inputPath: string): P
 
   const existing = await prisma.listing.count();
   if (existing > 0) {
-    log.info(`database already has ${existing} listings — skipping import`);
+    log.info(`database already has ${existing} listings — skipping listing import`);
+    // The address cache is still worth restoring: it is keyed by address, not
+    // by listing, so it is useful regardless of what is already stored.
+    for (const entry of parsed.geocodes ?? []) {
+      await prisma.geocode
+        .upsert({
+          where: { address: entry.address },
+          create: { address: entry.address, lat: entry.lat, lng: entry.lng },
+          update: {},
+        })
+        .catch(() => undefined);
+    }
     return 0;
   }
 
@@ -263,8 +286,53 @@ export async function importSnapshot(prisma: PrismaClient, inputPath: string): P
       .catch(() => undefined);
   }
 
+  // Restore the address cache before anything geocodes again.
+  for (const entry of parsed.geocodes ?? []) {
+    await prisma.geocode
+      .upsert({
+        where: { address: entry.address },
+        create: { address: entry.address, lat: entry.lat, lng: entry.lng },
+        update: {},
+      })
+      .catch(() => undefined);
+  }
+  if (parsed.geocodes?.length) log.info(`restored ${parsed.geocodes.length} cached addresses`);
+
+  await backfillTranslations(prisma);
+
   log.info(`snapshot restored: ${imported} listings from ${inputPath}`);
   return imported;
+}
+
+/**
+ * Fills in English names for rows that lack them.
+ *
+ * Translation normally happens during ingest, but that only touches listings a
+ * scan actually saw again. A listing restored from the snapshot and not
+ * re-scraped keeps whatever it was stored with — so listings that predate the
+ * translation work, or whose area was added to the table later, stay in Hebrew
+ * indefinitely. It is a pure table lookup with no network cost, so there is no
+ * reason not to sweep them.
+ */
+export async function backfillTranslations(prisma: PrismaClient): Promise<number> {
+  const rows = await prisma.listing.findMany({
+    where: { OR: [{ cityEn: null }, { neighborhoodEn: null, neighborhood: { not: null } }] },
+    select: { id: true, city: true, neighborhood: true, cityEn: true, neighborhoodEn: true },
+  });
+
+  let updated = 0;
+  for (const row of rows) {
+    const cityEn = row.cityEn ?? translateCity(row.city) ?? null;
+    const neighborhoodEn = row.neighborhoodEn ?? translateNeighborhood(row.neighborhood) ?? null;
+    // Nothing resolvable: leave it, the UI falls back to the Hebrew.
+    if (cityEn === row.cityEn && neighborhoodEn === row.neighborhoodEn) continue;
+
+    await prisma.listing.update({ where: { id: row.id }, data: { cityEn, neighborhoodEn } });
+    updated += 1;
+  }
+
+  if (updated > 0) log.info(`backfilled English names for ${updated} listings`);
+  return updated;
 }
 
 /**

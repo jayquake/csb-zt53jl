@@ -74,7 +74,7 @@ function scoreHigherIsBetter(value: number, worst: number, best: number): number
  * "תל-אביב". Matching either direction on the normalized string covers all of
  * these without a hand-maintained alias table.
  */
-function cityMatches(listingCity: string, wanted: string[]): boolean {
+export function cityMatches(listingCity: string, wanted: string[]): boolean {
   if (wanted.length === 0) return true;
   const c = normalizeText(listingCity).replace(/-/g, ' ');
   return wanted.some((w) => {
