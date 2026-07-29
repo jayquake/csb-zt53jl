@@ -101,7 +101,7 @@ jobs:
       - name: Scan
         env:
           SOURCES: ${{ github.event.inputs.sources || 'komo,yad2,homeless' }}
-          NOTIFY_CHANNELS: ${{ vars.NOTIFY_CHANNELS || 'whatsapp' }}
+          NOTIFY_CHANNELS: ${{ vars.NOTIFY_CHANNELS || 'telegram' }}
           TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
           TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}
           TWILIO_WHATSAPP_FROM: ${{ secrets.TWILIO_WHATSAPP_FROM }}
