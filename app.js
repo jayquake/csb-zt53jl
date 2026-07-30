@@ -117,6 +117,18 @@ function fromSnapshot(row, actions) {
   };
 }
 
+/**
+ * Amenity chips in the filter bar, mapped to the field each checkbox reads
+ * on a listing's `amenities` object (server API and static mode both use it).
+ */
+const AMENITY_FIELDS = [
+  ['#filter-elevator', 'elevator'],
+  ['#filter-parking', 'parking'],
+  ['#filter-balcony', 'balcony'],
+  ['#filter-saferoom', 'safeRoom'],
+  ['#filter-furnished', 'furnished'],
+];
+
 /** Applies the feed filters client-side, mirroring the API's semantics. */
 function filterAndSort(listings) {
   const q = $('#filter-q').value.trim().toLowerCase();
@@ -126,6 +138,7 @@ function filterAndSort(listings) {
   const source = $('#filter-source').value;
   const area = $('#filter-area').value;
   const sort = $('#filter-sort').value;
+  const amenities = AMENITY_FIELDS.filter(([sel]) => $(sel).checked).map(([, key]) => key);
 
   let out = listings.filter((l) => {
     if (l.status === 'HIDDEN') return false;
@@ -136,6 +149,9 @@ function filterAndSort(listings) {
     if (poster === 'agency' && l.isAgency !== true) return false;
     if (source && l.source !== source) return false;
     if (area && l.neighborhood !== area) return false;
+    // A checked amenity must be a *confirmed* true — undefined means the
+    // listing never said, which "must have" cannot count as satisfying.
+    if (amenities.some((key) => l.amenities[key] !== true)) return false;
     if (q) {
       const hay = `${l.title} ${l.description || ''} ${l.neighborhood || ''}`.toLowerCase();
       if (!hay.includes(q)) return false;
@@ -557,6 +573,9 @@ function feedQuery(offset) {
     const value = $(sel).value.trim();
     if (value) params.set(key, value);
   }
+  for (const [sel, key] of AMENITY_FIELDS) {
+    if ($(sel).checked) params.set(key, 'true');
+  }
   return params.toString();
 }
 
@@ -843,6 +862,9 @@ let debounce;
 ['#filter-sort', '#filter-poster', '#filter-source', '#filter-area'].forEach((sel) => {
   $(sel).addEventListener('change', () => loadFeed());
 });
+AMENITY_FIELDS.forEach(([sel]) => {
+  $(sel).addEventListener('change', () => loadFeed());
+});
 
 // The map reflects the same filters as the feed, so re-render it when they
 // change and it is the visible tab.
@@ -859,6 +881,7 @@ $('#filter-reset').addEventListener('click', () => {
     $(sel).value = '';
   });
   $('#filter-sort').value = 'score';
+  AMENITY_FIELDS.forEach(([sel]) => { $(sel).checked = false; });
   loadFeed();
 });
 $('#load-more').addEventListener('click', () => loadFeed(true));

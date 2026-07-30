@@ -118,6 +118,11 @@ main { padding: 12px 10px 40px; max-width: 720px; margin: 0 auto; }
 .range .input { flex: 1; min-width: 0; }
 .range-sep { color: var(--muted); flex: 0 0 auto; }
 
+/* Amenity re-slice — same idea as poster/source, filters what is already on
+   the page rather than waiting for the next scan. */
+.filter-chips { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 2px 0; }
+.filter-chips .chip { margin: 0; }
+
 .filter-meta {
   display: flex;
   align-items: center;
