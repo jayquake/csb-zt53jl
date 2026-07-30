@@ -260,6 +260,36 @@ The Hebrew is order-sensitive: `ללא תיווך` ("no agent fee") contains the
 no-fee listing would be filed as an agency post. Cards badge a confirmed
 **Realtor** or **Owner**, and show nothing when the listing didn't say.
 
+### Forwarding listings to the bot
+
+Forward any listing — a Facebook-group post, a WhatsApp message, an SMS — to the
+Telegram bot and the next scan ingests it, through the same parse → fingerprint
+→ score → alert path as a scraped listing. So a flat someone mentioned in a
+group is tracked for price drops like any other, and shows up in the digest if
+it matches.
+
+This is the practical answer to "Facebook has the best listings". It is one tap
+from the Facebook app, needs no server, and is entirely compliant — you are
+sharing content you can already see, which is a different thing from a crawler
+hitting Meta.
+
+Implementation notes that matter:
+
+- **Polling, not a webhook.** A webhook needs a public HTTPS endpoint and this
+  app has no server on GitHub Actions. Polling `getUpdates` during the scan also
+  means anything forwarded overnight is simply waiting for the morning run.
+- **The read cursor is carried in the snapshot.** Telegram holds updates for 24
+  hours and only drops them once acknowledged, so a cursor that reset each run
+  would re-ingest every forward every morning. It also never moves backwards, so
+  restoring an older snapshot cannot replay what was already taken in.
+- **Unparseable messages are acknowledged too.** Otherwise a stray "thanks" in
+  the channel would be re-read on every scan forever.
+- Messages under 30 characters and anything starting with `/` are ignored, so
+  commands and chatter are not mistaken for listings.
+- **This is the one source with usable phone numbers.** The poster typed their
+  own number, so forwarded posts get a working WhatsApp button — the scraped
+  boards all hide theirs behind a login.
+
 ### Facebook groups
 
 **Not scraped, by design.** The Groups API was withdrawn in 2020 and automated collection breaches Meta's terms — people get their personal accounts banned for it.
@@ -373,7 +403,7 @@ Save / Hide / Contacted on each card; hidden listings drop out of the feed but s
 ## Tests
 
 ```bash
-npm test    # 74 tests
+npm test    # 81 tests
 ```
 
 Covers Hebrew parsing (prices with mixed separators, `3.5 חדרים`, `קרקע`/`מרתף` floors, relative dates like `לפני 3 ימים`, and amenity negation — `ללא מעלית` must not read as *has* elevator), scoring and rejection rules, fingerprint dedupe, message formatting, and an integration suite that runs the real ingest pipeline against a throwaway SQLite database to prove the alert-once rules hold.

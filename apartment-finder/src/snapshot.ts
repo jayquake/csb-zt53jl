@@ -97,6 +97,14 @@ interface SnapshotFile extends Snapshot {
    * service.
    */
   geocodes?: Array<{ address: string; lat: number | null; lng: number | null }>;
+  /**
+   * The Telegram inbox read cursor.
+   *
+   * Telegram holds updates for 24h and only drops them once acknowledged, so
+   * without carrying this across runs CI would re-ingest every forwarded
+   * listing each morning — the same trap the address cache fell into.
+   */
+  telegramOffset?: number;
 }
 
 function toIso(value: Date | null | undefined): string | null {
@@ -104,7 +112,7 @@ function toIso(value: Date | null | undefined): string | null {
 }
 
 export async function exportSnapshot(prisma: PrismaClient, outputPath: string): Promise<Snapshot> {
-  const [rows, lastRun, alerts, criteriaRow, geocodes] = await Promise.all([
+  const [rows, lastRun, alerts, criteriaRow, geocodes, offsetRow] = await Promise.all([
     prisma.listing.findMany({
       // Inactive listings are dropped: they are off the market, and keeping
       // them would grow the committed file without bound.
@@ -116,6 +124,7 @@ export async function exportSnapshot(prisma: PrismaClient, outputPath: string): 
     prisma.alert.findMany({ orderBy: { sentAt: 'desc' }, take: 2000 }),
     prisma.criteria.findUnique({ where: { id: 'default' } }),
     prisma.geocode.findMany({ select: { address: true, lat: true, lng: true } }),
+    prisma.criteria.findUnique({ where: { id: 'telegram-offset' } }),
   ]);
 
   const listings: SnapshotListing[] = rows.map((row: any) => ({
@@ -177,6 +186,7 @@ export async function exportSnapshot(prisma: PrismaClient, outputPath: string): 
     counts: { active: listings.length, total: await prisma.listing.count() },
     listings,
     geocodes,
+    telegramOffset: Number(offsetRow?.json) || undefined,
     alerts: alerts.map((a: any) => ({
       listingId: a.listingId,
       kind: a.kind,
@@ -220,6 +230,7 @@ export async function importSnapshot(prisma: PrismaClient, inputPath: string): P
   const existing = await prisma.listing.count();
   if (existing > 0) {
     log.info(`database already has ${existing} listings — skipping listing import`);
+    await restoreTelegramOffset(prisma, parsed.telegramOffset);
     // The address cache is still worth restoring: it is keyed by address, not
     // by listing, so it is useful regardless of what is already stored.
     for (const entry of parsed.geocodes ?? []) {
@@ -286,6 +297,8 @@ export async function importSnapshot(prisma: PrismaClient, inputPath: string): P
       .catch(() => undefined);
   }
 
+  await restoreTelegramOffset(prisma, parsed.telegramOffset);
+
   // Restore the address cache before anything geocodes again.
   for (const entry of parsed.geocodes ?? []) {
     await prisma.geocode
@@ -302,6 +315,28 @@ export async function importSnapshot(prisma: PrismaClient, inputPath: string): P
 
   log.info(`snapshot restored: ${imported} listings from ${inputPath}`);
   return imported;
+}
+
+/**
+ * Restores the inbox cursor, never moving it backwards.
+ *
+ * A stale snapshot with a lower offset must not rewind the cursor, or already
+ * ingested forwards would be replayed.
+ */
+async function restoreTelegramOffset(prisma: PrismaClient, offset: number | undefined): Promise<void> {
+  if (!offset || !Number.isFinite(offset)) return;
+
+  const existing = await prisma.criteria.findUnique({ where: { id: 'telegram-offset' } });
+  const current = Number(existing?.json) || 0;
+  if (offset <= current) return;
+
+  await prisma.criteria
+    .upsert({
+      where: { id: 'telegram-offset' },
+      create: { id: 'telegram-offset', json: String(offset) },
+      update: { json: String(offset) },
+    })
+    .catch(() => undefined);
 }
 
 /**

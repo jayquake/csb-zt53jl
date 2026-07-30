@@ -78,6 +78,15 @@ export const config = {
     enrichLimit: num(process.env.KOMO_ENRICH_LIMIT, 25),
   },
 
+  inbox: {
+    /**
+     * Collect listings forwarded to the Telegram bot during each scan. This is
+     * the compliant route for Facebook-group finds: you share a post you can
+     * already see, rather than anything scraping Meta.
+     */
+    enabled: bool(process.env.TELEGRAM_INBOX, true),
+  },
+
   geocode: {
     enabled: bool(process.env.GEOCODE_ENABLED, true),
     /**

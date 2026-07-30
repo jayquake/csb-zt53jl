@@ -13,7 +13,7 @@
 
 import { createHash } from 'crypto';
 import type { RawListing } from '../types';
-import { clean, detectAgency, detectAmenities, parseFloor, parseInteger, parsePrice, parseRooms } from './parse';
+import { clean, detectAgency, detectAmenities, extractPhone, parseFloor, parseInteger, parsePrice, parseRooms } from './parse';
 import { normalizeText } from '../criteria';
 
 /** Neighborhood names worth recognising in free text. */
@@ -90,6 +90,10 @@ export function parseManualPost(text: string, sourceUrl?: string, now: Date = ne
     postedAt: now,
     ...detectAmenities(body),
     isAgency: detectAgency(body),
+    // Pasted and forwarded posts are the one place a number is reliably
+    // public — the poster typed it themselves. This is where the WhatsApp
+    // button actually earns its place, since the scraped sources hide theirs.
+    contactPhone: extractPhone(body),
     raw: { text: body, sourceUrl },
   };
 }

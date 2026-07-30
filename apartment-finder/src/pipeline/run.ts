@@ -14,6 +14,7 @@ import { resolveSources } from '../sources';
 import { closeBrowser } from '../sources/browser';
 import { ingest, markStale, pruneOutOfScope, type PendingAlert } from './ingest';
 import { geocodeMissing } from '../geocode';
+import { collectForwardedListings } from '../notify/inbox';
 import { buildNotifiers, ConsoleNotifier, type Notifier } from '../notify';
 import { formatDigest } from '../notify/format';
 import type { RawListing } from '../types';
@@ -72,7 +73,22 @@ export async function runScan(options: ScanOptions = {}): Promise<ScanSummary> {
       }
     }
 
+    // Forwarded listings are collected first so a flat you sent overnight is
+    // deduplicated against tonight's scrape rather than arriving as a second
+    // copy of the same apartment.
+    const forwarded = await collectForwardedListings(prisma, criteria);
+    if (forwarded.ingested > 0) sourceStats.telegram = forwarded.ingested;
+
     const result = await ingest(prisma, scraped, criteria, startedAt);
+
+    // Alerts from forwards belong in the same digest — a listing you sent in
+    // that turns out to match should be reported, not silently absorbed.
+    if (forwarded.result) {
+      result.alerts.unshift(...forwarded.result.alerts);
+      result.created += forwarded.result.created;
+      result.updated += forwarded.result.updated;
+      result.alerts = result.alerts.slice(0, criteria.maxAlertsPerRun);
+    }
     log.info(
       `ingest: ${result.created} new, ${result.updated} updated, ${result.rejected} rejected, ${result.alerts.length} to alert`
     );

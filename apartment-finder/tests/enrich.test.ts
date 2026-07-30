@@ -134,3 +134,31 @@ test('an unmentioned amenity survives a hard requirement, a denied one does not'
   assert.equal(evaluate({ ...base, hasBalcony: false }, strict).matches, false);
   assert.equal(evaluate({ ...base, hasBalcony: undefined }, strict).matches, true);
 });
+
+test('a pasted or forwarded post yields a contact phone', () => {
+  // The whole point of forwarding a Facebook post is that the poster published
+  // their own number — this is the one source where a WhatsApp link is
+  // reachable, since the scraped boards all hide theirs behind a login.
+  const { parseManualPost } = require('../src/sources/manual');
+
+  const post =
+    'להשכרה בפלורנטין תל אביב, רחוב וולפסון 8. דירת 2.5 חדרים, 58 מטר, ' +
+    'קומה 3 עם מעלית ומרפסת. ללא תיווך. 6,300 ש"ח לחודש. לפרטים 052-8834471';
+
+  const listing = parseManualPost(post);
+  assert.equal(listing.contactPhone, '+972528834471');
+  assert.equal(whatsappLink(listing.contactPhone), 'https://wa.me/972528834471');
+
+  // And the rest of the post still parses.
+  assert.equal(listing.priceIls, 6300);
+  assert.equal(listing.rooms, 2.5);
+  assert.equal(listing.neighborhood, 'פלורנטין');
+  assert.equal(listing.isAgency, false, '"ללא תיווך" means no agent fee');
+});
+
+test('a post with no number leaves the phone unset rather than guessing', () => {
+  const { parseManualPost } = require('../src/sources/manual');
+  const listing = parseManualPost('דירת 3 חדרים בשפירא, 70 מטר, קומה 2, 6000 ש"ח לחודש');
+  assert.equal(listing.contactPhone, undefined);
+  assert.equal(whatsappLink(listing.contactPhone), undefined);
+});
