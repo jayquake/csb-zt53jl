@@ -370,7 +370,7 @@ OpenStreetMap.
 
 Mobile-first, no build step, works in light and dark. English interface with Hebrew listing content passed through using `dir="auto"`, so RTL text renders correctly inline.
 
-- **Feed** — filter by **price range**, poster (no realtors / realtors only), source and free text; sort by match, price (either direction), size, rooms, newest, oldest or recently updated. Each card shows a price-trend sparkline.
+- **Feed** — filter by **price range**, poster (no realtors / realtors only), source, **amenity chips** (elevator, parking, balcony, safe room, furnished — only a confirmed `true` counts) and free text; sort by match, price (either direction), size, rooms, newest, oldest or recently updated. Each card shows a price-trend sparkline.
 - **Saved** — your shortlist
 - **Add** — paste a Facebook-group post
 - **Criteria** — edit budget, rooms, size, cities, must-haves and alert thresholds from your phone; changes apply on the next scan

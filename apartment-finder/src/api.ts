@@ -81,6 +81,11 @@ api.get('/listings', async (req, res) => {
     poster,
     area,
     q,
+    elevator,
+    parking,
+    balcony,
+    safeRoom,
+    furnished,
     sort = 'score',
     includeHidden = 'false',
     includeInactive = 'false',
@@ -107,6 +112,15 @@ api.get('/listings', async (req, res) => {
 
   if (minSize) where.sizeSqm = { gte: Number(minSize) };
   if (area) where.neighborhood = area;
+
+  // Amenity chips re-slice what is already on the page, same idea as poster
+  // and source below. Only a confirmed `true` satisfies "must have" — a
+  // listing that never mentioned it is not the same as one that lacks it.
+  if (elevator === 'true') where.hasElevator = true;
+  if (parking === 'true') where.hasParking = true;
+  if (balcony === 'true') where.hasBalcony = true;
+  if (safeRoom === 'true') where.hasSafeRoom = true;
+  if (furnished === 'true') where.isFurnished = true;
 
   // Conditions that each need their own OR group. They are collected into a
   // single AND so a later one cannot clobber an earlier one's `OR` key.
