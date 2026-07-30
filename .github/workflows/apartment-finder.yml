@@ -17,15 +17,30 @@
 #
 #   1. GitHub-hosted runners use Azure datacenter IP ranges, which Radware and
 #      Cloudflare challenge far more aggressively than a home connection. Komo
-#      needs no browser and should work fine here; Yad2 and Homeless may well
-#      be blocked. The workflow carries on and reports per-source counts rather
-#      than failing, and `sources` below can be narrowed to komo.
+#      needs no browser and worked fine there; Yad2 and Homeless were reliably
+#      blocked, returning zero every run. That is why `scan` below runs on a
+#      SELF-HOSTED runner instead: same code, same three sources, just from a
+#      machine that does not look like a datacenter to Radware.
+#
+#      This trades Komo's previous 100% GitHub-hosted reliability for
+#      three-source coverage: if the self-hosted machine is off or
+#      disconnected at cron time, NOTHING scans that morning — Komo included
+#      — because the whole job, not just Yad2/Homeless, now needs that runner.
+#      The machine needs to be on and connected around 07:30 Asia/Jerusalem
+#      (see the schedule note below) for the morning run to happen at all.
 #
 #   2. GitHub only fires `schedule:` triggers from the repository's DEFAULT
 #      branch. On any other branch the cron silently never runs and only
 #      `workflow_dispatch` works. This repository's default branch is
 #      `gh-pages`, so that is where this file has to live for the morning scan
 #      to happen on its own.
+#
+# Registering the self-hosted runner (one-time, on the machine that will run
+# the scan): repo Settings → Actions → Runners → New self-hosted runner, pick
+# the OS, and run the config script it gives you with the label
+# `apartment-finder` (`./config.sh --labels apartment-finder ...`). Install it
+# as a service (the configurator offers `svc.sh install && svc.sh start` on
+# Linux/macOS) so it survives a reboot and keeps running unattended.
 
 name: Apartment Finder
 
@@ -59,7 +74,14 @@ permissions:
 
 jobs:
   scan:
-    runs-on: ubuntu-latest
+    # Was ubuntu-latest. See the note above: this needs to be a machine that
+    # is not on a datacenter IP range, registered with this label.
+    runs-on: [self-hosted, apartment-finder]
+    # A self-hosted job that hangs (network drop mid-scan, browser wedged)
+    # would otherwise block every later run behind it — the concurrency group
+    # below queues rather than cancels. Generous, since a full three-source
+    # scan legitimately takes a few minutes, but not unbounded.
+    timeout-minutes: 30
     defaults:
       run:
         working-directory: apartment-finder
