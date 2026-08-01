@@ -1,0 +1,699 @@
+[
+  {
+    "address": {
+      "region": {
+        "text": "תל אביב והסביבה",
+        "id": 3
+      },
+      "city": {
+        "text": "תל אביב יפו"
+      },
+      "area": {
+        "text": "אזור תל אביב יפו"
+      },
+      "neighborhood": {
+        "text": "פלורנטין"
+      },
+      "street": {
+        "text": "הרצל"
+      },
+      "house": {
+        "number": 114,
+        "floor": 5
+      },
+      "coords": {
+        "lon": 34.770744,
+        "lat": 32.054872
+      }
+    },
+    "subcategoryId": 6,
+    "categoryId": 2,
+    "adType": "commercial",
+    "price": 8000,
+    "token": "82srv9fj",
+    "additionalDetails": {
+      "property": {
+        "text": "דירה"
+      },
+      "roomsCount": 3,
+      "squareMeter": 59,
+      "propertyCondition": {
+        "id": 6
+      }
+    },
+    "metaData": {
+      "coverImage": "https://img.yad2.co.il/Pic/202607/21/2_6/o/y2_1pa_010612_20260721133702.jpeg",
+      "images": [
+        "https://img.yad2.co.il/Pic/202607/21/2_6/o/y2_1pa_010612_20260721133702.jpeg",
+        "https://img.yad2.co.il/Pic/202607/21/2_6/o/y2_1pa_010538_20260721133702.jpeg",
+        "https://img.yad2.co.il/Pic/202607/21/2_6/o/y2_1pa_010620_20260721133703.jpeg",
+        "https://img.yad2.co.il/Pic/202607/21/2_6/o/y2_1pa_010093_20260721133702.jpeg",
+        "https://img.yad2.co.il/Pic/202607/21/2_6/o/y2_1pa_010236_20260721133702.jpeg",
+        "https://img.yad2.co.il/Pic/202607/21/2_6/o/y2_1pa_010820_20260721133702.jpeg",
+        "https://img.yad2.co.il/Pic/202607/21/2_6/o/y2_1pa_010432_20260721133702.jpeg",
+        "https://img.yad2.co.il/Pic/202607/21/2_6/o/y2_1pa_010218_20260721133702.jpeg",
+        "https://img.yad2.co.il/Pic/202607/21/2_6/o/y2_1pa_010026_20260721133702.jpeg"
+      ],
+      "squareMeterBuild": 59
+    },
+    "customer": {
+      "agencyName": "משרד תיווך יוסי אשכנזי",
+      "agencyLogo": "//images.yad2.co.il/Pic/TivMiniSite/3e41a7af-30d7-4af3-a72c-0c5215f59b6a.jpg?t=1785588517564"
+    },
+    "tags": [
+      {
+        "name": "ממ\"ד",
+        "id": 1209,
+        "priority": 1
+      },
+      {
+        "name": "נכס חדש",
+        "id": 1201,
+        "priority": 1
+      }
+    ],
+    "orderId": 57260750,
+    "priority": 2
+  },
+  {
+    "address": {
+      "region": {
+        "text": "תל אביב והסביבה",
+        "id": 3
+      },
+      "city": {
+        "text": "תל אביב יפו"
+      },
+      "area": {
+        "text": "אזור תל אביב יפו"
+      },
+      "neighborhood": {
+        "text": "הצפון הישן - צפון"
+      },
+      "street": {
+        "text": "יריחו"
+      },
+      "house": {
+        "floor": 0
+      },
+      "coords": {
+        "lon": 34.781505625,
+        "lat": 32.09047975
+      }
+    },
+    "subcategoryId": 6,
+    "categoryId": 2,
+    "adType": "commercial",
+    "price": 5500,
+    "token": "k9w9ku01",
+    "additionalDetails": {
+      "property": {
+        "text": "דירה"
+      },
+      "roomsCount": 2,
+      "squareMeter": 45,
+      "propertyCondition": {
+        "id": 3
+      }
+    },
+    "metaData": {
+      "coverImage": "https://img.yad2.co.il/Pic/202306/07/2_6/o/y2_1_z56tLXI0sp_20230607.jpeg",
+      "images": [
+        "https://img.yad2.co.il/Pic/202306/07/2_6/o/y2_1_z56tLXI0sp_20230607.jpeg",
+        "https://img.yad2.co.il/Pic/202306/07/2_6/o/y2_2_MyQukNMpzS_20230607.jpeg",
+        "https://img.yad2.co.il/Pic/202306/07/2_6/o/y2_3_5p23fRrZNQ_20230607.jpeg",
+        "https://img.yad2.co.il/Pic/202306/07/2_6/o/y2_4_15LwIFsurY_20230607.jpeg"
+      ],
+      "video": "//yad2.cdnwiz.com/p/102/sp/10200/playManifest/entryId/0_joaev11c/format/url/protocol/http",
+      "squareMeterBuild": 45
+    },
+    "customer": {
+      "agencyName": "הלל נכסים",
+      "agencyLogo": "//images.yad2.co.il/Pic/TivMiniSite/logo2_5_7703_20170202170246.jpg?t=1785595196663"
+    },
+    "tags": [
+      {
+        "name": "חבל לפספס",
+        "id": 1292,
+        "priority": 10
+      },
+      {
+        "name": "בהזדמנות",
+        "id": 1291,
+        "priority": 10
+      }
+    ],
+    "orderId": 50503509,
+    "priority": 2
+  },
+  {
+    "address": {
+      "region": {
+        "text": "תל אביב והסביבה",
+        "id": 3
+      },
+      "city": {
+        "text": "תל אביב יפו"
+      },
+      "area": {
+        "text": "אזור תל אביב יפו"
+      },
+      "neighborhood": {
+        "text": "הצפון החדש - דרום"
+      },
+      "street": {
+        "text": "שדרות דוד המלך"
+      },
+      "house": {
+        "number": 6,
+        "floor": 0
+      },
+      "coords": {
+        "lon": 34.782183,
+        "lat": 32.080019
+      }
+    },
+    "subcategoryId": 6,
+    "categoryId": 2,
+    "adType": "commercial",
+    "price": 7500,
+    "token": "j0ursi8m",
+    "additionalDetails": {
+      "property": {
+        "text": "דירה"
+      },
+      "roomsCount": 3,
+      "squareMeter": 70,
+      "propertyCondition": {
+        "id": 2
+      }
+    },
+    "metaData": {
+      "coverImage": "https://img.yad2.co.il/Pic/202404/11/2_6/o/y2_1pa_010068_20240411142036.jpeg",
+      "images": [
+        "https://img.yad2.co.il/Pic/202404/11/2_6/o/y2_1pa_010068_20240411142036.jpeg",
+        "https://img.yad2.co.il/Pic/202404/11/2_6/o/y2_1pa_010588_20240411142112.jpeg",
+        "https://img.yad2.co.il/Pic/202404/11/2_6/o/y2_1pa_010015_20240411142112.jpeg",
+        "https://img.yad2.co.il/Pic/202404/11/2_6/o/y2_1pa_010014_20240411142112.jpeg",
+        "https://img.yad2.co.il/Pic/202404/11/2_6/o/y2_1pa_010843_20240411142112.jpeg",
+        "https://img.yad2.co.il/Pic/202406/06/2_6/o/y2_13_BhtQ3iGYWn_20240606.jpeg",
+        "https://img.yad2.co.il/Pic/202404/11/2_6/o/y2_1pa_010697_20240411142112.jpeg",
+        "https://img.yad2.co.il/Pic/202404/11/2_6/o/y2_1pa_010608_20240411142112.jpeg",
+        "https://img.yad2.co.il/Pic/202404/11/2_6/o/y2_1pa_010990_20240411142112.jpeg",
+        "https://img.yad2.co.il/Pic/202404/11/2_6/o/y2_1pa_010152_20240411142113.jpeg",
+        "https://img.yad2.co.il/Pic/202404/11/2_6/o/y2_1pa_010416_20240411142112.jpeg",
+        "https://img.yad2.co.il/Pic/202404/11/2_6/o/y2_1pa_010054_20240411142112.jpeg",
+        "https://img.yad2.co.il/Pic/202404/11/2_6/o/y2_1pa_010359_20240411142223.jpeg"
+      ],
+      "video": "//yad2.cdnwiz.com/p/102/sp/10200/playManifest/entryId/0_b7uqbzg9/format/url/protocol/http",
+      "squareMeterBuild": 70
+    },
+    "customer": {
+      "agencyName": "TLV HOMES",
+      "agencyLogo": "//images.yad2.co.il/Pic/TivMiniSite/logo100_5_1_733839_20190923190900-l.jpg?t=1785586673168"
+    },
+    "tags": [
+      {
+        "name": "ממ\"ד",
+        "id": 1209,
+        "priority": 1
+      },
+      {
+        "name": "בניין משופץ",
+        "id": 1218,
+        "priority": 3
+      }
+    ],
+    "orderId": 53454056,
+    "priority": 2
+  },
+  {
+    "address": {
+      "region": {
+        "text": "תל אביב והסביבה",
+        "id": 3
+      },
+      "city": {
+        "text": "תל אביב יפו"
+      },
+      "area": {
+        "text": "אזור תל אביב יפו"
+      },
+      "neighborhood": {
+        "text": "צהלון, שיכוני חסכון"
+      },
+      "house": {
+        "floor": 0
+      },
+      "coords": {
+        "lon": 34.754341,
+        "lat": 32.043769
+      }
+    },
+    "subcategoryId": 6,
+    "categoryId": 2,
+    "adType": "commercial",
+    "price": 6800,
+    "token": "1utthbnm",
+    "additionalDetails": {
+      "property": {
+        "text": "דירה"
+      },
+      "roomsCount": 3,
+      "squareMeter": 60,
+      "propertyCondition": {
+        "id": 1
+      }
+    },
+    "metaData": {
+      "coverImage": "https://img.yad2.co.il/Pic/202511/17/2_6/o/y2_1_2uqLDSKttE_20251117.jpeg",
+      "images": [
+        "https://img.yad2.co.il/Pic/202511/17/2_6/o/y2_1_2uqLDSKttE_20251117.jpeg",
+        "https://img.yad2.co.il/Pic/202511/17/2_6/o/y2_2_E3pidc7E6G_20251117.jpeg",
+        "https://img.yad2.co.il/Pic/202511/17/2_6/o/y2_3_st8roXG4AS_20251117.jpeg",
+        "https://img.yad2.co.il/Pic/202511/17/2_6/o/y2_4_Vo2rCQWCLr_20251117.jpeg",
+        "https://img.yad2.co.il/Pic/202511/17/2_6/o/y2_5_Sta36uHc27_20251117.jpeg",
+        "https://img.yad2.co.il/Pic/202511/17/2_6/o/y2_6_S4xIVrokHI_20251117.jpeg"
+      ],
+      "squareMeterBuild": 60
+    },
+    "customer": {
+      "agencyName": "עמינדב ניהול ויזום בעמ",
+      "agencyLogo": "//images.yad2.co.il/Pic/TivMiniSite/206f6dcf-e353-421a-b96c-f25127111b45.jpg?t=1785593909333"
+    },
+    "tags": [
+      {
+        "name": "חדש מקבלן",
+        "id": 1200,
+        "priority": 1
+      },
+      {
+        "name": "בניין משופץ",
+        "id": 1218,
+        "priority": 3
+      },
+      {
+        "name": "בהזדמנות",
+        "id": 1291,
+        "priority": 10
+      }
+    ],
+    "orderId": 55981868,
+    "priority": 3
+  },
+  {
+    "token": "1006196",
+    "treedisId": "1016956",
+    "listingId": "1006196",
+    "listingOrder": 2,
+    "orderId": 1006196,
+    "adNumber": 1016956,
+    "adType": "yad1",
+    "categoryId": 2,
+    "slug": "1a994f30",
+    "subcategoryId": 98,
+    "statusId": 1,
+    "price": 7645,
+    "projectId": 1016956,
+    "projectYzerId": 13555,
+    "additionalDetails": {
+      "property": {
+        "id": "apartment",
+        "text": "דירה",
+        "textEng": "apartment"
+      },
+      "projectCategories": [
+        2
+      ],
+      "companyIds": [
+        "1597"
+      ],
+      "roomsCount": 3,
+      "timelineStatus": "4"
+    },
+    "packages": {
+      "displayInAreaPageYad1": true,
+      "displayInCityPageYad1": true,
+      "displayInCompanyPageYad1": true,
+      "displayInMapListing": true,
+      "displayInMapLogos": true,
+      "displayInNeighborhoodPageYad1": true,
+      "displayInTopGallery": true,
+      "isBasicListing": true,
+      "isImageGalleryPromotion": true,
+      "isSameEntrepreneurPromotion": true,
+      "isYad1ListingPromo": true,
+      "isYad1ListingSoloAd": true,
+      "lidInImageGallery": true,
+      "hasMiniSite": true
+    },
+    "metaData": {
+      "companyDetails": [
+        {
+          "id": "1000098",
+          "info": "\r\n1. מודל מגורים חדשני ומשמעותי\nאשטרום מגורים להשכרה מציעה דירה לטווח של עד 10 שנים, עם גמישות ליציאה שנתית – ללא משכנתא, ללא דאגות ועם יציבות לטווח ארוך \nמדובר לא סתם על השכרה – אלא על בית אמיתי, עם אחריות ועוגן לשנים.\n\r\n2. קהילה ותמיכה מוארת\nכל מתחם מנוהל בפועל על ידי מנהל קהילה צמוד שמארגן אירועים, ניהול תחזוקה וטיפול מהיר בתקלות דרך האפליקציה הייעודית. הדיירים נהנים מחדר כושר, מועדון דיירים, חניה ומרחבים ירוקים – כדי להרגיש באמת בבית.\n\r\n3. דירות מוכנות מראש, מותאמות לכל שלב חיים\nהפרויקטים משלבים יחידות בנות 2–5 חדרים: דירות גן, מיני‑פנטהאוזים ופנטהאוזים עם ממ״ד וחניה. כך אפשר להתחיל כזוג קטן ולעבור לדירה גדולה יותר עם המשפחה – בלי לעבור פרויקטים.\n\r\n4. קצב תפעול והצלחה מוכחת של \"אודות החבר\"\n\n\r\n1,126 משפחות כבר הגשימו את חלום הבית והצטרפו לאחת מקהילות המגורים שלנו הפרוסות באזורי ביקוש ברחבי הארץ.\n\r\nזה לא מקרי – זה תוצאה של מודל חזק, תקשורת אפקטיבית ושיווק ממוקד.\n\r\nלמה לבחור ב'אשטרום מגורים להשכרה'?\n\r\n\r\nשקט נפשי עם שכירות ארוכת טווח\r\nקהילה פעילה ותמיכה טכנית 24/7\r\nגמישות לבחירה בהתאמה לצרכים שלכם לאורך הזמן\r\nניסיון מוכח ומיזמים עתידיים באזורים מבוקשים\r\n\r\n",
+          "infoStyled": "<div>\r\n<p class=\"MsoNormal\" dir=\"RTL\"><strong><span dir=\"LTR\" lang=\"EN-US\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">1</span></strong><strong><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">.</span></strong><strong><span dir=\"LTR\" lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\"> </span></strong><strong><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">מודל מגורים חדשני ומשמעותי</span></strong><span dir=\"LTR\" lang=\"EN-US\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\"><br></span><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">אשטרום מגורים להשכרה מציעה דירה לטווח של עד 10 שנים, עם גמישות ליציאה שנתית – ללא משכנתא, ללא דאגות ועם יציבות לטווח ארוך </span><span dir=\"LTR\" lang=\"EN-US\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\"><br></span><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">מדובר לא סתם על השכרה – אלא על בית אמיתי, עם אחריות ועוגן לשנים</span><span dir=\"LTR\" lang=\"EN-US\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">.</span></p>\r\n<p class=\"MsoNormal\" dir=\"RTL\"><strong><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">2.</span></strong><strong><span dir=\"LTR\" lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\"> </span></strong><strong><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">קהילה ותמיכה מוארת</span></strong><span dir=\"LTR\" lang=\"EN-US\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\"><br></span><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">כל מתחם מנוהל בפועל על ידי מנהל קהילה צמוד שמארגן אירועים, ניהול תחזוקה וטיפול מהיר בתקלות דרך האפליקציה הייעודית. הדיירים נהנים מחדר כושר, מועדון דיירים, חניה ומרחבים ירוקים – כדי להרגיש באמת בבית.</span></p>\r\n<p class=\"MsoNormal\" dir=\"RTL\"><strong><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">3.</span></strong><strong><span dir=\"LTR\" lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\"> </span></strong><strong><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">דירות מוכנות מראש, מותאמות לכל שלב חיים</span></strong><span dir=\"LTR\" lang=\"EN-US\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\"><br></span><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">הפרויקטים משלבים יחידות בנות 2–5 חדרים: דירות גן, מיני‑פנטהאוזים ופנטהאוזים עם ממ״ד וחניה. כך אפשר להתחיל כזוג קטן ולעבור לדירה גדולה יותר עם המשפחה – בלי לעבור פרויקטים.</span></p>\r\n<p class=\"MsoNormal\" dir=\"RTL\"><strong><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">4. קצב תפעול והצלחה מוכחת של \"אודות החבר\"</span></strong><span dir=\"LTR\" lang=\"EN-US\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\"><br></span></p>\r\n<p class=\"MsoNormal\" align=\"right\"><span dir=\"RTL\" lang=\"HE\">1,126 משפחות כבר הגשימו את חלום הבית והצטרפו לאחת מקהילות המגורים שלנו הפרוסות באזורי ביקוש ברחבי הארץ.</span></p>\r\n<p class=\"MsoNormal\" align=\"right\"><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">זה לא מקרי – זה תוצאה של מודל חזק, תקשורת אפקטיבית ושיווק ממוקד</span><span dir=\"LTR\" lang=\"EN-US\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">.</span></p>\r\n<p class=\"MsoNormal\" dir=\"RTL\"><strong><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">למה לבחור ב'אשטרום מגורים להשכרה</span></strong><strong><span dir=\"LTR\" lang=\"EN-US\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">'?</span></strong></p>\r\n<ul style=\"margin-top: 0cm;\" type=\"disc\">\r\n<li class=\"MsoNormal\" dir=\"RTL\" style=\"mso-list: l0 level1 lfo1; tab-stops: list 36.0pt;\"><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">שקט נפשי עם שכירות ארוכת טווח</span></li>\r\n<li class=\"MsoNormal\" dir=\"RTL\" style=\"mso-list: l0 level1 lfo1; tab-stops: list 36.0pt;\"><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">קהילה פעילה ותמיכה טכנית 24/7</span></li>\r\n<li class=\"MsoNormal\" dir=\"RTL\" style=\"mso-list: l0 level1 lfo1; tab-stops: list 36.0pt;\"><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">גמישות לבחירה בהתאמה לצרכים שלכם לאורך הזמן</span></li>\r\n<li class=\"MsoNormal\" dir=\"RTL\" style=\"mso-list: l0 level1 lfo1; tab-stops: list 36.0pt;\"><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">ניסיון מוכח ומיזמים עתידיים באזורים מבוקשים</span></li>\r\n</ul>\r\n</div>",
+          "name": "אשטרום מגורים להשכרה",
+          "logo": "https://treedis-cdn.yad2.co.il/clients/1000098/logo.png"
+        }
+      ],
+      "flag": "פרויקט חדש",
+      "info": "אשטרום מגורים להשכרה מציעה לכם חוויית מגורים חדשנית שתיתן לכם שקט לשנים קדימה: שכר דירה ידוע מראש ל- ‏10 שנים, אפשרות סיום חוזה מדי שנה, תמהיל דירות של ‏2-5 חד' כולל ממ\"ד, מגוון חדרי דיירים, מיקום מנצח קרוב לתחנת רכבת הקלה, חיי קהילה מגוונים ושירותי תחזוקה שוטפים.\n \n• הגב והמוניטין של אשטרום מגורים להשכרה מקבוצת אשטרום\n• גמישות ניתן לסיים את הסכם השכירות בתום כל שנה.\n• נוחות - גישה נוחה ומהירה לצירי תנועה מרכזיים, תחנת הרכבת הקלה\n• דירה חדשה, ישירות מקבלן\n• ודאות במחיר השכירות לטווח ארוך.\n• כמעט כל מה שצריך נמצא מתחת לבניין (בתי עסק, חנויות, מרפאה, גן משחקים)\n• חיי קהילה מלאים ומגוונים\n• שכר דירה ידוע מראש ל- ‏10 שנים\n• שירותי תחזוקה שוטפת\n• מגוון חדרי דיירים חדרי, אופניים ועגלות, מועדון דיירים ועוד.\n \nאשטרום מגורים להשכרה מביאה את היציבות של אשטרום לשוק השכירות הבלתי צפוי.\nהחוסן הכלכלי של הקבוצה מאפשר לנו לספק לכם קרקע יציבה לטווח ארוך לכל לקוחותיה, בהתבסס על תפיסת מגורים מתקדמת ואטרקטיבית ‏– בלי התחייבויות ובלי הפתעות.\nיש לכם גב באשטרום.\n \nבאשטרום מגורים להשכרה אנו משקיעים משאבים רבים בכל פרויקט, מהנראות החיצונית דרך החללים המשותפים ועד הדירות עצמן. חשיבה זו היא שמאפשרת ליצור חיי קהילה מודרניים וסביבת מגורים שמבינה את הצרכים של לקוחותינו . לשכונת אופי משפחתי וקהילה אכפתית שתגרום לכם להרגיש בבית מהרגע הראשון.\n \nהעוצמה של אשטרום, עכשיו בדירות להשכרה\nקבוצת אשטרום היא מחברות הבנייה והנדל\"ן הגדולות והוותיקות בישראל, עם ניסיון של למעלה מ- ‏60 שנה.\nאשטרום מתעסקת גם בבניית תשתיות והנדסה, נכסי מסחר ומשרדים ואנרגיה מתחדשת. את העוצמה והמסירות הללו השקענו גם במאות דירות לשכירות הוגנת ברחבי הארץ, בבתים ששווה להשתקע בהם.\n \n**המוצג לעיל ו/או להלן אינו מהווה הצעה מחייבת מטעם אשטרום הגדנ\"ע שותפות מוגבלת וכפוף לשינויים. כל אחד מהפרטים המוצגים לגבי הפרויקט, לרבות נראות ו/או תמונות הדירות ו/או הבניינים ו/או סביבתם, מיקום הפרויקט ו/או הדירות, שכר הדירה, תכניות ו/או מפרטי הדירות, משך השכירות, תמהיל הדירות ו/או כל פרט ו/או נתון אחר נועד להמחשה בלבד, אינו מחייב את החברה ועשוי להשתנות בהתאם לשיקול דעת החברה ו/או דרישות הרשויות. ההתקשרות בפועל ו/או תנאיה כפופים לשיקול דעת החברה ו/או להסכם השכירות כפי שייחתם בין הצדדים בפועל. מבלי לגרוע מהאמור, התמונות ו/או הסרטונים לעיל ו/או להלן הינם הדמיה ונועדו להמחשה בלבד.\n",
+      "infoStyled": "<p>אשטרום מגורים להשכרה מציעה לכם חוויית מגורים חדשנית שתיתן לכם שקט לשנים קדימה: שכר דירה ידוע מראש ל- ‏10 שנים, אפשרות סיום חוזה מדי שנה, תמהיל דירות של ‏2-5 חד' כולל ממ\"ד, מגוון חדרי דיירים, מיקום מנצח קרוב לתחנת רכבת הקלה, חיי קהילה מגוונים ושירותי תחזוקה שוטפים.</p><p> </p><p>• הגב והמוניטין של אשטרום מגורים להשכרה מקבוצת אשטרום</p><p>• גמישות ניתן לסיים את הסכם השכירות בתום כל שנה.</p><p>• נוחות - גישה נוחה ומהירה לצירי תנועה מרכזיים, תחנת הרכבת הקלה</p><p>• דירה חדשה, ישירות מקבלן</p><p>• ודאות במחיר השכירות לטווח ארוך.</p><p>• כמעט כל מה שצריך נמצא מתחת לבניין (בתי עסק, חנויות, מרפאה, גן משחקים)</p><p>• חיי קהילה מלאים ומגוונים</p><p>• שכר דירה ידוע מראש ל- ‏10 שנים</p><p>• שירותי תחזוקה שוטפת</p><p>• מגוון חדרי דיירים חדרי, אופניים ועגלות, מועדון דיירים ועוד.</p><p> </p><p>אשטרום מגורים להשכרה מביאה את היציבות של אשטרום לשוק השכירות הבלתי צפוי.</p><p>החוסן הכלכלי של הקבוצה מאפשר לנו לספק לכם קרקע יציבה לטווח ארוך לכל לקוחותיה, בהתבסס על תפיסת מגורים מתקדמת ואטרקטיבית ‏– בלי התחייבויות ובלי הפתעות.</p><p>יש לכם גב באשטרום.</p><p> </p><p>באשטרום מגורים להשכרה אנו משקיעים משאבים רבים בכל פרויקט, מהנראות החיצונית דרך החללים המשותפים ועד הדירות עצמן. חשיבה זו היא שמאפשרת ליצור חיי קהילה מודרניים וסביבת מגורים שמבינה את הצרכים של לקוחותינו . לשכונת אופי משפחתי וקהילה אכפתית שתגרום לכם להרגיש בבית מהרגע הראשון.</p><p> </p><p>העוצמה של אשטרום, עכשיו בדירות להשכרה</p><p>קבוצת אשטרום היא מחברות הבנייה והנדל\"ן הגדולות והוותיקות בישראל, עם ניסיון של למעלה מ- ‏60 שנה.</p><p>אשטרום מתעסקת גם בבניית תשתיות והנדסה, נכסי מסחר ומשרדים ואנרגיה מתחדשת. את העוצמה והמסירות הללו השקענו גם במאות דירות לשכירות הוגנת ברחבי הארץ, בבתים ששווה להשתקע בהם.</p><p> </p><p>**המוצג לעיל ו/או להלן אינו מהווה הצעה מחייבת מטעם אשטרום הגדנ\"ע שותפות מוגבלת וכפוף לשינויים. כל אחד מהפרטים המוצגים לגבי הפרויקט, לרבות נראות ו/או תמונות הדירות ו/או הבניינים ו/או סביבתם, מיקום הפרויקט ו/או הדירות, שכר הדירה, תכניות ו/או מפרטי הדירות, משך השכירות, תמהיל הדירות ו/או כל פרט ו/או נתון אחר נועד להמחשה בלבד, אינו מחייב את החברה ועשוי להשתנות בהתאם לשיקול דעת החברה ו/או דרישות הרשויות. ההתקשרות בפועל ו/או תנאיה כפופים לשיקול דעת החברה ו/או להסכם השכירות כפי שייחתם בין הצדדים בפועל. מבלי לגרוע מהאמור, התמונות ו/או הסרטונים לעיל ו/או להלן הינם הדמיה ונועדו להמחשה בלבד.</p>",
+      "infoHeader": "בואו ליהנות מכל היתרונות של מגורים בשכירות לטווח ארוך!\nדירות ‏2 חד' החל מ-‏₪6,911 לחודש\n",
+      "infoHeaderStyled": "<p>בואו ליהנות מכל היתרונות של מגורים בשכירות לטווח ארוך!</p><p>דירות ‏2 חד' החל מ-‏₪6,911 לחודש</p>",
+      "projectName": "אשטרום נווה עופר תל אביב",
+      "promotionText": "מהפכת השכירות בתל אביב",
+      "projectLogo": "https://treedis-cdn.yad2.co.il/projects/1016956/assets/logo/4c982353-2f65-49ef-b4ed-a88cab567f6c.webp",
+      "coverImage": "https://treedis-cdn.yad2.co.il/projects/1016956/assets/mainImage/9fa4d80f-3d26-4c93-bd55-5775b7456fdb.webp",
+      "images": [
+        "https://treedis-cdn.yad2.co.il/projects/1016956/assets/mainImage/9fa4d80f-3d26-4c93-bd55-5775b7456fdb.webp",
+        "https://treedis-cdn.yad2.co.il/projects/1016956/assets/gallery/445f4a48-d049-4bf6-ae6f-8f7791cc3268.webp",
+        "https://treedis-cdn.yad2.co.il/projects/1016956/assets/gallery/005d1aac-b83f-4872-b384-0bb4d451eae1.webp",
+        "https://treedis-cdn.yad2.co.il/projects/1016956/assets/gallery/0ee9f1e8-73a6-4c83-9842-69f8b1b677d8.webp",
+        "https://treedis-cdn.yad2.co.il/projects/1016956/assets/gallery/b758ace4-2ebf-47e3-87ae-80dcb862f5bb.webp",
+        "https://treedis-cdn.yad2.co.il/projects/1016956/assets/gallery/6f796d58-728e-432f-b501-bb6500c04ee0.webp",
+        "https://treedis-cdn.yad2.co.il/projects/1016956/assets/gallery/f1d82cc6-36e0-4c94-ab5b-843b7ccc14e8.webp",
+        "https://treedis-cdn.yad2.co.il/projects/1016956/assets/gallery/d81ea431-bb78-4e30-9e1b-c271603b1525.webp"
+      ],
+      "previewType": "2d",
+      "immediateOccupancy": true,
+      "buildings": 6,
+      "apartments": 370,
+      "isOnSale": false,
+      "bank": "",
+      "hideDealsHistory": false
+    },
+    "address": {
+      "region": {
+        "id": "3",
+        "text": "תל אביב והסביבה"
+      },
+      "topArea": {
+        "id": "2",
+        "text": "מרכז"
+      },
+      "area": {
+        "id": "1",
+        "text": "אזור תל אביב יפו"
+      },
+      "city": {
+        "id": "5000",
+        "text": "תל אביב יפו"
+      },
+      "neighborhood": {
+        "id": "213",
+        "text": "נווה עופר, תל כביר"
+      },
+      "street": {
+        "id": "0646",
+        "text": "ברתיני גארי"
+      },
+      "coords": {
+        "lat": 32.04080963,
+        "lon": 34.76896667
+      },
+      "house": {
+        "number": 1
+      },
+      "addressMasterId": "22080032",
+      "display": "ברתיני גארי 1, נווה עופר, תל כביר, תל אביב יפו"
+    },
+    "dates": {
+      "updatedAt": "2026-07-16T10:30:53",
+      "createdAt": "2025-03-12T11:28:36"
+    },
+    "abovePrice": "7000",
+    "packageId": 102
+  },
+  {
+    "token": "1013730",
+    "treedisId": "1000144",
+    "listingId": "1013730",
+    "listingOrder": 1,
+    "orderId": 1013730,
+    "adNumber": 1000144,
+    "adType": "yad1",
+    "categoryId": 2,
+    "slug": "9b3974ea",
+    "subcategoryId": 98,
+    "statusId": 1,
+    "price": 7744,
+    "projectId": 1000144,
+    "projectYzerId": 11438,
+    "additionalDetails": {
+      "property": {
+        "id": "apartment",
+        "text": "דירה",
+        "textEng": "apartment"
+      },
+      "projectCategories": [
+        2
+      ],
+      "companyIds": [
+        "1597"
+      ],
+      "roomsCount": 2,
+      "timelineStatus": "3",
+      "includeParking": true,
+      "includeWarehouse": true,
+      "includeElevator": true,
+      "includeSecurityRoom": false,
+      "includeFloorShelter": false,
+      "includeAirCondition": false,
+      "includeBalcony": false,
+      "includeBars": false,
+      "isHandicapped": false,
+      "includeFurniture": false,
+      "isAssetExclusive": false,
+      "hasHighCeiling": false,
+      "includeAlarm": false,
+      "includeKitchenette": false,
+      "includeCameras": false,
+      "includeMeetingRoom": false,
+      "includeCoolingRoom": false,
+      "includeLoadingRamp": false,
+      "includeCommunicationRoom": false
+    },
+    "packages": {
+      "displayInAreaPageYad1": true,
+      "displayInCityPageYad1": true,
+      "displayInCompanyPageYad1": true,
+      "displayInMapListing": true,
+      "displayInMapLogos": true,
+      "displayInNeighborhoodPageYad1": true,
+      "displayInTopGallery": true,
+      "isBasicListing": true,
+      "isImageGalleryPromotion": true,
+      "isSameEntrepreneurPromotion": true,
+      "isYad1ListingPromo": true,
+      "isYad1ListingSoloAd": true,
+      "lidInImageGallery": true,
+      "hasMiniSite": true
+    },
+    "metaData": {
+      "companyDetails": [
+        {
+          "id": "1000098",
+          "info": "\r\n1. מודל מגורים חדשני ומשמעותי\nאשטרום מגורים להשכרה מציעה דירה לטווח של עד 10 שנים, עם גמישות ליציאה שנתית – ללא משכנתא, ללא דאגות ועם יציבות לטווח ארוך \nמדובר לא סתם על השכרה – אלא על בית אמיתי, עם אחריות ועוגן לשנים.\n\r\n2. קהילה ותמיכה מוארת\nכל מתחם מנוהל בפועל על ידי מנהל קהילה צמוד שמארגן אירועים, ניהול תחזוקה וטיפול מהיר בתקלות דרך האפליקציה הייעודית. הדיירים נהנים מחדר כושר, מועדון דיירים, חניה ומרחבים ירוקים – כדי להרגיש באמת בבית.\n\r\n3. דירות מוכנות מראש, מותאמות לכל שלב חיים\nהפרויקטים משלבים יחידות בנות 2–5 חדרים: דירות גן, מיני‑פנטהאוזים ופנטהאוזים עם ממ״ד וחניה. כך אפשר להתחיל כזוג קטן ולעבור לדירה גדולה יותר עם המשפחה – בלי לעבור פרויקטים.\n\r\n4. קצב תפעול והצלחה מוכחת של \"אודות החבר\"\n\n\r\n1,126 משפחות כבר הגשימו את חלום הבית והצטרפו לאחת מקהילות המגורים שלנו הפרוסות באזורי ביקוש ברחבי הארץ.\n\r\nזה לא מקרי – זה תוצאה של מודל חזק, תקשורת אפקטיבית ושיווק ממוקד.\n\r\nלמה לבחור ב'אשטרום מגורים להשכרה'?\n\r\n\r\nשקט נפשי עם שכירות ארוכת טווח\r\nקהילה פעילה ותמיכה טכנית 24/7\r\nגמישות לבחירה בהתאמה לצרכים שלכם לאורך הזמן\r\nניסיון מוכח ומיזמים עתידיים באזורים מבוקשים\r\n\r\n",
+          "infoStyled": "<div>\r\n<p class=\"MsoNormal\" dir=\"RTL\"><strong><span dir=\"LTR\" lang=\"EN-US\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">1</span></strong><strong><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">.</span></strong><strong><span dir=\"LTR\" lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\"> </span></strong><strong><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">מודל מגורים חדשני ומשמעותי</span></strong><span dir=\"LTR\" lang=\"EN-US\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\"><br></span><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">אשטרום מגורים להשכרה מציעה דירה לטווח של עד 10 שנים, עם גמישות ליציאה שנתית – ללא משכנתא, ללא דאגות ועם יציבות לטווח ארוך </span><span dir=\"LTR\" lang=\"EN-US\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\"><br></span><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">מדובר לא סתם על השכרה – אלא על בית אמיתי, עם אחריות ועוגן לשנים</span><span dir=\"LTR\" lang=\"EN-US\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">.</span></p>\r\n<p class=\"MsoNormal\" dir=\"RTL\"><strong><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">2.</span></strong><strong><span dir=\"LTR\" lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\"> </span></strong><strong><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">קהילה ותמיכה מוארת</span></strong><span dir=\"LTR\" lang=\"EN-US\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\"><br></span><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">כל מתחם מנוהל בפועל על ידי מנהל קהילה צמוד שמארגן אירועים, ניהול תחזוקה וטיפול מהיר בתקלות דרך האפליקציה הייעודית. הדיירים נהנים מחדר כושר, מועדון דיירים, חניה ומרחבים ירוקים – כדי להרגיש באמת בבית.</span></p>\r\n<p class=\"MsoNormal\" dir=\"RTL\"><strong><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">3.</span></strong><strong><span dir=\"LTR\" lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\"> </span></strong><strong><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">דירות מוכנות מראש, מותאמות לכל שלב חיים</span></strong><span dir=\"LTR\" lang=\"EN-US\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\"><br></span><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">הפרויקטים משלבים יחידות בנות 2–5 חדרים: דירות גן, מיני‑פנטהאוזים ופנטהאוזים עם ממ״ד וחניה. כך אפשר להתחיל כזוג קטן ולעבור לדירה גדולה יותר עם המשפחה – בלי לעבור פרויקטים.</span></p>\r\n<p class=\"MsoNormal\" dir=\"RTL\"><strong><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">4. קצב תפעול והצלחה מוכחת של \"אודות החבר\"</span></strong><span dir=\"LTR\" lang=\"EN-US\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\"><br></span></p>\r\n<p class=\"MsoNormal\" align=\"right\"><span dir=\"RTL\" lang=\"HE\">1,126 משפחות כבר הגשימו את חלום הבית והצטרפו לאחת מקהילות המגורים שלנו הפרוסות באזורי ביקוש ברחבי הארץ.</span></p>\r\n<p class=\"MsoNormal\" align=\"right\"><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">זה לא מקרי – זה תוצאה של מודל חזק, תקשורת אפקטיבית ושיווק ממוקד</span><span dir=\"LTR\" lang=\"EN-US\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">.</span></p>\r\n<p class=\"MsoNormal\" dir=\"RTL\"><strong><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">למה לבחור ב'אשטרום מגורים להשכרה</span></strong><strong><span dir=\"LTR\" lang=\"EN-US\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">'?</span></strong></p>\r\n<ul style=\"margin-top: 0cm;\" type=\"disc\">\r\n<li class=\"MsoNormal\" dir=\"RTL\" style=\"mso-list: l0 level1 lfo1; tab-stops: list 36.0pt;\"><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">שקט נפשי עם שכירות ארוכת טווח</span></li>\r\n<li class=\"MsoNormal\" dir=\"RTL\" style=\"mso-list: l0 level1 lfo1; tab-stops: list 36.0pt;\"><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">קהילה פעילה ותמיכה טכנית 24/7</span></li>\r\n<li class=\"MsoNormal\" dir=\"RTL\" style=\"mso-list: l0 level1 lfo1; tab-stops: list 36.0pt;\"><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">גמישות לבחירה בהתאמה לצרכים שלכם לאורך הזמן</span></li>\r\n<li class=\"MsoNormal\" dir=\"RTL\" style=\"mso-list: l0 level1 lfo1; tab-stops: list 36.0pt;\"><span lang=\"HE\" style=\"mso-bidi-font-family: Calibri; mso-bidi-theme-font: minor-latin;\">ניסיון מוכח ומיזמים עתידיים באזורים מבוקשים</span></li>\r\n</ul>\r\n</div>",
+          "name": "אשטרום מגורים להשכרה",
+          "logo": "https://treedis-cdn.yad2.co.il/clients/1000098/logo.png"
+        }
+      ],
+      "flag": "פרויקט חדש",
+      "info": "אשטרום מגורים להשכרה נותנת לכם את היציבות בשוק שמשתנה כל הזמן,\nומציעה לכם שכירות לטווח ארוך ששמה אתכם במרכז.\n \nתתכוננו להתאהב בבית החדש שלכם.\n \nבלי הפתעות‏- שכ\"ד ידוע מראש לתקופה של עד ‏10 שנים\nהכוח אצל השוכר‏- אפשרות יציאה בכל שנה \nיש חנייה ומחסן בתל אביב‏- חנייה מקורה ומחסן לכל דירה\nקרוב להכל‏- גישה לכל צירי התחבורה המרכזיים\nסביבה קהילתית‏- קרוב למוסדות לימוד וגני ילדים\n",
+      "infoStyled": "<p>אשטרום מגורים להשכרה נותנת לכם את היציבות בשוק שמשתנה כל הזמן,</p><p>ומציעה לכם שכירות לטווח ארוך ששמה אתכם במרכז.</p><p> </p><p><strong>תתכוננו להתאהב בבית החדש שלכם.</strong></p><p><span> </span></p><p><strong><span>בלי הפתעות</span></strong><span>‏- שכ\"ד ידוע מראש לתקופה של עד ‏10 שנים</span></p><p><strong><span>הכוח אצל השוכר</span></strong><span>‏- אפשרות יציאה בכל שנה </span></p><p><strong><span>יש חנייה ומחסן בתל אביב</span></strong><span>‏- חנייה מקורה ומחסן לכל דירה</span></p><p><strong><span>קרוב להכל</span></strong><span>‏- גישה לכל צירי התחבורה המרכזיים</span></p><p><strong><span>סביבה קהילתית</span></strong><span>‏- קרוב למוסדות לימוד וגני ילדים</span></p>",
+      "infoHeader": "בואו להנות מכל היתרונות של מגורים לטווח ארוך בשכונת המשתלה עם חניה, מרפסת וממ\"ד\nדירות ‏2 חדרים החל מ ‏-7,744‏ ₪ לחודש\n",
+      "infoHeaderStyled": "<p><span>בואו להנות מכל היתרונות של מגורים לטווח ארוך בשכונת המשתלה עם חניה, מרפסת וממ\"ד</span></p><p><span>דירות ‏2 חדרים החל מ ‏-7,744‏ ₪ לחודש</span></p>",
+      "projectName": "אשטרום המשתלה תל אביב",
+      "promotionText": "שכירות לטווח ארוך!",
+      "projectLogo": "https://treedis-cdn.yad2.co.il/projects/1000144/assets/logo/7885c9f4-03db-4c18-964c-d4529908f699.webp",
+      "coverImage": "https://treedis-cdn.yad2.co.il/projects/1000144/assets/mainImage/d5eeb0a1-92bc-4833-9204-c6e82ae0ae24.webp",
+      "images": [
+        "https://treedis-cdn.yad2.co.il/projects/1000144/assets/mainImage/d5eeb0a1-92bc-4833-9204-c6e82ae0ae24.webp",
+        "https://treedis-cdn.yad2.co.il/projects/1000144/assets/gallery/525dac4a-4afa-4f44-a0f6-05c01dd38e43.webp",
+        "https://treedis-cdn.yad2.co.il/projects/1000144/assets/gallery/519eba78-a487-4505-a921-3e6e8af2b689.webp",
+        "https://treedis-cdn.yad2.co.il/projects/1000144/assets/gallery/7730e2d8-01aa-4c5b-a7a4-0873323503d3.webp",
+        "https://treedis-cdn.yad2.co.il/projects/1000144/assets/gallery/b93d001e-ebd8-49ef-bab3-fcb47c1b25c6.webp",
+        "https://treedis-cdn.yad2.co.il/projects/1000144/assets/gallery/b8d331a3-68bc-443a-9913-00b9c7f37476.webp"
+      ],
+      "previewType": "2d",
+      "immediateOccupancy": false,
+      "buildings": 4,
+      "apartments": 176,
+      "isOnSale": false,
+      "bank": "",
+      "hideDealsHistory": false
+    },
+    "address": {
+      "region": {
+        "id": "3",
+        "text": "תל אביב והסביבה"
+      },
+      "topArea": {
+        "id": "2",
+        "text": "מרכז"
+      },
+      "area": {
+        "id": "1",
+        "text": "אזור תל אביב יפו"
+      },
+      "city": {
+        "id": "5000",
+        "text": "תל אביב יפו"
+      },
+      "neighborhood": {
+        "id": "315",
+        "text": "המשתלה"
+      },
+      "street": {
+        "id": "4621",
+        "text": "משה וילנסקי"
+      },
+      "coords": {
+        "lat": 32.12815475,
+        "lon": 34.83084869
+      },
+      "house": {
+        "number": 17
+      },
+      "addressMasterId": "5860649",
+      "display": "משה וילנסקי 17, המשתלה, תל אביב יפו"
+    },
+    "dates": {
+      "updatedAt": "2026-07-14T15:39:29",
+      "createdAt": "2025-01-12T11:00:51"
+    },
+    "abovePrice": "7000",
+    "packageId": 102
+  },
+  {
+    "address": {
+      "region": {
+        "text": "תל אביב והסביבה",
+        "id": 3
+      },
+      "city": {
+        "text": "תל אביב יפו"
+      },
+      "area": {
+        "text": "אזור תל אביב יפו"
+      },
+      "neighborhood": {
+        "text": "התקוה, בית יעקב, נווה צה\"ל"
+      },
+      "street": {
+        "text": "כביר"
+      },
+      "house": {
+        "number": 34,
+        "floor": 1
+      },
+      "coords": {
+        "lon": 34.788701,
+        "lat": 32.050112
+      }
+    },
+    "subcategoryId": 2,
+    "categoryId": 2,
+    "adType": "private",
+    "price": 3600,
+    "token": "cvea5e61",
+    "additionalDetails": {
+      "property": {
+        "text": "דירה"
+      },
+      "roomsCount": 2,
+      "squareMeter": 58,
+      "propertyCondition": {
+        "id": 2
+      }
+    },
+    "metaData": {
+      "coverImage": "https://img.yad2.co.il/Pic/202604/21/2_2/o/y2_1_05741_20260421221925.jpeg",
+      "images": [
+        "https://img.yad2.co.il/Pic/202604/21/2_2/o/y2_1_05741_20260421221925.jpeg",
+        "https://img.yad2.co.il/Pic/202604/14/2_2/o/y2_1pa_010153_20260414195149.jpeg",
+        "https://img.yad2.co.il/Pic/202604/14/2_2/o/y2_1pa_010173_20260414195149.jpeg",
+        "https://img.yad2.co.il/Pic/202604/14/2_2/o/y2_1pa_010798_20260414195149.jpeg",
+        "https://img.yad2.co.il/Pic/202604/14/2_2/o/y2_1pa_010876_20260414195149.jpeg",
+        "https://img.yad2.co.il/Pic/202604/14/2_2/o/y2_1pa_010458_20260414195149.jpeg",
+        "https://img.yad2.co.il/Pic/202604/14/2_2/o/y2_1pa_010768_20260414195149.jpeg",
+        "https://img.yad2.co.il/Pic/202604/14/2_2/o/y2_1pa_010231_20260414195149.jpeg"
+      ],
+      "squareMeterBuild": 50
+    },
+    "tags": [
+      {
+        "name": "בניין משופץ",
+        "id": 1018,
+        "priority": 3
+      },
+      {
+        "name": "חבל לפספס",
+        "id": 1092,
+        "priority": 10
+      },
+      {
+        "name": "בהזדמנות",
+        "id": 1091,
+        "priority": 10
+      }
+    ],
+    "priceBeforeTag": 3900,
+    "orderId": 56806497,
+    "priority": 3
+  },
+  {
+    "address": {
+      "region": {
+        "text": "תל אביב והסביבה",
+        "id": 3
+      },
+      "city": {
+        "text": "תל אביב יפו"
+      },
+      "area": {
+        "text": "אזור תל אביב יפו"
+      },
+      "neighborhood": {
+        "text": "נאות אפקה ב'"
+      },
+      "house": {
+        "floor": 6
+      },
+      "coords": {
+        "lon": 34.821861,
+        "lat": 32.119386
+      }
+    },
+    "subcategoryId": 6,
+    "categoryId": 2,
+    "adType": "commercial",
+    "price": 4000,
+    "token": "p3akjj8o",
+    "additionalDetails": {
+      "property": {
+        "text": "דירה"
+      },
+      "roomsCount": 3,
+      "squareMeter": 65,
+      "propertyCondition": {
+        "id": 5
+      }
+    },
+    "metaData": {
+      "coverImage": "https://img.yad2.co.il/Pic/202605/07/2_6/o/y2_1pa_010224_20260507122628.jpeg",
+      "images": [
+        "https://img.yad2.co.il/Pic/202605/07/2_6/o/y2_1pa_010224_20260507122628.jpeg"
+      ]
+    },
+    "customer": {
+      "agencyName": "כנען סוכנות נדל\"ן",
+      "agencyLogo": "//images.yad2.co.il/Pic/TivMiniSite/54b80d64-8b49-441d-8b48-f123098c76b7.png?t=1785593751098"
+    },
+    "orderId": 56908910,
+    "priority": 1
+  }
+]

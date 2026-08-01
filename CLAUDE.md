@@ -34,15 +34,46 @@ whether it's been rotated via BotFather `/revoke` before relying on it.
 
 ## Current state / immediate next step
 
-The `scan` job in `.github/workflows/apartment-finder.yml` was just switched
-from `runs-on: ubuntu-latest` to `runs-on: [self-hosted, apartment-finder]`,
-because GitHub-hosted runners' Azure IPs get hard-blocked by Yad2/Homeless's
-bot protection (Komo is unaffected either way). **Until a self-hosted
-runner with the `apartment-finder` label is registered, every scan —
-including the daily cron — will sit queued indefinitely and nothing will
-update.** Registration steps are in `apartment-finder/SETUP-PAGES.md` §7.
-This was mid-setup (deciding which machine to register) when the user moved
-to this IDE — that's very likely the next thing to pick up.
+A self-hosted runner (label `apartment-finder`) is registered and running as
+a Windows service on the user's PC (`jayquake-pc`) — set up on the theory
+that a residential IP would clear Yad2/Homeless's bot challenges where a
+GitHub-hosted datacenter IP couldn't. That theory was tested directly and
+disproven: a residential IP alone clears neither. The actual signal both
+vendors key on is the CDP connection any browser-automation tool uses to
+drive Chrome. A patched, CDP-leak-free Chrome (the `patchright` package,
+already wired into `src/sources/browser.ts`) does get through — but **only
+in a real headed window**, since headless mode is a separate dead end and
+still shows a captcha regardless of the CDP fix. A headed window needs an
+interactive desktop session, which the self-hosted runner's Windows service
+does not have (Session 0).
+
+Net effect: `.github/workflows/apartment-finder.yml` now scans **Komo only**,
+back on `ubuntu-latest` — the self-hosted runner buys it nothing anymore, so
+that dependency was removed. Yad2/Homeless currently only work run by hand,
+logged in: `HEADLESS=false npm run scan` (optionally
+`SOURCES=yad2,homeless` to skip re-scanning Komo). Full details in
+`apartment-finder/README.md`, "Sources, and the bot-protection reality", and
+`apartment-finder/SETUP-PAGES.md` §7.
+
+Also fixed in the same pass: `src/sources/yad2.ts`'s `toRawListing` was
+silently dropping rooms/size (nested under `additionalDetails`, a container
+its field-picker never checked), floor and house number (nested two levels
+under `address.house`), the real coordinates (`address.coords`, not
+`address.coordinates` — Yad2 listings were being geocoded from a
+neighborhood-centroid guess instead of the exact address it already had),
+and the agency name / tag-based amenities (`customer.agencyName`, `tags`).
+There was no test coverage for this parser at all before — there is now
+(`tests/yad2.test.ts`, fixtures in `tests/fixtures/yad2-listings.json`, real
+captured payloads). `src/geocode.ts` also gained a neighborhood-level
+fallback for listings with no `street` (which is most of Yad2's, by design —
+it doesn't expose exact addresses on the public search page), so they show
+up on the Map tab too, just at coarser precision than Komo's street-level
+pins.
+
+The self-hosted runner itself is still registered and running — just idle
+from this workflow's perspective. Fine to leave as-is; only relevant again
+if a future logged-in-session setup (not a Windows service) makes scheduled
+Yad2/Homeless scanning possible.
 
 ## Working agreements from prior sessions
 
@@ -60,5 +91,5 @@ to this IDE — that's very likely the next thing to pick up.
   freshly generated copies, and locally a plain `git fetch` + `rebase` is
   usually conflict-free as long as your own commit doesn't also touch those
   generated paths.
-- Run `npx tsc --noEmit` and `npm test` (81+ tests, `apartment-finder/`)
+- Run `npx tsc --noEmit` and `npm test` (90+ tests, `apartment-finder/`)
   before considering any backend change done.

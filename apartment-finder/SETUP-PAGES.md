@@ -66,38 +66,29 @@ budget and preferred neighbourhoods.
 
 ## Expected first-run outcome
 
-Komo should return results regardless of where the job runs. Yad2 and Homeless
-need the self-hosted runner below — on GitHub-hosted runners they were
-reliably blocked, because those use Azure datacenter IP ranges that Radware
-and Cloudflare treat far more suspiciously than a home connection. The job
-reports per-source counts rather than failing, so check the summary either
-way.
+This workflow scans **Komo only**, and Komo returns results regardless of
+where the job runs — it was never blocked, on GitHub-hosted or otherwise.
 
-## 7. Self-hosted runner (for Yad2 and Homeless)
+## 7. Yad2 and Homeless are not part of this workflow
 
-The `scan` job runs on a self-hosted runner (`runs-on: [self-hosted,
-apartment-finder]`), not `ubuntu-latest`, specifically so Yad2 and Homeless
-see a normal residential/business IP instead of a datacenter one. This needs
-a machine you control that can stay on and connected around 07:30
-Asia/Jerusalem each morning — a home PC, a Raspberry Pi, or a small VPS all
-work. If that machine is off at cron time, the *whole* scan (Komo included)
-simply waits until a runner is available, rather than falling back to
-GitHub-hosted — see the comment at the top of the workflow file.
+Both were originally expected to work from a self-hosted runner instead of
+GitHub-hosted, on the theory that a residential IP would clear their bot
+challenges where a datacenter IP couldn't. That turned out to be wrong:
+verified directly, a residential connection doesn't clear either challenge
+either. The actual signal both vendors key on is the CDP connection any
+browser-automation tool uses to drive Chrome, not the IP. A patched,
+CDP-leak-free Chrome (patchright) does get through — but only in a real
+**headed** window, since headless carries its own separate tells and still
+shows a captcha regardless of the CDP fix. A headed window needs an
+interactive desktop session, which no CI runner has — self-hosted or not,
+and whether it's installed as a Windows service or a Linux systemd unit.
 
-To register it:
-
-1. Repo → **Settings → Actions → Runners → New self-hosted runner**, pick the
-   machine's OS, and follow GitHub's download/config commands.
-2. When running `config.sh` (or `config.cmd`), add `--labels apartment-finder`
-   — the workflow targets that label specifically, not just `self-hosted`, so
-   it will not accidentally pick up some other runner later.
-3. Install it as a service so it survives a reboot and runs unattended: the
-   configurator's own output shows this (`svc.sh install && svc.sh start` on
-   Linux/macOS; `run.cmd` can also be installed as a Windows service).
-4. The runner needs Node 20 reachable — `actions/setup-node@v4` downloads it
-   into the runner's tool cache if it is missing, so a plain OS install is
-   enough; nothing needs to be pre-installed beyond what the OS provides.
-5. On Linux, Playwright's Chromium install step uses `--with-deps`, which
-   shells out to `apt-get` and needs the runner process to have `sudo`
-   access. On macOS/Windows runners that flag is a no-op — those platforms
-   don't need extra system packages for Chromium.
+So there is currently no way to run Yad2/Homeless on a schedule. The
+practical path is manual: on a machine you're logged into,
+`HEADLESS=false npm run scan` (or `SOURCES=yad2,homeless HEADLESS=false npm
+run scan` to skip re-scanning Komo). See `apartment-finder/README.md`,
+"Sources, and the bot-protection reality", for the full story. If you
+previously registered a self-hosted runner for this, it's no longer needed
+by this workflow — Komo runs fine on `ubuntu-latest` — but it isn't harmful
+to leave registered either, in case a future logged-in-session setup makes
+scheduled Yad2/Homeless scanning possible.

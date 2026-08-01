@@ -10,7 +10,7 @@
  * are disallowed, neither of which is touched here.
  */
 
-import type { Page } from 'playwright';
+import type { Page } from 'patchright';
 import type { RawListing, SearchCriteria } from '../types';
 import type { ListingSource, SourceResult } from './types';
 import { openPage, throttle } from './browser';

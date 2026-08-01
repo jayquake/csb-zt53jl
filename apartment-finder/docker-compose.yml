@@ -9,14 +9,10 @@ services:
       - .env
     environment:
       DATABASE_URL: file:/app/data/apartments.db
-      BROWSER_PROFILE_DIR: /app/data/browser-profile
     volumes:
-      # Persists the SQLite database (price history) and the browser profile
-      # (the solved bot-challenge cookie).
+      # Persists the SQLite database (price history). No browser runs in this
+      # image — see the Dockerfile — so there is no profile directory to keep.
       - apartment-data:/app/data
-    # Chromium needs more than Docker's default 64MB of shared memory or it
-    # crashes on content-heavy pages.
-    shm_size: '1gb'
     healthcheck:
       test: ['CMD', 'wget', '--spider', '-q', 'http://localhost:8080/health']
       interval: 60s

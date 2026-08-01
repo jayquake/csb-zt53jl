@@ -15,32 +15,31 @@
 #
 # Two caveats worth reading before relying on this:
 #
-#   1. GitHub-hosted runners use Azure datacenter IP ranges, which Radware and
-#      Cloudflare challenge far more aggressively than a home connection. Komo
-#      needs no browser and worked fine there; Yad2 and Homeless were reliably
-#      blocked, returning zero every run. That is why `scan` below runs on a
-#      SELF-HOSTED runner instead: same code, same three sources, just from a
-#      machine that does not look like a datacenter to Radware.
+#   1. This scans Komo only. Yad2 and Homeless both fingerprint the CDP
+#      connection any browser-automation library uses to drive Chrome —
+#      verified directly, including with a patched, undetected Chrome build
+#      (patchright) — and headless mode is a dead end regardless of that
+#      patch: it carries its own tells and still gets a captcha every time.
+#      The only thing that has actually worked is a real HEADED Chrome window
+#      on an interactive desktop session, run by hand while logged in — see
+#      apartment-finder/README.md, "Sources, and the bot-protection reality".
+#      A self-hosted runner installed as a service (Windows) or systemd unit
+#      (Linux) has no desktop session to attach a visible browser to, so it
+#      cannot run them either, patched browser or not. Trying anyway would
+#      just burn the runner's time every morning for a result that never
+#      arrives. If you want Yad2/Homeless data, scan them by hand
+#      (`HEADLESS=false npm run scan`, logged in) and let this workflow carry
+#      Komo plus whatever manual/Telegram-forward listings are already in the
+#      snapshot.
 #
-#      This trades Komo's previous 100% GitHub-hosted reliability for
-#      three-source coverage: if the self-hosted machine is off or
-#      disconnected at cron time, NOTHING scans that morning — Komo included
-#      — because the whole job, not just Yad2/Homeless, now needs that runner.
-#      The machine needs to be on and connected around 07:30 Asia/Jerusalem
-#      (see the schedule note below) for the morning run to happen at all.
+#   2. Komo needs no browser at all, so this still runs on a GitHub-hosted
+#      runner just fine — no self-hosted machine to keep on and connected.
 #
-#   2. GitHub only fires `schedule:` triggers from the repository's DEFAULT
+#   3. GitHub only fires `schedule:` triggers from the repository's DEFAULT
 #      branch. On any other branch the cron silently never runs and only
 #      `workflow_dispatch` works. This repository's default branch is
 #      `gh-pages`, so that is where this file has to live for the morning scan
 #      to happen on its own.
-#
-# Registering the self-hosted runner (one-time, on the machine that will run
-# the scan): repo Settings → Actions → Runners → New self-hosted runner, pick
-# the OS, and run the config script it gives you with the label
-# `apartment-finder` (`./config.sh --labels apartment-finder ...`). Install it
-# as a service (the configurator offers `svc.sh install && svc.sh start` on
-# Linux/macOS) so it survives a reboot and keeps running unattended.
 
 name: Apartment Finder
 
@@ -58,9 +57,9 @@ on:
         type: boolean
         default: false
       sources:
-        description: Comma-separated sources to scan
+        description: 'Comma-separated sources to scan (yad2/homeless cannot work here — see the note above)'
         type: string
-        default: komo,yad2,homeless
+        default: komo
 
 concurrency:
   # Never let two scans overlap — they would both write the snapshot.
@@ -74,14 +73,13 @@ permissions:
 
 jobs:
   scan:
-    # Was ubuntu-latest. See the note above: this needs to be a machine that
-    # is not on a datacenter IP range, registered with this label.
-    runs-on: [self-hosted, apartment-finder]
-    # A self-hosted job that hangs (network drop mid-scan, browser wedged)
-    # would otherwise block every later run behind it — the concurrency group
-    # below queues rather than cancels. Generous, since a full three-source
-    # scan legitimately takes a few minutes, but not unbounded.
-    timeout-minutes: 30
+    # Komo needs no browser at all, so a GitHub-hosted runner is fine — see
+    # the note above for why this no longer runs on the self-hosted machine.
+    runs-on: ubuntu-latest
+    # A job that hangs (network blip mid-scan) would otherwise block every
+    # later run behind it — the concurrency group below queues rather than
+    # cancels. Generous, but not unbounded.
+    timeout-minutes: 15
     defaults:
       run:
         working-directory: apartment-finder
@@ -106,11 +104,6 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Install Chromium
-        # Only Yad2 and Homeless need it. `--with-deps` pulls the system
-        # libraries the runner does not ship.
-        run: npx playwright install --with-deps chromium
-
       - name: Prepare database
         run: |
           npx prisma generate
@@ -122,7 +115,7 @@ jobs:
 
       - name: Scan
         env:
-          SOURCES: ${{ github.event.inputs.sources || 'komo,yad2,homeless' }}
+          SOURCES: ${{ github.event.inputs.sources || 'komo' }}
           NOTIFY_CHANNELS: ${{ vars.NOTIFY_CHANNELS || 'telegram' }}
           TWILIO_ACCOUNT_SID: ${{ secrets.TWILIO_ACCOUNT_SID }}
           TWILIO_AUTH_TOKEN: ${{ secrets.TWILIO_AUTH_TOKEN }}

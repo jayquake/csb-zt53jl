@@ -16,7 +16,7 @@
  *    address" survives that, a hardcoded path does not.
  */
 
-import type { Page } from 'playwright';
+import type { Page } from 'patchright';
 import type { RawListing, SearchCriteria } from '../types';
 import type { ListingSource, SourceResult } from './types';
 import { openPage, throttle } from './browser';
@@ -110,22 +110,43 @@ const KEY_ALIASES = {
   images: ['images', 'imageUrls', 'image_urls', 'metaData', 'coverImage'],
 } as const;
 
-/** Reads the first alias present on the object, descending one level into nested objects. */
+/**
+ * Reads the first alias present on the object, descending one level into
+ * nested containers Yad2 groups fields under.
+ *
+ * A candidate is only accepted if `asText` can actually make sense of it.
+ * Without that check, `address` (one of the `street` aliases, for shapes
+ * where it is a bare string) matches the *container* object on this schema
+ * — `obj.address` is `{ city, street, house, coords, ... }`, not a string —
+ * and short-circuits before the nested-container loop below ever gets a
+ * chance to pull the real `address.street.text`. Verified against a live
+ * Yad2 payload (order 57260750): without this check `street` came back
+ * `undefined` despite `address.street.text` being `"הרצל"`.
+ */
 function pick(obj: Record<string, unknown>, aliases: readonly string[]): unknown {
   for (const key of aliases) {
-    if (obj[key] != null && obj[key] !== '') return obj[key];
+    const value = obj[key];
+    if (value != null && value !== '' && asText(value) != null) return value;
   }
-  // Yad2 nests address parts under `address`/`location`.
-  for (const container of ['address', 'location', 'addressDetails']) {
+  // Yad2 nests address parts under `address`/`location`, and room/size/floor
+  // under `additionalDetails`.
+  for (const container of ['address', 'location', 'addressDetails', 'additionalDetails']) {
     const nested = obj[container];
     if (nested && typeof nested === 'object') {
       for (const key of aliases) {
         const value = (nested as Record<string, unknown>)[key];
-        if (value != null && value !== '') return value;
+        if (value != null && value !== '' && asText(value) != null) return value;
       }
     }
   }
   return undefined;
+}
+
+/** Tag names Yad2 attaches to a listing, e.g. `ממ"ד`, `מרוהט`, `בניין משופץ`. */
+function tagNames(obj: Record<string, unknown>): string[] {
+  const tags = obj.tags;
+  if (!Array.isArray(tags)) return [];
+  return tags.map((t) => asText((t as Record<string, unknown>)?.name)).filter((t): t is string => !!t);
 }
 
 /** Some fields arrive as `{ text: "..." , id: 123 }` rather than a bare string. */
@@ -162,11 +183,21 @@ export function toRawListing(obj: Record<string, unknown>, now: Date = new Date(
   const priceIls = parsePrice(asText(pick(obj, KEY_ALIASES.price)));
   const city = clean(asText(pick(obj, KEY_ALIASES.city)) ?? '');
   const neighborhood = clean(asText(pick(obj, KEY_ALIASES.neighborhood)) ?? '') || undefined;
-  const street = clean(asText(pick(obj, KEY_ALIASES.street)) ?? '') || undefined;
   const rooms = parseRooms(asText(pick(obj, KEY_ALIASES.rooms)));
   const sizeSqm = parseInteger(asText(pick(obj, KEY_ALIASES.size)));
-  const floor = parseFloor(asText(pick(obj, KEY_ALIASES.floor)));
   const description = clean(asText(pick(obj, KEY_ALIASES.description)) ?? '') || undefined;
+
+  // `floor` and the house number live at `address.house.{floor,number}` —
+  // two levels down, one deeper than `pick`'s single-level container descent
+  // reaches — so they are read directly rather than through the alias table.
+  const addressObj = (obj.address ?? {}) as Record<string, unknown>;
+  const house = (addressObj.house ?? {}) as Record<string, unknown>;
+  const floor = parseFloor(asText(pick(obj, KEY_ALIASES.floor))) ?? parseFloor(asText(house.floor));
+
+  const streetName = clean(asText(pick(obj, KEY_ALIASES.street)) ?? '') || undefined;
+  const houseNumber = asText(house.number);
+  // "הרצל 114" reads and pastes into Waze better than the bare street name.
+  const street = streetName && houseNumber ? `${streetName} ${houseNumber}` : streetName;
 
   const title =
     clean(asText(pick(obj, KEY_ALIASES.title)) ?? '') ||
@@ -174,9 +205,17 @@ export function toRawListing(obj: Record<string, unknown>, now: Date = new Date(
     `דירה ${externalId}`;
 
   const images = extractImages(obj);
-  const amenities = detectAmenities([title, description, neighborhood, street].filter(Boolean).join(' '));
+  const tags = tagNames(obj);
+  const amenities = detectAmenities(
+    [title, description, neighborhood, streetName, ...tags].filter(Boolean).join(' ')
+  );
 
   const coords = extractCoords(obj);
+
+  // A listing agency's name is a direct, unambiguous signal — far stronger
+  // than guessing from free text, and this schema carries no other text to
+  // guess from in the first place (commercial cards have no description).
+  const agencyName = asText((obj.customer as Record<string, unknown> | undefined)?.agencyName);
 
   return {
     source: 'yad2',
@@ -200,7 +239,10 @@ export function toRawListing(obj: Record<string, unknown>, now: Date = new Date(
     hasBalcony: readBool(obj, ['balcony', 'hasBalcony', 'balconies']) ?? amenities.hasBalcony,
     hasSafeRoom: readBool(obj, ['saferoom', 'hasSaferoom', 'mamad']) ?? amenities.hasSafeRoom,
     imageUrls: images,
-    isAgency: readBool(obj, ['isAgency', 'merchant', 'isBroker']) ?? detectAgency([title, description].filter(Boolean).join(' ')),
+    isAgency:
+      readBool(obj, ['isAgency', 'merchant', 'isBroker']) ??
+      (agencyName ? true : undefined) ??
+      detectAgency([title, description].filter(Boolean).join(' ')),
     postedAt: parseHebrewDate(asText(pick(obj, KEY_ALIASES.date)), now),
     raw: obj,
   };
@@ -216,12 +258,20 @@ function readBool(obj: Record<string, unknown>, keys: string[]): boolean | undef
   return undefined;
 }
 
+/**
+ * Real, exact coordinates Yad2 already provides at `address.coords.{lat,lon}`
+ * — verified against a live payload (order 57260750: `32.054872, 34.770744`,
+ * the actual building). Missing the `coords` key name meant this always came
+ * back empty and every Yad2 listing fell through to geocoding a
+ * neighborhood-centroid guess instead of using the real address it already
+ * had — worse precision for no reason.
+ */
 function extractCoords(obj: Record<string, unknown>): { lat: number; lng: number } | undefined {
   const containers = [obj, obj.address, obj.location, obj.coordinates].filter(
     (c): c is Record<string, unknown> => !!c && typeof c === 'object'
   );
   for (const c of containers) {
-    const coords = (c.coordinates ?? c) as Record<string, unknown>;
+    const coords = (c.coordinates ?? c.coords ?? c) as Record<string, unknown>;
     const lat = Number(coords.lat ?? coords.latitude);
     const lng = Number(coords.lon ?? coords.lng ?? coords.longitude);
     if (Number.isFinite(lat) && Number.isFinite(lng) && lat !== 0 && lng !== 0) return { lat, lng };

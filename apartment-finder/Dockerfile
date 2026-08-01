@@ -1,25 +1,13 @@
-# Chromium comes from Alpine's repos rather than Playwright's downloader: the
-# bundled build pulls a large glibc-based image, and the source adapters only
-# need a standards-compliant Chromium, not a pinned Playwright revision.
+# Komo-only image. Yad2 and Homeless need a real, headed Chrome window (see
+# src/sources/browser.ts) — both their bot-management vendors fingerprint the
+# CDP connection any headless/containerized automation uses, patched browser
+# or not, and there is no display in a container to run headed against
+# anyway. So this image does not install a browser at all; Komo needs none.
+# Run Yad2/Homeless from a machine with a real desktop session instead (see
+# the README).
 FROM node:20-alpine
 
-RUN apk add --no-cache \
-      chromium \
-      nss \
-      freetype \
-      harfbuzz \
-      ca-certificates \
-      ttf-freefont \
-      # Hebrew glyphs: without a font that covers them, rendered pages are
-      # boxes and the text-based parsing extracts nothing.
-      font-noto-hebrew
-
-# The system Chromium is used instead of `playwright install`: the CLI's build
-# is glibc-based and will not run on Alpine. CHROMIUM_PATH points the browser
-# session at it. (Komo needs no browser at all.)
-ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1 \
-    CHROMIUM_PATH=/usr/bin/chromium-browser \
-    NODE_ENV=production
+ENV NODE_ENV=production
 
 WORKDIR /app
 

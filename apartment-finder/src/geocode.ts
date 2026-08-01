@@ -35,9 +35,20 @@ export interface Coordinates {
 /**
  * The cache key. Normalised so "לוינסקי 12 , תל אביב" and "לוינסקי 12, תל אביב"
  * are one entry rather than two lookups.
+ *
+ * Falls back to neighborhood when there is no street — Yad2's public search
+ * page never exposes one (only Komo's detail pages do), so requiring a
+ * street here would silently drop every Yad2 listing from the map. A
+ * neighborhood centroid is far coarser than a house-level pin, but Tel Aviv
+ * neighborhoods are small enough that it still lands in the right part of
+ * the city, which beats not showing the listing at all.
  */
-export function addressKey(street: string | null | undefined, city: string | null | undefined): string | null {
-  const parts = [street, city].map((p) => normalizeText(p ?? '')).filter(Boolean);
+export function addressKey(
+  street: string | null | undefined,
+  neighborhood: string | null | undefined,
+  city: string | null | undefined
+): string | null {
+  const parts = [street || neighborhood, city].map((p) => normalizeText(p ?? '')).filter(Boolean);
   // A city on its own would geocode to the city centre and put every listing
   // in that city on the same pin, which is worse than showing nothing.
   if (parts.length < 2) return null;
@@ -91,8 +102,12 @@ export async function geocodeMissing(prisma: PrismaClient, limit = config.geocod
   if (!config.geocode.enabled) return 0;
 
   const pending = await prisma.listing.findMany({
-    where: { isActive: true, lat: null, street: { not: null } },
-    select: { id: true, street: true, city: true },
+    where: {
+      isActive: true,
+      lat: null,
+      OR: [{ street: { not: null } }, { neighborhood: { not: null } }],
+    },
+    select: { id: true, street: true, neighborhood: true, city: true },
     orderBy: { score: 'desc' },
   });
 
@@ -102,7 +117,7 @@ export async function geocodeMissing(prisma: PrismaClient, limit = config.geocod
   let requests = 0;
 
   for (const listing of pending) {
-    const key = addressKey(listing.street, listing.city);
+    const key = addressKey(listing.street, listing.neighborhood, listing.city);
     if (!key) continue;
 
     const cached = await prisma.geocode.findUnique({ where: { address: key } });

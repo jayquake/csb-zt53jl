@@ -22,7 +22,7 @@ Watches Israeli rental listings every morning, scores them against your criteria
 ```bash
 cd apartment-finder
 cp .env.example .env
-npm run setup           # install deps, install Chromium via the Playwright CLI,
+npm run setup           # install deps, register patchright's patched Chrome,
                         # generate the Prisma client, create the database
 
 npm run notify:test     # prints a sample digest to the console
@@ -101,7 +101,7 @@ cp .env.example .env
 docker compose up -d --build
 ```
 
-The `apartment-data` volume holds both the SQLite database (your price history) and the browser profile. Don't delete it — see the bot-protection note below for why the profile matters.
+**Komo-only.** The image installs no browser at all — see "Sources, and the bot-protection reality" below: Yad2 and Homeless need a real, headed Chrome window, and there is no display in a container to run one against, patched browser or not. Set `SOURCES=komo` in `.env` for Docker; leaving `yad2`/`homeless` in there will just fail loudly for those two on every scan while Komo keeps working. The `apartment-data` volume holds the SQLite database (your price history).
 
 ---
 
@@ -163,12 +163,13 @@ page is already the relevant slice.
 
 Consequences worth knowing up front:
 
-- **A `fetch()`-based scraper cannot work for Yad2 or Homeless.** Playwright with a real browser is required for those two. Komo is exempt.
-- **Browsers come from the Playwright CLI**: `npx playwright install chromium` (wired into `npm run setup`; `npm run browser:deps` also pulls OS libraries). Set `CHROMIUM_PATH` only to override.
-- **One consistent identity.** The User-Agent is configurable via `SCRAPE_USER_AGENT` and is pinned at the browser-context level, so it is sent on every navigation, XHR and asset — not just the first document. `Accept-Language`, `sec-ch-ua` client hints, timezone and `navigator.userAgent` are all kept in agreement with it; a UA header that disagrees with the JS view, or that vanishes after the first request, is a strong bot signal. The plain-HTTP Komo adapter reuses the same identity, so all three sources look like one client rather than three.
+- **A `fetch()`-based scraper cannot work for Yad2 or Homeless.** A real browser is required for those two. Komo is exempt.
+- **A residential IP alone does not clear either challenge**, contrary to what an earlier version of this README assumed. Verified directly, from a home connection: stock Playwright Chromium sat on Yad2's "Verifying your browser…" spinner indefinitely — not a solvable captcha, a permanent stall — and on Homeless's Cloudflare Turnstile checkbox, headless or headed. Seeding a real, manually-solved clearance cookie into the profile didn't help either; replaying it through Playwright still re-triggered the challenge. The actual signal both vendors key on is the CDP connection Playwright (or any Playwright-based tool) uses to drive the browser, not the IP or the cookie jar — the identical profile passes instantly in a normal, non-automated Chrome window.
+- **Browsers come from patchright**, a patched Playwright build that avoids that CDP leak: `npx patchright install chrome` (wired into `npm run setup`), which registers this machine's real installed Chrome rather than downloading a bundled Chromium. Verified: from a brand-new profile, headed patchright Chrome loaded both Yad2 and Homeless clean, no challenge at all.
+- **Headless is a separate dead end, patchright or not.** Confirmed both `headless: true` and `headless: false` with `--headless=new` still show a captcha — headless Chrome carries its own tells beyond the CDP leak. So Yad2/Homeless only work with a real `headless: false` Chrome window, which needs an actual interactive desktop session. That rules out a Windows service, a Linux systemd unit, Docker (see below) and any display-less CI runner — `HEADLESS=false` has to be run by hand, logged in. Komo needs none of this and runs everywhere, headless included, since it never touches a browser.
+- **One consistent identity for Komo's plain HTTP requests.** The User-Agent is configurable via `SCRAPE_USER_AGENT`; `Accept-Language` and `sec-ch-ua` client hints are kept in agreement with it. Yad2/Homeless don't need this — patchright's real Chrome sends its own genuine, internally-consistent identity, and overriding it on top would reintroduce exactly the kind of mismatch that gets flagged.
 - **Yad2's private `gw.yad2.co.il` API is not used**, even though it would be convenient — it lives behind the robots-disallowed `/api/` path. The public search page carries the same data.
-- **Run this from a home IP.** Datacenter ranges get challenged much harder. This is the main reason the recommended deployment is local or a home server rather than a cloud VPS.
-- **The browser profile is persistent** (`BROWSER_PROFILE_DIR`). The clearance cookie from the first solved challenge is reused, so later scans skip the challenge — faster, and far less bot-like. Deleting the profile means re-solving from scratch.
+- **The browser profile is persistent** (`BROWSER_PROFILE_DIR`) for convenience — cookies and session state carry over between runs — but it is no longer load-bearing the way it was once thought to be: patchright doesn't need a previously-solved clearance cookie, it simply never triggers the challenge in the first place.
 - `SCRAPE_THROTTLE_MS` (default 4s between page loads) is what keeps this polite. Don't lower it.
 
 Scraped-site markup changes. When a source breaks it fails soft — the scan continues, the error appears in `/api/status` and in the UI status line, and the other sources still deliver. The Yad2 adapter mines its JSON by *shape* rather than a fixed path like `props.pageProps.feed.private`, specifically so a Yad2 internal reshuffle doesn't break it, and falls back to DOM parsing if the JSON is gone entirely.
@@ -398,15 +399,15 @@ Save / Hide / Contacted on each card; hidden listings drop out of the feed but s
 | `npm run snapshot:import` | Restore state from `data/snapshot.json` |
 | `npm run snapshot:export` | Write the snapshot and assemble `site/` |
 | `npm run notify:test` | Send a sample digest to check credentials |
-| `npm run browser:install` | `playwright install chromium` |
+| `npm run browser:install` | `patchright install chrome` |
 
 ## Tests
 
 ```bash
-npm test    # 81 tests
+npm test    # 90 tests
 ```
 
-Covers Hebrew parsing (prices with mixed separators, `3.5 חדרים`, `קרקע`/`מרתף` floors, relative dates like `לפני 3 ימים`, and amenity negation — `ללא מעלית` must not read as *has* elevator), scoring and rejection rules, fingerprint dedupe, message formatting, and an integration suite that runs the real ingest pipeline against a throwaway SQLite database to prove the alert-once rules hold.
+Covers Hebrew parsing (prices with mixed separators, `3.5 חדרים`, `קרקע`/`מרתף` floors, relative dates like `לפני 3 ימים`, and amenity negation — `ללא מעלית` must not read as *has* elevator), scoring and rejection rules, fingerprint dedupe, message formatting, an integration suite that runs the real ingest pipeline against a throwaway SQLite database to prove the alert-once rules hold, and Yad2's `__NEXT_DATA__` parsing against real captured payloads (`tests/fixtures/yad2-listings.json`) — added after a live scan showed the old parser silently dropping rooms, size, floor, exact coordinates and agency status that were present in the payload the whole time.
 
 ## Layout
 
@@ -414,7 +415,7 @@ Covers Hebrew parsing (prices with mixed separators, `3.5 חדרים`, `קרקע
 src/
   criteria.ts          hard filters + 0-100 scoring
   sources/
-    browser.ts         shared Playwright session, bot-challenge handling
+    browser.ts         shared patchright (patched, CDP-leak-free) session
     yad2.ts            shape-based JSON mining + DOM fallback
     homeless.ts        server-rendered HTML parsing
     komo.ts            plain-HTTP + cheerio parsing (no browser)
@@ -434,6 +435,6 @@ public/                mobile UI (no build step)
 ## Known limits
 
 - Scraping breaks when sites change their markup. Failures are visible in `/api/status`, not silent.
-- Datacenter IPs get challenged harder than residential ones — run it at home.
+- Yad2 and Homeless need a real, headed Chrome window (see "Sources, and the bot-protection reality" above) — an interactive desktop session, run by hand. They cannot run under a Windows service, a Linux systemd unit, Docker, or a display-less CI runner. Komo has no such limit.
 - Yad2 and Homeless city-code maps cover Gush Dan; other cities fall back to a text query, which is less precise.
 - SQLite and a single criteria profile — this is built as a single-user tool.

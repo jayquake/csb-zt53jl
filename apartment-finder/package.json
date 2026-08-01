@@ -10,9 +10,8 @@
   },
   "scripts": {
     "build": "tsc -p tsconfig.json",
-    "setup": "npm install && playwright install chromium && prisma generate && prisma db push",
-    "browser:install": "playwright install chromium",
-    "browser:deps": "playwright install --with-deps chromium",
+    "setup": "npm install && patchright install chrome && prisma generate && prisma db push",
+    "browser:install": "patchright install chrome",
     "dev": "ts-node src/server.ts",
     "start": "node dist/src/server.js",
     "scan": "ts-node src/cli.ts scan",
@@ -32,7 +31,7 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "node-cron": "^3.0.3",
-    "playwright": "^1.56.1",
+    "patchright": "^1.61.1",
     "zod": "^3.24.1"
   },
   "devDependencies": {

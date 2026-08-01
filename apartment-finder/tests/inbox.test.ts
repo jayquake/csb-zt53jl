@@ -25,6 +25,7 @@ before(() => {
   execFileSync('npx', ['prisma', 'db', 'push', '--skip-generate', '--accept-data-loss'], {
     env: { ...process.env, DATABASE_URL: dbUrl },
     stdio: 'pipe',
+    shell: process.platform === 'win32',
   });
   prisma = new PrismaClient({ datasources: { db: { url: dbUrl } } });
 });
@@ -54,6 +55,7 @@ test('the inbox cursor survives a snapshot round-trip', async () => {
   execFileSync('npx', ['prisma', 'db', 'push', '--skip-generate', '--accept-data-loss'], {
     env: { ...process.env, DATABASE_URL: freshUrl },
     stdio: 'pipe',
+    shell: process.platform === 'win32',
   });
   const fresh = new PrismaClient({ datasources: { db: { url: freshUrl } } });
   try {

@@ -47,6 +47,7 @@ before(() => {
   execFileSync('npx', ['prisma', 'db', 'push', '--skip-generate', '--accept-data-loss'], {
     env: { ...process.env, DATABASE_URL: dbUrl },
     stdio: 'pipe',
+    shell: process.platform === 'win32',
   });
   prisma = new PrismaClient({ datasources: { db: { url: dbUrl } } });
 });

@@ -9,86 +9,56 @@
  *
  * (Komo needs none of this — see `komo.ts`.)
  *
- * Three things make the challenge pass reliably:
+ * A residential IP alone does not clear either challenge. Verified directly:
+ * from this machine's home connection, stock Playwright Chromium sat on
+ * Yad2's "Verifying your browser…" spinner indefinitely (never a solvable
+ * captcha, just a permanent stall) and on Homeless's Cloudflare Turnstile
+ * checkbox, in both headless and headed mode. Seeding a real, manually-solved
+ * clearance cookie into the profile did not help either — replaying it
+ * through Playwright still re-triggered the challenge. The actual signal
+ * being fingerprinted is the CDP connection Playwright uses to drive the
+ * browser (specifically the `Runtime.enable` call), not the IP or the cookie
+ * jar: the identical profile passes instantly in a normal, non-automated
+ * Chrome window.
  *
- *  - A persistent user-data directory, so the clearance cookie issued after the
- *    first solve is reused on later runs.
- *  - A consistent identity: the same User-Agent, `Accept-Language`,
- *    `sec-ch-ua` client hints and timezone on *every* request. A UA that is set
- *    on the first document but missing from subsequent navigations and XHRs is
- *    a strong bot signal, so it is pinned at the context level and reasserted
- *    on each new page.
- *  - No `navigator.webdriver` flag.
- *
- * Expect this to work from a home/residential IP. Datacenter ranges are
- * challenged harder, which is why the intended deployment is local.
+ * `patchright` (a patched Playwright build, same API) avoids that CDP leak.
+ * Verified: from a brand-new profile, headed `patchright` Chrome loaded both
+ * sites clean, no challenge at all. Headless is a separate dead end though —
+ * confirmed both `headless: true` and `headless: false` + `--headless=new`
+ * still show a captcha, patchright or not, because headless Chrome carries
+ * its own tells beyond the CDP leak. So this only works with a real,
+ * `headless: false` Chrome window, which needs an actual interactive desktop
+ * session — it cannot run under a Windows service (Session 0) or a
+ * display-less CI runner.
  */
 
-import { chromium, type BrowserContext, type Page } from 'playwright';
+import { chromium, type BrowserContext, type Page } from 'patchright';
 import { config } from '../config';
 import { log } from '../logger';
 
 let context: BrowserContext | null = null;
 
-/**
- * Client hints must agree with the User-Agent string. Chromium sends these
- * automatically for its own UA, but once the UA is overridden the hints are
- * left describing the real build, and the mismatch is trivially detectable.
- */
-function clientHintHeaders(userAgent: string): Record<string, string> {
-  const version = userAgent.match(/Chrome\/(\d+)/)?.[1];
-  if (!version) return {};
-
-  const platform =
-    /Macintosh/.test(userAgent) ? '"macOS"'
-    : /Windows/.test(userAgent) ? '"Windows"'
-    : '"Linux"';
-
-  return {
-    'sec-ch-ua': `"Chromium";v="${version}", "Not(A:Brand";v="24", "Google Chrome";v="${version}"`,
-    'sec-ch-ua-mobile': '?0',
-    'sec-ch-ua-platform': platform,
-  };
-}
-
 export async function getContext(): Promise<BrowserContext> {
   if (context) return context;
 
-  const userAgent = config.browser.userAgent;
-
   context = await chromium.launchPersistentContext(config.browser.userDataDir, {
-    // Undefined means "use the browser the Playwright CLI installed", which is
-    // the normal path: `npx playwright install chromium`.
-    executablePath: config.browser.executablePath,
+    // Real installed Chrome, not the bundled Chromium — patchright patches
+    // Chrome's own binary/CDP handling, and the genuine Chrome fingerprint is
+    // part of what clears the challenge. Overriding the User-Agent or other
+    // navigator properties on top of it (as the pre-patchright version of
+    // this file did) reintroduces exactly the kind of mismatch that gets
+    // flagged, so this deliberately leaves Chrome's real identity alone.
+    channel: 'chrome',
     headless: config.browser.headless,
     proxy: config.browser.proxy ? { server: config.browser.proxy } : undefined,
-    userAgent,
     locale: config.browser.locale,
     timezoneId: config.browser.timezone,
     viewport: { width: 1366, height: 900 },
-    // Applied to every request the context makes — documents, XHR and assets
-    // alike — so the identity does not drift mid-session.
-    extraHTTPHeaders: {
-      'Accept-Language': `${config.browser.locale},he;q=0.9,en;q=0.8`,
-      ...clientHintHeaders(userAgent),
-    },
-    args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-blink-features=AutomationControlled'],
   });
 
   context.setDefaultNavigationTimeout(config.browser.navigationTimeoutMs);
 
-  // `navigator.webdriver` is still true even with the launch flag; and the JS
-  // view of the UA must match the header, or the two disagree on the same page.
-  await context.addInitScript(
-    ({ ua, lang }: { ua: string; lang: string }) => {
-      Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
-      Object.defineProperty(navigator, 'languages', { get: () => [lang, 'he', 'en'] });
-      Object.defineProperty(navigator, 'userAgent', { get: () => ua });
-    },
-    { ua: userAgent, lang: config.browser.locale }
-  );
-
-  log.debug(`browser session started as: ${userAgent}`);
+  log.debug('browser session started (patchright, channel=chrome)');
   return context;
 }
 
@@ -168,7 +138,28 @@ export function throttle(): Promise<void> {
   return sleep(config.browser.throttleMs);
 }
 
-/** The identity used for browser requests, so plain-HTTP sources can match it. */
+/**
+ * Client hints must agree with the User-Agent string, or the mismatch is a
+ * bot signal in itself. Only used for Komo's plain `fetch()` identity below —
+ * the patchright-driven browser above sends Chrome's own genuine hints.
+ */
+function clientHintHeaders(userAgent: string): Record<string, string> {
+  const version = userAgent.match(/Chrome\/(\d+)/)?.[1];
+  if (!version) return {};
+
+  const platform =
+    /Macintosh/.test(userAgent) ? '"macOS"'
+    : /Windows/.test(userAgent) ? '"Windows"'
+    : '"Linux"';
+
+  return {
+    'sec-ch-ua': `"Chromium";v="${version}", "Not(A:Brand";v="24", "Google Chrome";v="${version}"`,
+    'sec-ch-ua-mobile': '?0',
+    'sec-ch-ua-platform': platform,
+  };
+}
+
+/** The identity used for Komo's plain-HTTP requests (Yad2/Homeless use the real Chrome identity instead). */
 export function browserIdentity(): { userAgent: string; headers: Record<string, string> } {
   const userAgent = config.browser.userAgent;
   return {

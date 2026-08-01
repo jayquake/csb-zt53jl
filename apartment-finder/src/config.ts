@@ -35,12 +35,6 @@ export const config = {
   sources: list(process.env.SOURCES).length ? list(process.env.SOURCES) : ['komo', 'yad2', 'homeless'],
 
   browser: {
-    /**
-     * Path to a Chromium/Chrome binary. Leave unset to use the browser
-     * installed by the Playwright CLI (`npx playwright install chromium`),
-     * which is the normal path. Docker sets it to the system Chromium.
-     */
-    executablePath: process.env.CHROMIUM_PATH || undefined,
     headless: bool(process.env.HEADLESS, true),
 
     /**
