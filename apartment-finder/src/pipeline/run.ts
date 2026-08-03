@@ -16,7 +16,7 @@ import { ingest, markStale, pruneOutOfScope, type PendingAlert } from './ingest'
 import { geocodeMissing } from '../geocode';
 import { collectForwardedListings } from '../notify/inbox';
 import { buildNotifiers, ConsoleNotifier, type Notifier } from '../notify';
-import { formatDigest } from '../notify/format';
+import { formatDigest, formatStatus } from '../notify/format';
 import type { RawListing } from '../types';
 
 export interface ScanOptions {
@@ -114,6 +114,20 @@ export async function runScan(options: ScanOptions = {}): Promise<ScanSummary> {
 
     if (result.alerts.length > 0) {
       await deliver(result.alerts, options.dryRun ?? false);
+    } else if (config.notify.heartbeat) {
+      // Deliberately not silent. A scan that scrapes nothing at all produces
+      // zero alerts, which is indistinguishable from a genuinely quiet
+      // morning if nothing is sent — that is how a dead scraper went unnoticed
+      // for days. The status message reports the per-source counts and any
+      // errors, so a broken run announces itself the same morning.
+      await deliverStatus(
+        {
+          activeCount: await prisma.listing.count({ where: { isActive: true } }),
+          sourceStats,
+          errors,
+        },
+        options.dryRun ?? false
+      );
     } else {
       log.info('nothing worth alerting on — staying quiet');
     }
@@ -169,6 +183,42 @@ export async function runScan(options: ScanOptions = {}): Promise<ScanSummary> {
     // The browser is only closed at the very end so all sources share one
     // session — and therefore one solved bot challenge.
     if (!options.injected) await closeBrowser();
+  }
+}
+
+/**
+ * Sends the morning status message — the "nothing to report" counterpart to the
+ * digest.
+ *
+ * Nothing is written to the Alert table: that table records which *listings*
+ * have been alerted on, and a status message is about none of them. Writing
+ * rows there would corrupt the alert-once bookkeeping.
+ *
+ * A failure here is logged and swallowed. The status message is a courtesy on
+ * top of a scan that has already succeeded; failing the run because a heartbeat
+ * could not be delivered would turn a working scan into a red one.
+ */
+async function deliverStatus(
+  status: { activeCount: number; sourceStats: Record<string, number>; errors: string[] },
+  dryRun: boolean
+): Promise<void> {
+  const notifiers: Notifier[] = dryRun ? [new ConsoleNotifier()] : buildNotifiers();
+
+  for (const notifier of notifiers) {
+    const message = formatStatus({
+      appUrl: config.publicBaseUrl,
+      flavor: notifier.flavor,
+      activeCount: status.activeCount,
+      sourceStats: status.sourceStats,
+      errors: status.errors,
+    });
+
+    try {
+      await notifier.send(message);
+      log.info(`sent status via ${notifier.channel}`);
+    } catch (err) {
+      log.error(`failed to send status via ${notifier.channel}`, err instanceof Error ? err.message : err);
+    }
   }
 }
 
