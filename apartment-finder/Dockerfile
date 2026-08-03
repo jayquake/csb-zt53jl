@@ -7,12 +7,18 @@
 # the README).
 FROM node:20-alpine
 
-ENV NODE_ENV=production
-
 WORKDIR /app
 
 COPY package*.json ./
 COPY prisma ./prisma
+
+# Deliberately NOT built with NODE_ENV=production set. npm treats that as
+# `--omit=dev`, and this image compiles itself from source: typescript,
+# @types/node, @types/express and the prisma CLI are all devDependencies. With
+# them omitted the `tsc` step below fails outright ("Cannot find name
+# 'process'"), which is exactly how this image was broken and unnoticed —
+# nothing in CI builds it. The prisma CLI is also needed at *runtime* by the
+# CMD's `db push`, so devDependencies stay in the final image.
 RUN npm ci && npx prisma generate
 
 COPY tsconfig.json ./
@@ -21,8 +27,13 @@ RUN npx tsc -p tsconfig.json
 
 COPY public ./public
 
-# The database and the browser profile both live here, so it must be a volume
-# for the price history and the bot-challenge cookie to survive a restart.
+# Set only now that the build is done: this affects the running app, not npm's
+# install behaviour above.
+ENV NODE_ENV=production
+
+# The SQLite database lives here, so it must be a volume for the price history
+# to survive a restart. (No browser profile to keep any more — this image runs
+# Komo only, which needs no browser.)
 RUN mkdir -p /app/data
 VOLUME ["/app/data"]
 
