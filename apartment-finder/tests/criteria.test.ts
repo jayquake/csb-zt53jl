@@ -152,3 +152,91 @@ test('posterType any ignores provenance entirely', () => {
     assert.equal(evaluate(listing({ isAgency }), criteria, NOW).matches, true);
   }
 });
+
+/* ---- preferred amenities ----
+   The point: with a flat 1/5 share per amenity, a flat with parking + safe room
+   + furniture scored the same as one with the elevator and balcony actually
+   asked for. These pin the ranking the other way round. */
+
+test('the amenities you asked for outrank the same number of ones you did not', () => {
+  const wanted = listing({
+    hasElevator: true,
+    hasBalcony: true,
+    hasParking: false,
+    hasSafeRoom: false,
+    isFurnished: false,
+  });
+  const other = listing({
+    hasElevator: false,
+    hasBalcony: false,
+    hasParking: true,
+    hasSafeRoom: true,
+    isFurnished: true,
+  });
+
+  const prefs: SearchCriteria = {
+    ...criteria,
+    preferences: { ...criteria.preferences, preferredAmenities: ['elevator', 'balcony'] },
+  };
+
+  const a = evaluate(wanted, prefs);
+  const b = evaluate(other, prefs);
+  assert.ok(a.score > b.score, `wanted ${a.score} should beat other ${b.score}`);
+});
+
+test('score reasons name the amenities rather than counting them', () => {
+  const result = evaluate(
+    listing({ hasElevator: true, hasBalcony: true }),
+    { ...criteria, preferences: { ...criteria.preferences, preferredAmenities: ['elevator', 'balcony'] } }
+  );
+  assert.ok(
+    result.reasons.some((r) => r.includes('elevator') && r.includes('balcony')),
+    `reasons were ${JSON.stringify(result.reasons)}`
+  );
+});
+
+test('a preferred amenity that is merely unmentioned does not reject the listing', () => {
+  // The real data: most Tel Aviv listings never mention a balcony at all.
+  const result = evaluate(
+    listing({ hasElevator: undefined, hasBalcony: undefined }),
+    { ...criteria, preferences: { ...criteria.preferences, preferredAmenities: ['elevator', 'balcony'] } }
+  );
+  assert.equal(result.matches, true, 'unknown amenities must never reject');
+});
+
+test('extras break a tie between listings that both have what you asked for', () => {
+  // Extras are deliberately a tiebreaker, not a rival to the preferred set:
+  // they share only 20% of the amenity weight between all five, so ONE extra is
+  // worth ~0.6 points and can round away entirely. That is intended — parking
+  // should not close the gap on a missing elevator. What must hold is that
+  // extras never hurt, and that several of them do move the score.
+  const prefs: SearchCriteria = {
+    ...criteria,
+    preferences: { ...criteria.preferences, preferredAmenities: ['elevator', 'balcony'] },
+  };
+  const bare = evaluate(listing({ hasElevator: true, hasBalcony: true }), prefs);
+  const loaded = evaluate(
+    listing({
+      hasElevator: true,
+      hasBalcony: true,
+      hasParking: true,
+      hasSafeRoom: true,
+      isFurnished: true,
+    }),
+    prefs
+  );
+  assert.ok(loaded.score > bare.score, `loaded ${loaded.score} should beat bare ${bare.score}`);
+
+  const one = evaluate(listing({ hasElevator: true, hasBalcony: true, hasParking: true }), prefs);
+  assert.ok(one.score >= bare.score, 'an extra amenity must never lower the score');
+});
+
+test('with no preferred amenities set, scoring is the old flat share', () => {
+  const flat: SearchCriteria = {
+    ...criteria,
+    preferences: { ...criteria.preferences, preferredAmenities: [] },
+  };
+  const a = evaluate(listing({ hasElevator: true, hasBalcony: true }), flat);
+  const b = evaluate(listing({ hasParking: true, hasSafeRoom: true }), flat);
+  assert.equal(a.score, b.score, 'without preferences all amenities weigh the same');
+});

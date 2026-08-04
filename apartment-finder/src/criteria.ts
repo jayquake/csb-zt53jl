@@ -14,7 +14,7 @@
  * away most of the market. Missing data costs a listing points instead.
  */
 
-import type { RawListing, SearchCriteria, MatchResult } from './types';
+import type { RawListing, SearchCriteria, MatchResult, AmenityKey } from './types';
 import { normalizeText } from './text';
 import { translateFeature, translateNeighborhood } from './translate';
 
@@ -30,6 +30,22 @@ const WEIGHTS = {
   freshness: 10,
   keywords: 10,
 } as const;
+
+/**
+ * How much of the amenity weight goes to the amenities you named, when you
+ * named any. The remainder still counts the others, so a flat with your
+ * must-haves *plus* parking beats an otherwise identical one without.
+ */
+const PREFERRED_AMENITY_SHARE = 0.8;
+
+/** Display names for the amenity keys, used in score reasons. */
+const AMENITY_LABEL: Record<AmenityKey, string> = {
+  elevator: 'elevator',
+  parking: 'parking',
+  balcony: 'balcony',
+  safeRoom: 'safe room',
+  furnished: 'furniture',
+};
 
 
 /** The searchable text blob for a listing. */
@@ -219,17 +235,37 @@ export function evaluate(listing: RawListing, criteria: SearchCriteria, now: Dat
     score += WEIGHTS.neighborhood * 0.5;
   }
 
-  // Amenities: each present amenity contributes an equal share.
-  const amenityFlags = [
-    listing.hasElevator,
-    listing.hasParking,
-    listing.hasBalcony,
-    listing.hasSafeRoom,
-    listing.isFurnished,
-  ];
+  // Amenities. By default each present amenity contributes an equal share, but
+  // an equal share is the wrong model once you care about specific ones:
+  // parking + safe room + furnished would outrank the elevator and balcony you
+  // were actually asking for. When `preferredAmenities` is set most of the
+  // weight rides on those, and the remainder still rewards a flat that happens
+  // to come with extras.
+  const byKey: Record<AmenityKey, boolean | null | undefined> = {
+    elevator: listing.hasElevator,
+    parking: listing.hasParking,
+    balcony: listing.hasBalcony,
+    safeRoom: listing.hasSafeRoom,
+    furnished: listing.isFurnished,
+  };
+  const amenityFlags = Object.values(byKey);
   const present = amenityFlags.filter(Boolean).length;
-  score += (present / amenityFlags.length) * WEIGHTS.amenities;
-  if (present >= 3) reasons.push(`${present} key amenities`);
+  const preferred = criteria.preferences.preferredAmenities ?? [];
+
+  if (preferred.length > 0) {
+    const got = preferred.filter((key) => byKey[key] === true);
+    score += (got.length / preferred.length) * WEIGHTS.amenities * PREFERRED_AMENITY_SHARE;
+    score += (present / amenityFlags.length) * WEIGHTS.amenities * (1 - PREFERRED_AMENITY_SHARE);
+    if (got.length > 0) {
+      // Named rather than counted: "has elevator, balcony" is the thing worth
+      // knowing, where "2 key amenities" makes you open the listing to find out
+      // which two.
+      reasons.push(`has ${got.map((key) => AMENITY_LABEL[key]).join(', ')}`);
+    }
+  } else {
+    score += (present / amenityFlags.length) * WEIGHTS.amenities;
+    if (present >= 3) reasons.push(`${present} key amenities`);
+  }
 
   // Freshness: a listing posted today is worth far more than a two-week-old one,
   // because in Tel Aviv the good ones are gone within days.
