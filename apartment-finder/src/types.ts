@@ -165,10 +165,12 @@ export const DEFAULT_CRITERIA: SearchCriteria = {
     idealMinSizeSqm: 65,
     favoriteNeighborhoods: ['לב תל אביב', 'פלורנטין', 'הצפון הישן', 'נווה צדק'],
     bonusKeywords: ['מרפסת', 'מעלית', 'משופצת', 'ממ"ד', 'חניה'],
-    // Elevator and balcony are what actually matter here; the other amenities
-    // are a nice-to-have. See the note on `preferredAmenities` for why these
-    // are ranked rather than required.
-    preferredAmenities: ['elevator', 'balcony'],
+    // A mamad matters most, then elevator and balcony; the rest are a
+    // nice-to-have. See the note on `preferredAmenities` for why these are
+    // ranked rather than required — a mamad especially, since most Tel Aviv
+    // stock predates the 1992 rule that made them mandatory in new builds, and
+    // requiring one currently returns nothing at all.
+    preferredAmenities: ['safeRoom', 'elevator', 'balcony'],
   },
   minScoreToAlert: 55,
   minPriceDropPercent: 3,

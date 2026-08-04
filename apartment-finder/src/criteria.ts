@@ -38,12 +38,19 @@ const WEIGHTS = {
  */
 const PREFERRED_AMENITY_SHARE = 0.8;
 
-/** Display names for the amenity keys, used in score reasons. */
+/**
+ * Display names for the amenity keys, used in score reasons.
+ *
+ * A mamad carries its shield here and everywhere else it is shown. In Tel Aviv
+ * they are rare enough — most of the housing stock predates the 1992 rule — that
+ * the point of the marker is to make the exception jump out of a list of
+ * near-identical flats, rather than to decorate a common feature.
+ */
 const AMENITY_LABEL: Record<AmenityKey, string> = {
   elevator: 'elevator',
   parking: 'parking',
   balcony: 'balcony',
-  safeRoom: 'safe room',
+  safeRoom: '🛡️ mamad',
   furnished: 'furniture',
 };
 

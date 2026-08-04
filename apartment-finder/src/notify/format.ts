@@ -102,6 +102,12 @@ function formatOne(alert: PendingAlert, index: number, style: Style): string {
   const specs = specLine(listing);
   if (specs) lines.push(`   ${specs}`);
 
+  // The mamad gets its own line rather than being folded into the spec list.
+  // Most Tel Aviv flats predate the 1992 rule and do not have one, so this is
+  // the rare exception worth spotting at a glance — costing one line for a
+  // listing that has one, and nothing at all for the many that do not.
+  if (listing.hasSafeRoom === true) lines.push(`   🛡️ ${style.bold('Mamad')}`);
+
   const location = locationLine(listing);
   if (location) lines.push(`   📍 ${style.text(location)}`);
 

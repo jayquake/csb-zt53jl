@@ -174,3 +174,27 @@ test('status caps a flood of errors instead of blowing the length limit', () => 
   assert.match(message, /…and 7 more/);
   assert.ok(message.length < 1600, `status was ${message.length}`);
 });
+
+/* ---- mamad marker ----
+   Rare enough in Tel Aviv (most stock predates the 1992 rule) that the marker's
+   job is to make the exception findable, not to decorate a common feature. */
+
+test('a listing with a mamad is marked in the digest', () => {
+  const message = formatDigest(
+    [alert({ listing: { ...alert().listing, hasSafeRoom: true } })],
+    { flavor: 'telegram' }
+  )!;
+  assert.match(message, /🛡️/);
+  assert.match(message, /Mamad/);
+});
+
+test('a listing without a confirmed mamad is not marked', () => {
+  // false and "never mentioned" both mean "do not claim it has one".
+  for (const value of [false, null, undefined]) {
+    const message = formatDigest(
+      [alert({ listing: { ...alert().listing, hasSafeRoom: value as boolean | null } })],
+      { flavor: 'telegram' }
+    )!;
+    assert.doesNotMatch(message, /🛡️/, `hasSafeRoom=${String(value)} should not be marked`);
+  }
+});

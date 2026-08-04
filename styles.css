@@ -13,6 +13,9 @@
   --drop: #dc2626;
   --shadow: 0 1px 3px rgb(15 23 42 / 0.08), 0 1px 2px rgb(15 23 42 / 0.04);
   --radius: 14px;
+  /* Mamad: a deliberate violet, unused elsewhere, so nothing else competes. */
+  --mamad: #7c3aed;
+  --mamad-text: #ffffff;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -27,6 +30,8 @@
     --good: #34d399;
     --drop: #f87171;
     --shadow: none;
+    --mamad: #a78bfa;
+    --mamad-text: #1e1b4b;
   }
 }
 
@@ -245,6 +250,17 @@ label .input { margin-top: 4px; }
 .badge.warn { background: color-mix(in srgb, var(--drop) 13%, transparent); color: var(--drop); border-color: color-mix(in srgb, var(--drop) 30%, transparent); }
 .badge.ok { background: color-mix(in srgb, var(--good) 13%, transparent); color: var(--good); border-color: color-mix(in srgb, var(--good) 30%, transparent); }
 
+/* Mamad. Given a colour of its own rather than the shared amenity blue: in Tel
+   Aviv a safe room is rare enough that the badge's job is to break the pattern
+   of a scrolling list, not to blend into it. Solid fill, not a tint, so it
+   still reads at a glance on a phone in sunlight. */
+.badge.mamad {
+  background: var(--mamad);
+  color: var(--mamad-text);
+  border-color: var(--mamad);
+  font-weight: 700;
+}
+
 .actions { display: flex; gap: 6px; margin-top: 10px; flex-wrap: wrap; }
 .actions .btn { padding: 7px 12px; font-size: 13px; min-height: 36px; }
 
@@ -368,6 +384,16 @@ body.is-static .static-note { display: block; }
 .popup-links { display: flex; gap: 6px; flex-wrap: wrap; }
 .popup-links a { font-size: 12.5px; font-weight: 600; text-decoration: none; padding: 4px 9px; border-radius: 7px; background: #2563eb; color: #fff; }
 .popup-links a.wa { background: #25d366; color: #05240f; }
+.popup-mamad {
+  font-size: 11.5px;
+  font-weight: 700;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: #7c3aed;
+  color: #fff;
+  vertical-align: middle;
+  margin-inline-start: 6px;
+}
 
 /* Multi-selects: a native <select multiple> is the right control on a phone —
    it gets the platform picker and needs no custom scroll handling. */
