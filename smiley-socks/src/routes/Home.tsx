@@ -1,32 +1,33 @@
-import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Grinline } from '../brand/Grinline';
-import { FaceSvg } from '../brand/Face';
+import { AnimatedFace, useFaceAnimation } from '../brand/AnimatedFace';
 import { Sock } from '../brand/Sock';
-import { TEMPLATES } from '../brand/templates';
-import { cloneFace } from '../brand/templates';
+import { templateById, TEMPLATES, type Template } from '../brand/templates';
+import { Reel } from '../components/Reel';
 import { DEFAULT_DESIGN } from '../store/design';
 import { DONATION_RATE, money, PRICE } from '../store/catalog';
 
-const HERO_ROTATION = ['steady', 'heavy', 'wired', 'sunny', 'fuzzy', 'fierce'];
+const HERO_ROTATION = ['steady', 'heavy', 'wired', 'sunny', 'fuzzy', 'sly', 'fierce'];
 const COLOUR_ROTATION = ['bone', 'midnight', 'clay', 'butter', 'moss', 'bubblegum'];
+const HERO_FACES = HERO_ROTATION.map((id) => templateById(id)).filter(Boolean) as Template[];
 
 export function Home() {
-  const [step, setStep] = useState(0);
+  // The hero sock morphs from one mood into the next rather than cutting
+  // between them: the face is a set of numbers, so the in-between frames come
+  // free, and the point of the brand is the change rather than any one pose.
+  const { face, index } = useFaceAnimation({
+    faces: HERO_FACES.map((t) => t.face),
+    dwellMs: 2000,
+    morphMs: 700,
+    blink: true,
+    boil: 0.9,
+  });
 
-  useEffect(() => {
-    // Anyone who has asked their system to calm down gets a still sock.
-    const reduced = window.matchMedia?.('(prefers-reduced-motion: reduce)').matches;
-    if (reduced) return;
-    const id = window.setInterval(() => setStep((n) => n + 1), 2600);
-    return () => window.clearInterval(id);
-  }, []);
-
-  const template = TEMPLATES.find((t) => t.id === HERO_ROTATION[step % HERO_ROTATION.length])!;
+  const template = HERO_FACES[index] ?? HERO_FACES[0];
   const heroDesign = {
     ...DEFAULT_DESIGN,
-    face: cloneFace(template.face),
-    colorwayId: COLOUR_ROTATION[step % COLOUR_ROTATION.length],
+    face,
+    colorwayId: COLOUR_ROTATION[index % COLOUR_ROTATION.length],
     placementId: 'cuff',
   };
 
@@ -101,14 +102,20 @@ export function Home() {
         </ol>
       </section>
 
+      <Reel />
+
       <section className="gallery">
         <h2 className="section__title">Start from one of these</h2>
         <p className="section__lede">Tap any face to open it in the studio.</p>
         <ul className="gallery__grid">
-          {TEMPLATES.map((t) => (
+          {TEMPLATES.map((t, i) => (
             <li key={t.id}>
               <Link className="moodcard" to={`/studio?start=${t.id}`}>
-                <FaceSvg face={t.face} className="moodcard__face" title={t.name} />
+                <AnimatedFace
+                  spec={{ faces: [t.face], blink: true, boil: 0.8, phaseMs: i * 640, seed: i + 1 }}
+                  className="moodcard__face"
+                  title={t.name}
+                />
                 <span className="moodcard__name">{t.name}</span>
                 <span className="moodcard__blurb">{t.blurb}</span>
               </Link>

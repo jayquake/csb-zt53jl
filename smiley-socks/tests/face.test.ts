@@ -13,12 +13,8 @@ const base = TEMPLATES[0].face;
 
 function pathsOf(f: FaceParams): string[] {
   const g = buildFace(f);
-  return [
-    g.outline,
-    ...g.eyesLeft,
-    ...g.eyesRight,
-    ...g.rest,
-  ]
+  return [g.outline, ...g.eyesLeft, ...g.eyesRight, ...g.rest]
+    .filter((p) => p !== null)
     .map((p) => (p.kind === 'dot' ? `${p.cx} ${p.cy} ${p.rx} ${p.ry}` : p.d))
     .concat(g.eyeRotation.left, g.eyeRotation.right);
 }
@@ -59,15 +55,16 @@ describe('face geometry', () => {
           curve: pick('mouthCurve'),
           open: pick('mouthOpen'),
           wave: pick('mouthWave'),
+          flick: pick('mouthFlick'),
         },
-        marks: ['tear', 'sweat', 'blush', 'static', 'zzz', 'sparkle'],
+        marks: ['tear', 'sweat', 'blush', 'static', 'zzz', 'sparkle', 'wink'],
       };
       for (const d of pathsOf(f)) expect(d).not.toMatch(/NaN|Infinity/);
     }
   });
 
   it('draws every eye shape', () => {
-    for (const shape of ['bar', 'round', 'arc', 'cross', 'line', 'spiral'] as const) {
+    for (const shape of ['bar', 'tick', 'round', 'arc', 'cross', 'line', 'spiral'] as const) {
       const f = { ...cloneFace(base), eyes: { ...base.eyes, shape } };
       const g = buildFace(f);
       expect(g.eyesLeft.length, shape).toBeGreaterThan(0);
@@ -98,6 +95,17 @@ describe('face geometry', () => {
     // The signature gap: an outline with a gap must not be a closed path.
     expect(outlinePath({ ...cloneFace(base), gap: 40 })).not.toMatch(/Z$/);
     expect(outlinePath({ ...cloneFace(base), gap: 0 })).toMatch(/Z$/);
+  });
+
+  it('drops the outline entirely when the loop is opened all the way', () => {
+    // "No outline" is not a separate mode — it is the open loop taken to its
+    // limit, which is how a face gets drawn by hand: features, no circle.
+    const bare = buildFace({ ...cloneFace(base), gap: 360 });
+    expect(bare.outline).toBeNull();
+    expect(outlinePath({ ...cloneFace(base), gap: 360 })).toBe('');
+    // The features are all still there.
+    expect(bare.eyesLeft.length).toBeGreaterThan(0);
+    expect(bare.rest.length).toBeGreaterThan(0);
   });
 
   it('gives every template a distinct signature', () => {

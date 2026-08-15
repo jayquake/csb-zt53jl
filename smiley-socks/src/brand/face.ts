@@ -20,8 +20,8 @@ export const FACE_CY = 100;
 /** Mono-line weight, matched to Grinline so type and faces print as one system. */
 export const STROKE = 10;
 
-export type EyeShape = 'bar' | 'round' | 'arc' | 'cross' | 'line' | 'spiral';
-export type Mark = 'tear' | 'sweat' | 'blush' | 'static' | 'zzz' | 'sparkle';
+export type EyeShape = 'bar' | 'tick' | 'round' | 'arc' | 'cross' | 'line' | 'spiral';
+export type Mark = 'tear' | 'sweat' | 'blush' | 'static' | 'zzz' | 'sparkle' | 'wink';
 
 export interface FaceParams {
   /** Outline half-width and half-height. */
@@ -31,7 +31,11 @@ export interface FaceParams {
   squish: number;
   /** Whole-face rotation, degrees. */
   tilt: number;
-  /** The open loop — gap in the outline at the top right, in degrees. */
+  /**
+   * The open loop — the gap in the outline at the top right, in degrees.
+   * At 360 there is no outline left at all, which is how these faces get
+   * drawn by hand in the first place: two eyes and a mouth, floating.
+   */
   gap: number;
 
   eyes: {
@@ -62,6 +66,8 @@ export interface FaceParams {
     open: number;
     /** Squiggle, for the moods that aren't a clean curve. */
     wave: number;
+    /** The upswept tail the mouth ends on — the pen lifting off the page. */
+    flick: number;
   };
   marks: Mark[];
 }
@@ -78,7 +84,7 @@ export const FACE_LIMITS = {
   height: [52, 88],
   squish: [-18, 18],
   tilt: [-14, 14],
-  gap: [0, 64],
+  gap: [0, 360],
   eyeX: [14, 48],
   eyeY: [52, 104],
   eyeSize: [5, 26],
@@ -92,6 +98,7 @@ export const FACE_LIMITS = {
   mouthCurve: [-1, 1],
   mouthOpen: [0, 1],
   mouthWave: [0, 1],
+  mouthFlick: [0, 1],
 } as const;
 
 export type LimitKey = keyof typeof FACE_LIMITS;
@@ -135,6 +142,7 @@ export function clampFace(p: FaceParams): FaceParams {
       curve: clampTo('mouthCurve', p.mouth.curve),
       open: clampTo('mouthOpen', p.mouth.open),
       wave: clampTo('mouthWave', p.mouth.wave),
+      flick: clampTo('mouthFlick', p.mouth.flick),
     },
     marks: [...new Set(p.marks)],
   };
@@ -188,7 +196,11 @@ const RAD = Math.PI / 180;
  * The outline: a superellipse, not a circle, drawn from the far side of the
  * open loop round to the near side so the gap is simply the part we never draw.
  */
+/** Past this the remaining sliver reads as a smudge, so we draw nothing. */
+export const NO_OUTLINE_AT = 340;
+
 export function outlinePath(p: FaceParams): string {
+  if (p.gap >= NO_OUTLINE_AT) return '';
   const n = 3.4; // squircle exponent
   const gapCentre = 315; // top right
   const half = p.gap / 2;
@@ -237,6 +249,19 @@ function eyePrims(p: FaceParams, side: -1 | 1): Prim[] {
       });
       break;
     }
+    case 'tick': {
+      // The eye as a single flicked stroke — two of these and a curve is the
+      // whole face in the sketch this style comes from.
+      const h = s * 1.35 * open;
+      const lean = s * 0.28;
+      prims.push({
+        kind: 'stroke',
+        d: `M${r(cx - side * lean)},${r(cy - h / 2)} L${r(cx + side * lean)},${r(cy + h / 2)}`,
+        w: STROKE * 0.95,
+        key,
+      });
+      break;
+    }
     case 'arc': {
       // The happy squint: ∩ over the eye line.
       const w = s * 1.35;
@@ -274,6 +299,18 @@ function eyePrims(p: FaceParams, side: -1 | 1): Prim[] {
     }
   }
   return prims;
+}
+
+/** A shut eye: the lid as one arc. Used for the wink. */
+function winkPrim(p: FaceParams, side: -1 | 1): Prim {
+  const cx = FACE_CX + side * p.eyes.x;
+  const cy = p.eyes.y;
+  const w = p.eyes.size * 1.25;
+  return {
+    kind: 'stroke',
+    d: `M${r(cx - w)},${r(cy + 2)} Q${r(cx)},${r(cy - p.eyes.size * 1.15)} ${r(cx + w)},${r(cy + 2)}`,
+    key: side < 0 ? 'eyeL' : 'eyeR',
+  };
 }
 
 function browPrim(p: FaceParams, side: -1 | 1): Prim {
@@ -315,7 +352,16 @@ export function mouthPrims(p: FaceParams): Prim[] {
     const d = `${smooth(upper)} ${smooth(lower).replace(/^M/, 'L')} Z`;
     return [{ kind: 'fill', d, key: 'mouth' }];
   }
-  return [{ kind: 'stroke', d: smooth(mouthPoints(p)), key: 'mouth' }];
+  const pts = mouthPoints(p);
+  let d = smooth(pts);
+  if (p.mouth.flick > 0.01) {
+    // Carry the stroke past the corner and upwards, the way a pen leaves the
+    // paper. It is the single most recognisable thing about a hand-drawn
+    // smile, and it costs one line segment.
+    const [ex, ey] = pts[pts.length - 1];
+    d += ` L${r(ex + p.mouth.flick * 11)},${r(ey - p.mouth.flick * 17)}`;
+  }
+  return [{ kind: 'stroke', d, key: 'mouth' }];
 }
 
 function markPrims(p: FaceParams): Prim[] {
@@ -401,7 +447,8 @@ function markPrims(p: FaceParams): Prim[] {
 export interface FaceGeometry {
   /** Rotation for the whole face, applied by the renderer. */
   tilt: number;
-  outline: Prim;
+  /** Null when the loop is open all the way — a face with no outline. */
+  outline: Prim | null;
   /** Eyes are kept apart from the rest so each can carry its own rotation. */
   eyesLeft: Prim[];
   eyesRight: Prim[];
@@ -412,10 +459,13 @@ export interface FaceGeometry {
 
 export function buildFace(raw: FaceParams): FaceGeometry {
   const p = clampFace(raw);
+  const outlineD = outlinePath(p);
   return {
     tilt: p.tilt,
-    outline: { kind: 'stroke', d: outlinePath(p), key: 'outline' },
-    eyesLeft: eyePrims(p, -1),
+    outline: outlineD ? { kind: 'stroke', d: outlineD, key: 'outline' } : null,
+    // A wink is the one asymmetry the face allows: eyes are otherwise always
+    // mirrored, because independent eyes read as a bug rather than a choice.
+    eyesLeft: p.marks.includes('wink') ? [winkPrim(p, -1)] : eyePrims(p, -1),
     eyesRight: eyePrims(p, 1),
     eyeRotation: {
       left: `rotate(${-p.eyes.tilt} ${FACE_CX - p.eyes.x} ${p.eyes.y})`,
@@ -436,7 +486,7 @@ export function faceSignature(p: FaceParams): string {
     f.width, f.height, f.squish, f.tilt, f.gap,
     f.eyes.shape, f.eyes.x, f.eyes.y, f.eyes.size, f.eyes.squint, f.eyes.tilt,
     f.brows.on ? 1 : 0, f.brows.y, f.brows.angle, f.brows.length,
-    f.mouth.y, f.mouth.width, f.mouth.curve, f.mouth.open, f.mouth.wave,
+    f.mouth.y, f.mouth.width, f.mouth.curve, f.mouth.open, f.mouth.wave, f.mouth.flick,
     [...f.marks].sort().join('.'),
   ]
     .map((v) => (typeof v === 'number' ? Math.round(v * 10) / 10 : v))

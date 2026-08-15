@@ -43,7 +43,7 @@ export function FaceGlyph({ face }: { face: FaceParams }) {
   const g = buildFace(face);
   return (
     <g transform={`rotate(${g.tilt} 100 100)`}>
-      <Primitive prim={g.outline} />
+      {g.outline && <Primitive prim={g.outline} />}
       <g transform={g.eyeRotation.left}>
         {g.eyesLeft.map((p) => (
           <Primitive key={p.key} prim={p} />

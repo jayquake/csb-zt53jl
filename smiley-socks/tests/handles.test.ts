@@ -107,6 +107,14 @@ describe('drag handles', () => {
     expect(visibleHandles(base).map((h) => h.id)).toContain('browL');
   });
 
+  it('hides the outline handles when there is no outline to pull', () => {
+    const bare = { ...cloneFace(base), gap: 360 };
+    const ids = visibleHandles(bare).map((h) => h.id);
+    for (const gone of ['crown', 'chin', 'side']) expect(ids, gone).not.toContain(gone);
+    // The features you can still see are still draggable.
+    for (const kept of ['eyeL', 'eyeR', 'mouthC']) expect(ids, kept).toContain(kept);
+  });
+
   it('resets only its own feature', () => {
     const h = HANDLES.find((x) => x.id === 'mouthC')!;
     const pulled = h.drag(base, { x: FACE_CX + 30, y: base.mouth.y + 60 });

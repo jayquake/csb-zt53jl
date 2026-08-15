@@ -14,7 +14,7 @@
  * clamped range.
  */
 
-import { clampTo, FACE_CX, FACE_CY, type FaceParams } from '../brand/face';
+import { clampTo, FACE_CX, FACE_CY, NO_OUTLINE_AT, type FaceParams } from '../brand/face';
 import { cloneFace } from '../brand/templates';
 
 export interface Point {
@@ -72,11 +72,19 @@ function eyeHandle(side: -1 | 1): Handle {
 
 const EYE_SIZE_OFFSET = 13;
 
+/**
+ * With the outline switched off there is nothing on screen for the crown,
+ * chin and side handles to move, so they step aside rather than sitting there
+ * doing nothing visible.
+ */
+const hasOutline = (f: FaceParams): boolean => f.gap < NO_OUTLINE_AT;
+
 export const HANDLES: Handle[] = [
   {
     id: 'crown',
     label: 'Top of the head',
     hint: 'Pull up to grow, keep pulling to stretch',
+    when: hasOutline,
     at: (f) => ({ x: FACE_CX, y: FACE_CY - f.height - f.squish }),
     drag: (f, p) => {
       const { value: height, over } = spill(FACE_CY - p.y, 'height');
@@ -88,6 +96,7 @@ export const HANDLES: Handle[] = [
     id: 'chin',
     label: 'Chin',
     hint: 'Pull down to grow, keep pulling to stretch',
+    when: hasOutline,
     at: (f) => ({ x: FACE_CX, y: FACE_CY + f.height - f.squish }),
     drag: (f, p) => {
       const { value: height, over } = spill(p.y - FACE_CY, 'height');
@@ -99,6 +108,7 @@ export const HANDLES: Handle[] = [
     id: 'side',
     label: 'Side of the face',
     hint: 'Drag out to widen, in to narrow',
+    when: hasOutline,
     at: (f) => ({ x: FACE_CX + f.width, y: FACE_CY }),
     drag: (f, p) => edit(f, { width: clampTo('width', p.x - FACE_CX) }),
     reset: (f, base) => edit(f, { width: base.width }),

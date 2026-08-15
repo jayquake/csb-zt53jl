@@ -37,12 +37,32 @@ const TABS = [
 
 const EYE_SHAPES: { id: EyeShape; name: string }[] = [
   { id: 'bar', name: 'Bars' },
+  { id: 'tick', name: 'Ticks' },
   { id: 'round', name: 'Dots' },
   { id: 'arc', name: 'Arcs' },
   { id: 'line', name: 'Lines' },
   { id: 'cross', name: 'Crosses' },
   { id: 'spiral', name: 'Spirals' },
 ];
+
+/*
+ * Outline presets. `gap` is the one face parameter with no drag handle — there
+ * is nothing sensible to grab on a gap — so it gets chips instead. "No
+ * outline" is the whole loop opened up: eyes and a mouth, floating, the way
+ * anyone actually doodles a face.
+ */
+const OUTLINES = [
+  { id: 'closed', name: 'Closed', blurb: 'A full, unbroken loop.', gap: 0 },
+  { id: 'open', name: 'Open loop', blurb: 'The house gap, top right.', gap: 26 },
+  { id: 'wide', name: 'Wide open', blurb: 'Barely a frame at all.', gap: 130 },
+  { id: 'none', name: 'None', blurb: 'Just the features, floating.', gap: 360 },
+];
+
+function outlineIdFor(gap: number): string {
+  return OUTLINES.reduce((best, o) =>
+    Math.abs(o.gap - gap) < Math.abs(best.gap - gap) ? o : best,
+  ).id;
+}
 
 const MARKS: { id: Mark; name: string }[] = [
   { id: 'tear', name: 'Tear' },
@@ -51,6 +71,7 @@ const MARKS: { id: Mark; name: string }[] = [
   { id: 'static', name: 'Static' },
   { id: 'zzz', name: 'Sleep' },
   { id: 'sparkle', name: 'Sparkle' },
+  { id: 'wink', name: 'Wink' },
 ];
 
 export function Studio() {
@@ -129,6 +150,18 @@ export function Studio() {
               onChange={(id) =>
                 update({ face: { ...design.face, eyes: { ...design.face.eyes, shape: id as EyeShape } } })
               }
+            />
+
+            <ChoiceRow
+              label="Outline"
+              options={OUTLINES}
+              value={outlineIdFor(design.face.gap)}
+              onChange={(id) =>
+                update({
+                  face: { ...design.face, gap: OUTLINES.find((o) => o.id === id)?.gap ?? 26 },
+                })
+              }
+              columns
             />
 
             <div className="choice">

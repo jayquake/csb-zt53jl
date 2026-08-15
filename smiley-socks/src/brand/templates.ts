@@ -20,7 +20,7 @@ const BASE: FaceParams = {
   gap: 26,
   eyes: { shape: 'bar', x: 28, y: 82, size: 13, squint: 0, tilt: 0 },
   brows: { on: false, y: 52, angle: 0, length: 24 },
-  mouth: { y: 128, width: 62, curve: 0.5, open: 0, wave: 0 },
+  mouth: { y: 128, width: 62, curve: 0.5, open: 0, wave: 0, flick: 0 },
   marks: [],
 };
 
@@ -53,7 +53,7 @@ export const TEMPLATES: Template[] = [
     blurb: 'Genuinely good. Rare enough to print.',
     face: face({
       eyes: { shape: 'arc', size: 15, y: 84, squint: 0.1 },
-      mouth: { curve: 0.95, width: 74, y: 126 },
+      mouth: { curve: 0.95, width: 74, y: 126, flick: 0.85 },
       marks: ['sparkle'],
     }),
   },
@@ -62,8 +62,8 @@ export const TEMPLATES: Template[] = [
     name: 'Steady',
     blurb: "Nothing dramatic. I'll take it.",
     face: face({
-      eyes: { shape: 'bar', size: 12 },
-      mouth: { curve: 0.42, width: 58 },
+      eyes: { shape: 'tick', size: 13 },
+      mouth: { curve: 0.42, width: 58, flick: 0.5 },
     }),
   },
   {
@@ -117,7 +117,7 @@ export const TEMPLATES: Template[] = [
     blurb: 'Soft today. Be gentle, including you.',
     face: face({
       eyes: { shape: 'arc', size: 13, y: 86, squint: 0.2 },
-      mouth: { curve: 0.34, width: 46, y: 132 },
+      mouth: { curve: 0.34, width: 46, y: 132, flick: 0.4 },
       marks: ['blush'],
     }),
   },
@@ -151,7 +151,7 @@ export const TEMPLATES: Template[] = [
     blurb: 'Better than last week. Counting it.',
     face: face({
       eyes: { shape: 'arc', size: 14, y: 84, squint: 0.15, tilt: -6 },
-      mouth: { curve: 0.6, width: 56, y: 128 },
+      mouth: { curve: 0.6, width: 56, y: 128, flick: 0.7 },
       marks: ['sparkle'],
     }),
   },
@@ -161,8 +161,19 @@ export const TEMPLATES: Template[] = [
     blurb: 'Someone showed up. It worked.',
     face: face({
       eyes: { shape: 'arc', size: 15, y: 86, squint: 0.25 },
-      mouth: { curve: 0.8, width: 66, y: 128 },
+      mouth: { curve: 0.8, width: 66, y: 128, flick: 0.6 },
       marks: ['blush', 'sparkle'],
+    }),
+  },
+  {
+    id: 'sly',
+    name: 'Sly',
+    blurb: "Fine. Mostly. Ask me later and I'll deny it.",
+    face: face({
+      tilt: -3,
+      eyes: { shape: 'tick', size: 14, y: 84 },
+      mouth: { curve: 0.55, width: 60, y: 130, flick: 1 },
+      marks: ['wink'],
     }),
   },
   {
