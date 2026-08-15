@@ -5,6 +5,7 @@
  */
 
 import { clampFace, type FaceParams } from '../brand/face';
+import type { Finish } from '../brand/Face';
 import { cloneFace, DEFAULT_TEMPLATE, templateById } from '../brand/templates';
 import { COLORWAYS, HEIGHTS, PLACEMENTS, SIZES, type PricedDesign } from './catalog';
 import { supports } from '../brand/grinline';
@@ -28,6 +29,8 @@ export interface Design {
   placementId: string;
   photo: Photo | null;
   cuffText: string;
+  /** How the line is printed: chalky and hand-drawn, or a clean vector. */
+  finish: Finish;
 }
 
 export const CUFF_TEXT_MAX = 10;
@@ -42,6 +45,7 @@ export const DEFAULT_DESIGN: Design = {
   placementId: 'cuff',
   photo: null,
   cuffText: '',
+  finish: 'chalk',
 };
 
 export function pricedFrom(d: Design): PricedDesign {
@@ -95,6 +99,7 @@ export function sanitiseDesign(input: unknown): Design {
     placementId: oneOf(raw.placementId, PLACEMENTS.map((p) => p.id), DEFAULT_DESIGN.placementId),
     photo,
     cuffText: normaliseCuffText(typeof raw.cuffText === 'string' ? raw.cuffText : ''),
+    finish: raw.finish === 'clean' ? 'clean' : 'chalk',
   };
 }
 

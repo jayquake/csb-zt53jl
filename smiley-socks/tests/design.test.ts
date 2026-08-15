@@ -69,6 +69,14 @@ describe('sanitiseDesign', () => {
     expect(d.photo?.y).toBe(-60);
   });
 
+  it('keeps the finish, and falls back to chalk for anything unrecognised', () => {
+    expect(sanitiseDesign({ finish: 'clean' }).finish).toBe('clean');
+    expect(sanitiseDesign({ finish: 'chalk' }).finish).toBe('chalk');
+    for (const junk of [undefined, null, 'glitter', 7, {}]) {
+      expect(sanitiseDesign({ finish: junk }).finish).toBe('chalk');
+    }
+  });
+
   it('reports a photo to the pricer, since it is a paid extra', () => {
     const withPhoto = sanitiseDesign({ photo: { src: 'data:image/png;base64,abc' } });
     expect(pricedFrom(withPhoto).hasPhoto).toBe(true);

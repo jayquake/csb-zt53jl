@@ -168,6 +168,16 @@ export function Studio() {
             />
 
             <ChoiceRow
+              label="Finish"
+              options={[
+                { id: 'chalk', name: 'Chalk', blurb: 'Hand-drawn, grainy edge — the house look.' },
+                { id: 'clean', name: 'Clean', blurb: 'A flat, even line.' },
+              ]}
+              value={design.finish}
+              onChange={(id) => update({ finish: id === 'clean' ? 'clean' : 'chalk' })}
+            />
+
+            <ChoiceRow
               label="Eyes"
               options={EYE_SHAPES}
               value={design.face.eyes.shape}

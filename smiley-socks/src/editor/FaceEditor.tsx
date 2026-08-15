@@ -114,8 +114,11 @@ export function FaceEditor({
         style={{ touchAction: 'none' }}
         aria-label="Face editor. Each control can also be moved with the arrow keys."
       >
+        {/* Clean, deliberately: the editing canvas is where you aim at
+            handles, and a wandering chalk edge makes that guesswork. The
+            preview above it shows the finish. */}
         <g className="editor__face">
-          <FaceGlyph face={face} />
+          <FaceGlyph face={face} finish="clean" />
         </g>
 
         {handles.map((h) => {

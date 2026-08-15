@@ -104,6 +104,21 @@ system type, where it belongs.
 
 ## Drawn, not generated-looking
 
+The catalog is **24 emotions**, drawn in a chalk finish: Sunny through Crushed,
+by way of Fuzzy, Bored, Smug, Queasy and Lonely. It is a face set, not a mood
+scale — most days are not on a happy-to-sad line.
+
+The chalk look is `src/brand/Chalk.tsx`: two SVG filter primitives, no new
+artwork. `feTurbulence` + `feDisplacementMap` make the edge wander;
+`feTurbulence` + `luminanceToAlpha` give the line its tooth. Six filter
+variants live once at the root of the app and each face picks one from its own
+signature, so a grid of them looks drawn rather than stamped. `finish` is part
+of the design (`chalk` by default, `clean` available), which means it applies
+to the print on the sock, not just to the page.
+
+The editor canvas stays clean on purpose — you cannot aim a drag handle at a
+wandering line.
+
 The face vocabulary comes from a pen-on-paper sketch, and three details carry
 most of that character:
 

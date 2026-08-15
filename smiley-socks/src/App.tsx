@@ -1,6 +1,7 @@
 import { useEffect } from 'react';
 import { HashRouter, Route, Routes, useLocation } from 'react-router-dom';
 import { CartProvider } from './store/cart';
+import { ChalkDefs } from './brand/Chalk';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { Home } from './routes/Home';
@@ -18,6 +19,8 @@ export function App() {
     <HashRouter>
       <CartProvider>
         <ScrollToTop />
+        {/* Filter definitions every chalk-finished face points at. */}
+        <ChalkDefs />
         <a className="skip-link" href="#main">
           Skip to content
         </a>

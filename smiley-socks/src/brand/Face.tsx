@@ -3,7 +3,11 @@
  * about what the face looks like lives in face.ts.
  */
 
-import { buildFace, FACE_BOX, STROKE, type FaceParams, type Prim, type Spin } from './face';
+import { buildFace, FACE_BOX, STROKE, faceSignature, type FaceParams, type Prim, type Spin } from './face';
+import { chalkFilterId, chalkVariant } from './Chalk';
+
+/** How the line is drawn. Chalk is the house look; clean is a flat vector. */
+export type Finish = 'clean' | 'chalk';
 
 const spin = (s: Spin): string => `rotate(${s.deg} ${s.cx} ${s.cy})`;
 
@@ -41,10 +45,23 @@ function Primitive({ prim }: { prim: Prim }) {
  * The face as a bare <g>, for dropping into a bigger SVG (the sock).
  * Colour comes from `currentColor`, so the sock decides the ink.
  */
-export function FaceGlyph({ face }: { face: FaceParams }) {
+export function FaceGlyph({
+  face,
+  finish = 'chalk',
+  variantKey,
+}: {
+  face: FaceParams;
+  finish?: Finish;
+  /** Keeps one face on one chalk variant, so a grid looks drawn, not stamped. */
+  variantKey?: string;
+}) {
   const g = buildFace(face);
+  const filter =
+    finish === 'chalk'
+      ? `url(#${chalkFilterId(chalkVariant(variantKey ?? faceSignature(face)))})`
+      : undefined;
   return (
-    <g transform={`rotate(${g.tilt} 100 100)`}>
+    <g transform={`rotate(${g.tilt} 100 100)`} filter={filter}>
       {g.outline && <Primitive prim={g.outline} />}
       <g transform={spin(g.eyeRotation.left)}>
         {g.eyesLeft.map((p) => (
@@ -69,11 +86,15 @@ export function FaceSvg({
   title,
   className,
   padding = 14,
+  finish = 'chalk',
+  variantKey,
 }: {
   face: FaceParams;
   title?: string;
   className?: string;
   padding?: number;
+  finish?: Finish;
+  variantKey?: string;
 }) {
   const box = FACE_BOX;
   return (
@@ -84,7 +105,7 @@ export function FaceSvg({
       aria-label={title ?? 'A Smiley Socks face'}
       focusable="false"
     >
-      <FaceGlyph face={face} />
+      <FaceGlyph face={face} finish={finish} variantKey={variantKey} />
     </svg>
   );
 }

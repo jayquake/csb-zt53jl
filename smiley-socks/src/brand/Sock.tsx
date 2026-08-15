@@ -106,12 +106,14 @@ function Print({
   photo,
   clipId,
   index,
+  finish,
 }: {
   zone: Zone;
   face: FaceParams;
   photo: Design['photo'];
   clipId: string;
   index: number;
+  finish: Design['finish'];
 }) {
   if (photo) {
     // The photo is masked to a circular patch the size of the print zone, the
@@ -143,7 +145,7 @@ function Print({
     <g
       transform={`translate(${zone.x - (PRINT_SPAN * scale) / 2} ${zone.y - (PRINT_SPAN * scale) / 2}) scale(${scale}) translate(-20 -20)`}
     >
-      <FaceGlyph face={face} />
+      <FaceGlyph face={face} finish={finish} variantKey={`${clipId}-${index}`} />
     </g>
   );
 }
@@ -217,7 +219,15 @@ export function Sock({
         {/* The print */}
         <g style={{ color: colorway.ink }}>
           {zones.map((zone, i) => (
-            <Print key={`${zone.x}-${zone.y}`} zone={zone} face={design.face} photo={design.photo} clipId={clip} index={i} />
+            <Print
+              key={`${zone.x}-${zone.y}`}
+              zone={zone}
+              face={design.face}
+              photo={design.photo}
+              clipId={clip}
+              index={i}
+              finish={design.finish}
+            />
           ))}
         </g>
 
