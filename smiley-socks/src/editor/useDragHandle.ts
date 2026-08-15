@@ -73,8 +73,12 @@ export function useDragHandle({ svgRef, onDragStart, onDrag, onDragEnd }: DragOp
         e.currentTarget.setPointerCapture(e.pointerId);
         dragging.current = id;
         onDragStart?.(id);
-        const svg = svgRef.current;
-        if (svg) onDrag(id, clientToSvg(svg, e.clientX, e.clientY));
+        // Deliberately no drag on press. Pressing used to snap the parameter
+        // to wherever the finger landed inside the 44px target, which meant a
+        // tap nudged the face — and worse, it landed *after* onDragStart, so
+        // the second tap of a double-tap reset the feature and then instantly
+        // dragged it back to where it had been. The drag starts on the first
+        // move instead; a press on its own now changes nothing.
       },
       onPointerMove: (e: ReactPointerEvent<SVGElement>) => {
         if (dragging.current !== id) return;
