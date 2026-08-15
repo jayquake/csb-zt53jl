@@ -78,7 +78,18 @@ export function GrinlineGroup({
   );
 }
 
-const MARK_FACE: FaceParams = TEMPLATES.find((t) => t.id === 'steady')!.face;
+/*
+ * The one face that keeps its outline.
+ *
+ * Faces are outline-less by default, which is right for a print and for the
+ * mood shelf — but the logo is a mark, not a mood, and at 26px in the header a
+ * bare face is two dots and a hairline. The loop gives it something to hold on
+ * to at the size it is actually used.
+ */
+const MARK_FACE: FaceParams = {
+  ...TEMPLATES.find((t) => t.id === 'steady')!.face,
+  gap: 26,
+};
 
 /** The logo: the mark, then the name. */
 export function Wordmark({

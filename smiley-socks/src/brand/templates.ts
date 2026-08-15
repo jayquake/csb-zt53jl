@@ -17,7 +17,10 @@ const BASE: FaceParams = {
   height: 72,
   squish: 0,
   tilt: 0,
-  gap: 26,
+  // No outline, the way these faces get drawn by hand: two eyes and a mouth,
+  // floating. `gap` is the opening in the loop and 360 leaves nothing of it —
+  // the studio's Outline control puts a circle back for anyone who wants one.
+  gap: 360,
   eyes: { shape: 'bar', x: 28, y: 82, size: 13, squint: 0, tilt: 0 },
   brows: { on: false, y: 52, angle: 0, length: 24 },
   mouth: { y: 128, width: 62, curve: 0.5, open: 0, wave: 0, flick: 0 },
@@ -71,7 +74,6 @@ export const TEMPLATES: Template[] = [
     name: 'Fuzzy',
     blurb: "Present, technically. Not sure what I'd say if you asked.",
     face: face({
-      gap: 44,
       eyes: { shape: 'line', size: 12, y: 86 },
       mouth: { curve: 0.05, width: 46, wave: 0.35, y: 132 },
     }),
@@ -181,7 +183,6 @@ export const TEMPLATES: Template[] = [
     name: 'Blank',
     blurb: 'Watching myself from across the room.',
     face: face({
-      gap: 56,
       eyes: { shape: 'spiral', size: 14, x: 30, y: 82 },
       mouth: { curve: 0, width: 40, y: 138 },
     }),

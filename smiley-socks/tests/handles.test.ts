@@ -9,7 +9,14 @@ import { clampFace, FACE_CX, FACE_LIMITS, type FaceParams } from '../src/brand/f
 import { HANDLES, nudge, visibleHandles } from '../src/editor/handles';
 import { cloneFace, TEMPLATES } from '../src/brand/templates';
 
-const base: FaceParams = { ...cloneFace(TEMPLATES[1].face), brows: { on: true, y: 52, angle: 0, length: 24 } };
+// Faces are outline-less by default now, so this fixture puts an outline back
+// on: it exists to exercise every handle, including the three that only appear
+// when there is an outline to pull.
+const base: FaceParams = {
+  ...cloneFace(TEMPLATES[1].face),
+  gap: 26,
+  brows: { on: true, y: 52, angle: 0, length: 24 },
+};
 
 describe('drag handles', () => {
   it('puts the handle where you dropped it, along the axes it controls', () => {

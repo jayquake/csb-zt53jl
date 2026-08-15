@@ -369,6 +369,17 @@ function markPrims(p: FaceParams): Prim[] {
   const eyeL = FACE_CX - p.eyes.x;
   const eyeR = FACE_CX + p.eyes.x;
 
+  // Marks hang off the rim of the face — but with no outline there is no rim,
+  // and a sweat drop parked where the edge used to be just floats in space.
+  // When the face is bare they tuck in against the features instead.
+  const bare = p.gap >= NO_OUTLINE_AT;
+  const spanX = bare
+    ? Math.min(p.width, Math.max(p.eyes.x + p.eyes.size, p.mouth.width / 2) + 12)
+    : p.width;
+  const spanY = bare
+    ? Math.min(p.height, Math.max(p.mouth.y - FACE_CY, FACE_CY - p.eyes.y + p.eyes.size) + 10)
+    : p.height;
+
   for (const mark of p.marks) {
     switch (mark) {
       case 'tear': {
@@ -382,8 +393,8 @@ function markPrims(p: FaceParams): Prim[] {
         break;
       }
       case 'sweat': {
-        const x = FACE_CX + p.width * 0.72;
-        const y = FACE_CY - p.height * 0.52;
+        const x = FACE_CX + spanX * 0.72;
+        const y = FACE_CY - spanY * 0.52;
         out.push({
           kind: 'fill',
           d: `M${r(x)},${r(y)} C${r(x + 8)},${r(y + 10)} ${r(x + 7)},${r(y + 22)} ${r(x)},${r(y + 22)} C${r(x - 7)},${r(y + 22)} ${r(x - 8)},${r(y + 10)} ${r(x)},${r(y)} Z`,
@@ -401,7 +412,7 @@ function markPrims(p: FaceParams): Prim[] {
         // Interference across the face — the overwhelmed look.
         for (let i = 0; i < 3; i++) {
           const y = FACE_CY - 18 + i * 26;
-          const w = p.width * (i === 1 ? 0.82 : 0.6);
+          const w = spanX * (i === 1 ? 0.82 : 0.6);
           out.push({
             kind: 'stroke',
             d: `M${r(FACE_CX - w)},${r(y)} L${r(FACE_CX + w)},${r(y)}`,
@@ -413,8 +424,8 @@ function markPrims(p: FaceParams): Prim[] {
         break;
       }
       case 'zzz': {
-        const base = FACE_CX + p.width * 0.62;
-        const top = FACE_CY - p.height * 0.72;
+        const base = FACE_CX + spanX * 0.62;
+        const top = FACE_CY - spanY * 0.72;
         for (let i = 0; i < 3; i++) {
           const s = 9 + i * 5;
           const x = base + i * 5;
@@ -429,8 +440,8 @@ function markPrims(p: FaceParams): Prim[] {
         break;
       }
       case 'sparkle': {
-        const x = FACE_CX + p.width * 0.74;
-        const y = FACE_CY - p.height * 0.62;
+        const x = FACE_CX + spanX * 0.74;
+        const y = FACE_CY - spanY * 0.62;
         const s = 14;
         out.push({
           kind: 'fill',

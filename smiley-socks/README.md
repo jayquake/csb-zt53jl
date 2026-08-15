@@ -98,8 +98,9 @@ A mono-line geometric display face, drawn as stroke paths rather than installed
 as a font: no webfont request, no fallback that could render instead, and the
 tiny wordmark knitted on the sock cuff is the same geometry as the headline.
 Round glyphs (O, Q, 0, 8) carry the "open loop" — a gap in the top-right of the
-counter, echoing the gap in every face outline. Body copy stays in system type,
-where it belongs.
+counter. It is the same gap the logo mark wears, and the same parameter that,
+opened all the way, leaves a face with no outline at all. Body copy stays in
+system type, where it belongs.
 
 ## Drawn, not generated-looking
 
@@ -110,10 +111,18 @@ most of that character:
 - **the flick** — smiles carry the upswept tail of a pen leaving the paper
   (`mouth.flick`). It is the most recognisable thing about a hand-drawn smile
   and costs one line segment.
-- **no outline** — `gap` opens the face's loop, and at 360° there is no outline
-  left at all: two eyes and a mouth, floating, the way anyone actually doodles
-  a face. It is not a separate mode, just the open loop taken to its limit, and
-  the crown/chin/side handles hide themselves when there is nothing to pull.
+- **no outline, by default** — `gap` opens the face's loop, and at 360° there
+  is no outline left at all: two eyes and a mouth, floating, the way anyone
+  actually doodles a face. That is where every template now starts. It is not a
+  separate mode, just the open loop taken to its limit; the crown/chin/side
+  handles hide themselves when there is nothing to pull, and the studio's
+  Outline control puts a circle back for anyone who wants one.
+
+  Two consequences worth knowing. Marks (sweat, sparkle, z's, static) used to
+  hang off the rim of the face; with no rim they tuck in against the features
+  instead, or they float in space. And the logo mark is the deliberate
+  exception — it keeps its loop, because at 26px in the header a bare face is
+  two dots and a hairline.
 
 A wink is the one asymmetry allowed. Eyes are otherwise always mirrored,
 because independent eyes read as a bug rather than a choice.
