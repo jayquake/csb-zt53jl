@@ -10,6 +10,7 @@
 import { useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Sock } from '../brand/Sock';
+import { SockThree } from '../three/SockThree';
 import { FaceEditor } from '../editor/FaceEditor';
 import { faceSignature, type EyeShape, type Mark } from '../brand/face';
 import { cloneFace, DEFAULT_TEMPLATE, templateById } from '../brand/templates';
@@ -86,6 +87,9 @@ export function Studio() {
     face: cloneFace(start.face),
   }));
   const [tab, setTab] = useState('face');
+  // Flat is the default on purpose: it is the print proof, drawn to scale.
+  // 3D is for seeing the thing, and it pulls in a large library on demand.
+  const [view, setView] = useState<'flat' | '3d'>('flat');
   const [added, setAdded] = useState(false);
   const { add, count } = useCart();
 
@@ -110,7 +114,27 @@ export function Studio() {
   return (
     <div className="studio">
       <div className="studio__preview">
-        <Sock design={design} className="studio__sock" />
+        {view === 'flat' ? (
+          <Sock design={design} className="studio__sock" />
+        ) : (
+          <SockThree design={design} />
+        )}
+
+        <div className="viewtoggle" role="radiogroup" aria-label="How to view the sock">
+          {(['flat', '3d'] as const).map((v) => (
+            <button
+              key={v}
+              type="button"
+              role="radio"
+              aria-checked={view === v}
+              className={`viewtoggle__btn${view === v ? ' is-on' : ''}`}
+              onClick={() => setView(v)}
+            >
+              {v === 'flat' ? 'Flat' : '3D'}
+            </button>
+          ))}
+        </div>
+
         <p className="studio__scale">
           <strong>{placement.name}</strong> · {printMm(placement)} mm
           {placement.id === 'cuff' && ' — where Stance puts its logo'}

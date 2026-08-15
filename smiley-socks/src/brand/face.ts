@@ -455,6 +455,13 @@ function markPrims(p: FaceParams): Prim[] {
   return out;
 }
 
+/** A rotation about a point, in the form both renderers can use. */
+export interface Spin {
+  deg: number;
+  cx: number;
+  cy: number;
+}
+
 export interface FaceGeometry {
   /** Rotation for the whole face, applied by the renderer. */
   tilt: number;
@@ -463,7 +470,7 @@ export interface FaceGeometry {
   /** Eyes are kept apart from the rest so each can carry its own rotation. */
   eyesLeft: Prim[];
   eyesRight: Prim[];
-  eyeRotation: { left: string; right: string };
+  eyeRotation: { left: Spin; right: Spin };
   /** Brows, mouth and marks — nothing here needs a transform. */
   rest: Prim[];
 }
@@ -479,8 +486,8 @@ export function buildFace(raw: FaceParams): FaceGeometry {
     eyesLeft: p.marks.includes('wink') ? [winkPrim(p, -1)] : eyePrims(p, -1),
     eyesRight: eyePrims(p, 1),
     eyeRotation: {
-      left: `rotate(${-p.eyes.tilt} ${FACE_CX - p.eyes.x} ${p.eyes.y})`,
-      right: `rotate(${p.eyes.tilt} ${FACE_CX + p.eyes.x} ${p.eyes.y})`,
+      left: { deg: -p.eyes.tilt, cx: FACE_CX - p.eyes.x, cy: p.eyes.y },
+      right: { deg: p.eyes.tilt, cx: FACE_CX + p.eyes.x, cy: p.eyes.y },
     },
     rest: [
       ...(p.brows.on ? [browPrim(p, -1), browPrim(p, 1)] : []),

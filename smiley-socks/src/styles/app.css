@@ -896,6 +896,67 @@ svg {
   }
 }
 
+/* --- 3D view ------------------------------------------------------------ */
+
+.three {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-1);
+  width: 100%;
+}
+
+.three__stage {
+  width: min(100%, 320px);
+  /* Matches the flat sock's height budget, so switching views does not make
+     the sticky preview jump. */
+  height: min(26vh, 220px);
+  cursor: grab;
+}
+
+.three__stage:active {
+  cursor: grabbing;
+}
+
+.three__note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+  text-align: center;
+}
+
+.viewtoggle {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border-radius: var(--radius-pill);
+  background: color-mix(in srgb, var(--ink) 8%, transparent);
+}
+
+.viewtoggle__btn {
+  min-height: 32px;
+  padding: 0 var(--space-3);
+  border: 0;
+  border-radius: var(--radius-pill);
+  background: transparent;
+  color: var(--muted);
+  font: inherit;
+  font-size: var(--text-s);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.viewtoggle__btn.is-on {
+  background: var(--paper-raised);
+  color: var(--ink);
+  box-shadow: var(--shadow);
+}
+
+@media (max-height: 700px) {
+  .three__stage {
+    height: min(20vh, 150px);
+  }
+}
+
 /* --- Fields ------------------------------------------------------------- */
 
 .field {

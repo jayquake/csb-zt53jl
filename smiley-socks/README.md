@@ -10,7 +10,7 @@ Live-ish demo: build it and open `dist/index.html`, or run `npm run dev`.
 ```
 npm install
 npm run dev        # vite dev server
-npm test           # 72 unit tests, no browser needed
+npm test           # 83 unit tests, no browser needed
 npm run build      # typecheck + production build into dist/
 ```
 
@@ -126,6 +126,42 @@ most of that character:
 
 A wink is the one asymmetry allowed. Eyes are otherwise always mirrored,
 because independent eyes read as a bug rather than a choice.
+
+## The 3D view
+
+The studio's preview switches between **Flat** and **3D**. They do different
+jobs and the copy says so: the flat SVG is the *print proof*, drawn to scale
+and deliberately still, and the 3D sock is for seeing the thing on a shape.
+
+- `src/three/sockMesh.ts` — a procedural sock: a tube swept along a centreline
+  that bends through the ankle, with an elliptical cross-section whose
+  flattening rotates from front-to-back on the leg to top-to-bottom on the
+  foot, a one-sided heel bulge, and a rounded toe. **No three.js import**, so
+  the shape is unit-tested in Node (11 tests: closed toe, UVs in range, sock
+  proportions, landmarks in order) and the big library stays lazy.
+
+  The centreline is resampled by **arc length**. A spline's own parameter is
+  not distance, and without that step `v` spends as much of the texture on the
+  last 3cm of shin as on the first 7 — which put the cuff hit down by the
+  ankle.
+
+- `src/three/texture.ts` — paints the design into a canvas in UV space. The
+  reuse that makes this cheap: the face engine and Grinline emit SVG path
+  strings, and Canvas2D's `Path2D` parses exactly that syntax, so the face on
+  the 3D sock is the *same geometry* as the SVG, not a copy. Texture scale
+  comes from the mesh's own measured length and circumference, so a 2.9cm
+  print is 2.9cm on the model.
+
+- `src/three/SockThree.tsx` — scene, lights, turntable, teardown. three.js is
+  `import()`ed only when you tap 3D (it is a 717kB chunk, more than twice the
+  rest of the app). No WebGL, or the import fails? Say so and keep the flat
+  view. On unmount, geometry, material, texture and the GL context are all
+  disposed — none of that is garbage collected on its own.
+
+One three.js gotcha worth remembering: textures are flipped vertically by
+default (`flipY = true`), which is right for image files and wrong for a canvas
+painted in the same direction as the mesh's `v`. Left on, the sock wears its
+toe block at the cuff.
 
 ## Placement is a product fact, not styling
 

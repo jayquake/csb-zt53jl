@@ -3,7 +3,9 @@
  * about what the face looks like lives in face.ts.
  */
 
-import { buildFace, FACE_BOX, STROKE, type FaceParams, type Prim } from './face';
+import { buildFace, FACE_BOX, STROKE, type FaceParams, type Prim, type Spin } from './face';
+
+const spin = (s: Spin): string => `rotate(${s.deg} ${s.cx} ${s.cy})`;
 
 function Primitive({ prim }: { prim: Prim }) {
   switch (prim.kind) {
@@ -44,12 +46,12 @@ export function FaceGlyph({ face }: { face: FaceParams }) {
   return (
     <g transform={`rotate(${g.tilt} 100 100)`}>
       {g.outline && <Primitive prim={g.outline} />}
-      <g transform={g.eyeRotation.left}>
+      <g transform={spin(g.eyeRotation.left)}>
         {g.eyesLeft.map((p) => (
           <Primitive key={p.key} prim={p} />
         ))}
       </g>
-      <g transform={g.eyeRotation.right}>
+      <g transform={spin(g.eyeRotation.right)}>
         {g.eyesRight.map((p) => (
           <Primitive key={p.key} prim={p} />
         ))}

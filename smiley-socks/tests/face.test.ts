@@ -16,7 +16,10 @@ function pathsOf(f: FaceParams): string[] {
   return [g.outline, ...g.eyesLeft, ...g.eyesRight, ...g.rest]
     .filter((p) => p !== null)
     .map((p) => (p.kind === 'dot' ? `${p.cx} ${p.cy} ${p.rx} ${p.ry}` : p.d))
-    .concat(g.eyeRotation.left, g.eyeRotation.right);
+    .concat(
+      `${g.eyeRotation.left.deg} ${g.eyeRotation.left.cx} ${g.eyeRotation.left.cy}`,
+      `${g.eyeRotation.right.deg} ${g.eyeRotation.right.cx} ${g.eyeRotation.right.cy}`,
+    );
 }
 
 describe('face geometry', () => {
