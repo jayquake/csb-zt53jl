@@ -44,6 +44,7 @@ const EYE_SHAPES: { id: EyeShape; name: string }[] = [
   { id: 'line', name: 'Lines' },
   { id: 'cross', name: 'Crosses' },
   { id: 'spiral', name: 'Spirals' },
+  { id: 'heart', name: 'Hearts' },
 ];
 
 /*
@@ -73,6 +74,7 @@ const MARKS: { id: Mark; name: string }[] = [
   { id: 'zzz', name: 'Sleep' },
   { id: 'sparkle', name: 'Sparkle' },
   { id: 'wink', name: 'Wink' },
+  { id: 'tongue', name: 'Tongue' },
 ];
 
 export function Studio() {

@@ -204,9 +204,8 @@ export function SockThree({ design, className }: { design: Design; className?: s
     if (!k) return;
     const d = designRef.current;
     const height = HEIGHTS.find((h) => h.id === d.heightId) ?? HEIGHTS[1];
-    const legCm = height.id === 'ankle' ? 11 : height.id === 'knee' ? 38 : 21;
 
-    const { positions, uvs, indices, landmarks, metrics } = buildSockMesh({ legLength: legCm });
+    const { positions, uvs, indices, landmarks, metrics } = buildSockMesh({ legLength: height.legCm });
     const g = new k.THREE.BufferGeometry();
     g.setAttribute('position', new k.THREE.BufferAttribute(positions, 3));
     g.setAttribute('uv', new k.THREE.BufferAttribute(uvs, 2));

@@ -67,7 +67,7 @@ describe('face geometry', () => {
   });
 
   it('draws every eye shape', () => {
-    for (const shape of ['bar', 'tick', 'round', 'arc', 'cross', 'line', 'spiral'] as const) {
+    for (const shape of ['bar', 'tick', 'round', 'arc', 'cross', 'line', 'spiral', 'heart'] as const) {
       const f = { ...cloneFace(base), eyes: { ...base.eyes, shape } };
       const g = buildFace(f);
       expect(g.eyesLeft.length, shape).toBeGreaterThan(0);

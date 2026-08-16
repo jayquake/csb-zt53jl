@@ -300,6 +300,27 @@ export const TEMPLATES: Template[] = [
     }),
   },
   {
+    id: 'smitten',
+    name: 'Smitten',
+    blurb: 'Completely gone. No notes.',
+    face: face({
+      eyes: { shape: 'heart', size: 15, x: 30, y: 80 },
+      mouth: { curve: 0.85, width: 56, y: 136, flick: 0.6 },
+      marks: ['blush'],
+    }),
+  },
+  {
+    id: 'goofy',
+    name: 'Goofy',
+    blurb: 'Being normal was not working out.',
+    face: face({
+      tilt: -6,
+      eyes: { shape: 'cross', size: 12, x: 30, y: 80 },
+      mouth: { curve: 0.55, width: 62, y: 126, flick: 0.8 },
+      marks: ['tongue'],
+    }),
+  },
+  {
     id: 'blank',
     name: 'Blank',
     blurb: 'Watching myself from across the room.',

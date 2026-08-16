@@ -23,13 +23,28 @@ export interface Height {
   blurb: string;
   /** y of the cuff opening; smaller means a longer leg. */
   legTop: number;
+  /**
+   * Cuff opening above the sole, in centimetres — the real measurement the 3D
+   * mesh is swept from and the production export sizes its print file by. It
+   * lives here rather than next to either renderer so there is exactly one
+   * answer to "how long is a crew sock", in millimetres, shared by the proof,
+   * the model and the factory file.
+   */
+  legCm: number;
   priceDelta: number;
 }
 
 export const HEIGHTS: Height[] = [
-  { id: 'ankle', name: 'Ankle', blurb: 'Just the face, peeking.', legTop: 196, priceDelta: 0 },
-  { id: 'crew', name: 'Crew', blurb: 'The standard. Face sits above the shoe.', legTop: 96, priceDelta: 0 },
-  { id: 'knee', name: 'Knee-high', blurb: 'Unmissable, which is sometimes the point.', legTop: 14, priceDelta: 2 },
+  { id: 'ankle', name: 'Ankle', blurb: 'Just the face, peeking.', legTop: 196, legCm: 11, priceDelta: 0 },
+  { id: 'crew', name: 'Crew', blurb: 'The standard. Face sits above the shoe.', legTop: 96, legCm: 21, priceDelta: 0 },
+  {
+    id: 'knee',
+    name: 'Knee-high',
+    blurb: 'Unmissable, which is sometimes the point.',
+    legTop: 14,
+    legCm: 38,
+    priceDelta: 2,
+  },
 ];
 
 export interface Size {

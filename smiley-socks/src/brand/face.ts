@@ -20,8 +20,8 @@ export const FACE_CY = 100;
 /** Mono-line weight, matched to Grinline so type and faces print as one system. */
 export const STROKE = 10;
 
-export type EyeShape = 'bar' | 'tick' | 'round' | 'arc' | 'cross' | 'line' | 'spiral';
-export type Mark = 'tear' | 'sweat' | 'blush' | 'static' | 'zzz' | 'sparkle' | 'wink';
+export type EyeShape = 'bar' | 'tick' | 'round' | 'arc' | 'cross' | 'line' | 'spiral' | 'heart';
+export type Mark = 'tear' | 'sweat' | 'blush' | 'static' | 'zzz' | 'sparkle' | 'wink' | 'tongue';
 
 export interface FaceParams {
   /** Outline half-width and half-height. */
@@ -284,6 +284,21 @@ function eyePrims(p: FaceParams, side: -1 | 1): Prim[] {
       prims.push({ kind: 'stroke', d: `M${r(cx + w)},${r(cy - w)} L${r(cx - w)},${r(cy + w)}`, key: `${key}b` });
       break;
     }
+    case 'heart': {
+      // Two lobes and a point. Filled rather than stroked, because a heart
+      // outlined in a 10-unit mono line at cuff-hit size closes up into a blob.
+      const w = s * 0.98;
+      const h = s * (0.72 + 0.42 * open);
+      prims.push({
+        kind: 'fill',
+        d:
+          `M${r(cx)},${r(cy + h * 0.72)} ` +
+          `C${r(cx - w * 1.18)},${r(cy - h * 0.1)} ${r(cx - w * 0.62)},${r(cy - h * 1.05)} ${r(cx)},${r(cy - h * 0.3)} ` +
+          `C${r(cx + w * 0.62)},${r(cy - h * 1.05)} ${r(cx + w * 1.18)},${r(cy - h * 0.1)} ${r(cx)},${r(cy + h * 0.72)} Z`,
+        key,
+      });
+      break;
+    }
     case 'spiral': {
       // Two and a bit turns — the "I am not really here" eye.
       const turns = 2.25;
@@ -437,6 +452,25 @@ function markPrims(p: FaceParams): Prim[] {
             key: `z${i}`,
           });
         }
+        break;
+      }
+      case 'tongue': {
+        // Hung from the middle of the mouth, which is where the mouth's own
+        // bow peaks — so it follows a grin up and a grimace down instead of
+        // floating at a fixed height.
+        const midY = p.mouth.y + p.mouth.curve * 30;
+        // Narrow and deep. Wider than this and it stops reading as a tongue
+        // and starts reading as a chin — it has to clear the 10-unit mouth
+        // stroke it hangs off by enough to be a separate shape.
+        const w = Math.min(13, p.mouth.width * 0.2);
+        const drop = w * 2.4;
+        out.push({
+          kind: 'fill',
+          d:
+            `M${r(FACE_CX - w)},${r(midY - 1)} ` +
+            `C${r(FACE_CX - w)},${r(midY + drop)} ${r(FACE_CX + w)},${r(midY + drop)} ${r(FACE_CX + w)},${r(midY - 1)} Z`,
+          key: 'tongue',
+        });
         break;
       }
       case 'sparkle': {
