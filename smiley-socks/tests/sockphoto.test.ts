@@ -14,14 +14,14 @@ describe('sockPhotoMatches', () => {
     expect(sockPhotoMatches({ colorwayId: 'bone', heightId: 'knee', placementId: 'cuff' })).toBe(true);
     expect(sockPhotoMatches({ colorwayId: 'butter', heightId: 'knee', placementId: 'cuff' })).toBe(true);
     expect(sockPhotoMatches({ colorwayId: 'oatmeal', heightId: 'knee', placementId: 'cuff' })).toBe(true);
+    expect(sockPhotoMatches({ colorwayId: 'midnight', heightId: 'knee', placementId: 'cuff' })).toBe(true);
+    expect(sockPhotoMatches({ colorwayId: 'moss', heightId: 'knee', placementId: 'cuff' })).toBe(true);
     // Shot as a crew sock, not knee-high — a different garment from the rest.
     expect(sockPhotoMatches({ colorwayId: 'bubblegum', heightId: 'crew', placementId: 'cuff' })).toBe(true);
   });
 
   it('refuses a colourway nobody photographed', () => {
-    expect(sockPhotoMatches({ colorwayId: 'midnight', heightId: 'knee', placementId: 'cuff' })).toBe(false);
     expect(sockPhotoMatches({ colorwayId: 'clay', heightId: 'knee', placementId: 'cuff' })).toBe(false);
-    expect(sockPhotoMatches({ colorwayId: 'moss', heightId: 'knee', placementId: 'cuff' })).toBe(false);
   });
 
   it('refuses a height nobody photographed that garment in', () => {

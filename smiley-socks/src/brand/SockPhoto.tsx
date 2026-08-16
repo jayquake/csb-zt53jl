@@ -27,6 +27,8 @@ import boneUrl from '../assets/sock-photo-bone.png';
 import butterUrl from '../assets/sock-photo-butter.png';
 import oatmealUrl from '../assets/sock-photo-oatmeal.png';
 import bubblegumUrl from '../assets/sock-photo-bubblegum.png';
+import midnightUrl from '../assets/sock-photo-midnight.png';
+import mossUrl from '../assets/sock-photo-moss.png';
 
 const ART = 512;
 
@@ -63,6 +65,21 @@ const PHOTOS: Record<string, PhotoEntry> = {
     url: bubblegumUrl,
     height: 'crew',
     place: { x: 0.577, y: 0.374, size: 0.164, rotation: 0, displace: 5, opacity: 0.94, blend: 'multiply' },
+  },
+  midnight: {
+    url: midnightUrl,
+    height: 'knee',
+    // Multiply can only darken. Midnight prints in a light ink on a dark
+    // sock (contrast the other way round from the rest of the range), so
+    // multiply would blend it straight back into the navy — normal blend is
+    // the one that actually shows a light mark on a dark fabric.
+    place: { x: 0.427, y: 0.33, size: 0.158, rotation: 0, displace: 5, opacity: 0.94, blend: 'normal' },
+  },
+  moss: {
+    url: mossUrl,
+    height: 'knee',
+    // Same reason as Midnight: light ink on a dark sock.
+    place: { x: 0.468, y: 0.335, size: 0.157, rotation: 0, displace: 5, opacity: 0.94, blend: 'normal' },
   },
 };
 
