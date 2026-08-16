@@ -18,8 +18,8 @@ npm run build      # typecheck + production build into dist/
 
 | Screen | Route | What it does |
 | --- | --- | --- |
-| Home | `#/` | The pitch, three-packs, the reel, the 29-face catalog, FAQ |
-| Shop | `#/shop` | Listing page: 29 pairs, search and colourway filters (in the URL) |
+| Home | `#/` | The pitch, three-packs, the reel, the 32-face catalog, FAQ |
+| Shop | `#/shop` | Listing page: 32 pairs, search and colourway filters (in the URL) |
 | Product | `#/p/:id` | Gallery (flat + 3D), variants, live price, spec, add to bag |
 | Mockup | `#/mockup` | Brand tool: put a face onto a photo of a real sock |
 | Studio | `#/studio` | Design a pair: face editor, sock, photo, cuff text |
@@ -40,7 +40,7 @@ squint/tilt, brow height and angle, mouth width/curve/open/wobble, plus marks
 drawing primitives, and `Face.tsx` turns primitives into SVG. Nothing else
 knows how a face is drawn.
 
-The twenty-nine templates in `templates.ts` are presets of those same numbers,
+The thirty-two templates in `templates.ts` are presets of those same numbers,
 which is why editing one costs nothing: there is no "preset mode" to leave.
 
 `FACE_LIMITS` is the single source of truth for what each number may be. The
@@ -107,7 +107,7 @@ system type, where it belongs.
 
 ## Drawn, not generated-looking
 
-The catalog is **29 emotions**, drawn in a chalk finish: Sunny through
+The catalog is **32 emotions**, drawn in a chalk finish: Sunny through
 Crushed, by way of Fuzzy, Bored, Smug, Queasy, Lonely, Flirty and Unbothered.
 It is a face set, not a mood scale — most days are not on a happy-to-sad line.
 
@@ -148,6 +148,13 @@ most of that character:
 - **shades** — a mark, not an eye shape: two rounded lenses and a bridge that
   sit over whatever eyes are underneath, sized off `eyes.size` so they always
   fit.
+- **star eyes** — the same four-point twinkle the `sparkle` mark draws,
+  recentred as an eye rather than tied to a face corner. One glyph, two jobs.
+- **teeth** — a few short dividers across the mouth's own curve rather than a
+  second mouth shape: a gritted grin, a snarl or a scared chatter, depending
+  on what the brows around it are doing.
+- **bawling** — a streaming tear under both eyes, not one small drop under
+  one. `tear` stays the quiet version; this is the loud one.
 - **the flick** — smiles carry the upswept tail of a pen leaving the paper
   (`mouth.flick`). It is the most recognisable thing about a hand-drawn smile
   and costs one line segment.
@@ -229,7 +236,7 @@ Three decisions worth knowing:
 - **The port cannot drift silently.** `face.py`, `sock.py` and `catalog.py`
   duplicate `face.ts`, `sockMesh.ts` and `catalog.ts`, so `npm test` runs the
   real TypeScript and writes what it produces to a fixture, and the Python suite
-  asserts it reproduces all of it — path string for path string, 55 faces in
+  asserts it reproduces all of it — path string for path string, 60 faces in
   both finishes, every eye shape and mark, both extremes of every limit.
   Change a curve on either side and the other goes red.
 
@@ -239,7 +246,7 @@ text is positioned rather than lettered) is in [`tools/README.md`](tools/README.
 ## It behaves like a shop
 
 The studio is the point of the brand, but designing something is not the only
-way people buy. `store/products.ts` puts the 29 faces on a shelf as pairs that
+way people buy. `store/products.ts` puts the 32 faces on a shelf as pairs that
 already exist — a product is a face plus a colourway, and height/size/print
 stay variants chosen on the product page. It is the same `Design` the studio
 edits, so "Change the face" hands the product straight to the editor.

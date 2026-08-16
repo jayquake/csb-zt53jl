@@ -68,7 +68,7 @@ describe('face geometry', () => {
           wave: pick('mouthWave'),
           flick: pick('mouthFlick'),
         },
-        marks: ['tear', 'sweat', 'blush', 'static', 'zzz', 'sparkle', 'wink', 'tongue', 'shades'],
+        marks: ['tear', 'sweat', 'blush', 'static', 'zzz', 'sparkle', 'wink', 'tongue', 'shades', 'teeth', 'bawling'],
       };
       for (const d of pathsOf(f)) expect(d).not.toMatch(/NaN|Infinity/);
       // The same extremes again, chalk finish: the wobble reads the same
@@ -83,7 +83,7 @@ describe('face geometry', () => {
   });
 
   it('draws every eye shape', () => {
-    for (const shape of ['bar', 'tick', 'round', 'arc', 'cross', 'line', 'spiral', 'heart', 'lash'] as const) {
+    for (const shape of ['bar', 'tick', 'round', 'arc', 'cross', 'line', 'spiral', 'heart', 'lash', 'star'] as const) {
       const f = { ...cloneFace(base), eyes: { ...base.eyes, shape } };
       const g = buildFace(f);
       expect(g.eyesLeft.length, shape).toBeGreaterThan(0);
@@ -92,7 +92,7 @@ describe('face geometry', () => {
   });
 
   it('draws every mark', () => {
-    const marks = ['tear', 'sweat', 'blush', 'static', 'zzz', 'sparkle', 'tongue', 'shades'] as const;
+    const marks = ['tear', 'sweat', 'blush', 'static', 'zzz', 'sparkle', 'tongue', 'shades', 'teeth', 'bawling'] as const;
     for (const mark of marks) {
       const f = { ...cloneFace(base), marks: [mark] };
       const g = buildFace(f);
@@ -207,10 +207,13 @@ describe('face geometry', () => {
       }
     });
 
-    it('draws the new eye shape and mark from a chalk finish without NaNs', () => {
+    it('draws every new eye shape and mark from a chalk finish without NaNs', () => {
       const lash = { ...cloneFace(base), eyes: { ...base.eyes, shape: 'lash' as const } };
+      const star = { ...cloneFace(base), eyes: { ...base.eyes, shape: 'star' as const } };
       const shades = { ...cloneFace(base), marks: ['shades' as const] };
-      for (const f of [lash, shades]) {
+      const teeth = { ...cloneFace(base), mouth: { ...base.mouth, open: 0.4 }, marks: ['teeth' as const] };
+      const bawling = { ...cloneFace(base), marks: ['bawling' as const] };
+      for (const f of [lash, star, shades, teeth, bawling]) {
         for (const d of pathsOf(f, 'chalk')) expect(d).not.toMatch(/NaN|Infinity/);
       }
     });

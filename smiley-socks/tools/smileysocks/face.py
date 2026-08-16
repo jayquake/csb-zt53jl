@@ -51,6 +51,7 @@ EYE_SHAPES: tuple[str, ...] = (
     "spiral",
     "heart",
     "lash",
+    "star",
 )
 MARKS: tuple[str, ...] = (
     "tear",
@@ -62,6 +63,8 @@ MARKS: tuple[str, ...] = (
     "wink",
     "tongue",
     "shades",
+    "teeth",
+    "bawling",
 )
 
 #: The one source of truth for what a parameter is allowed to be. Mirrors
@@ -603,6 +606,29 @@ def _eye_prims(p: FaceParams, side: int, W: Wob = NO_WOB) -> list[Prim]:
                 key=key,
             )
         )
+    elif p.eyes.shape == "star":
+        # The same four-point twinkle the `sparkle` mark draws, recentred as
+        # an eye rather than tied to a face corner — the starstruck look,
+        # reusing geometry already proven to read clearly at cuff-hit size
+        # rather than inventing a second "star" shape for the brand to carry.
+        st = s * 1.05
+        dx, dy = _wob(W, f"{key}c", WOBBLE_POINT * 0.6)
+        sj = _radius_jitter(W, f"{key}s", WOBBLE_RADIUS)
+        cx2 = cx + dx
+        cy2 = cy + dy
+        sz = st * sj
+        prims.append(
+            Prim(
+                kind="fill",
+                d=(
+                    f"M{fmt(cx2)},{fmt(cy2 - sz)} Q{fmt(cx2 + 2)},{fmt(cy2 - 2)} {fmt(cx2 + sz)},{fmt(cy2)} "
+                    f"Q{fmt(cx2 + 2)},{fmt(cy2 + 2)} {fmt(cx2)},{fmt(cy2 + sz)} "
+                    f"Q{fmt(cx2 - 2)},{fmt(cy2 + 2)} {fmt(cx2 - sz)},{fmt(cy2)} "
+                    f"Q{fmt(cx2 - 2)},{fmt(cy2 - 2)} {fmt(cx2)},{fmt(cy2 - sz)} Z"
+                ),
+                key=key,
+            )
+        )
     elif p.eyes.shape == "spiral":
         # Two and a bit turns — the "I am not really here" eye.
         turns = 2.25
@@ -732,6 +758,25 @@ def _mark_prims(p: FaceParams, W: Wob = NO_WOB) -> list[Prim]:
                     key="tear",
                 )
             )
+        elif mark == "bawling":
+            # The full-on cry: a streaming tear under both eyes, not one
+            # small drop under one — `tear` stays the quiet version, this is
+            # the loud one.
+            for side, drop_key in ((-1, "bawlingL"), (1, "bawlingR")):
+                dx, dy = _wob(W, drop_key, WOBBLE_POINT * 0.6)
+                x = (eye_l if side < 0 else eye_r) + dx
+                y = p.eyes.y + p.eyes.size + 12 + dy
+                out.append(
+                    Prim(
+                        kind="fill",
+                        d=(
+                            f"M{fmt(x)},{fmt(y)} "
+                            f"C{fmt(x + 10)},{fmt(y + 16)} {fmt(x + 9)},{fmt(y + 38)} {fmt(x)},{fmt(y + 38)} "
+                            f"C{fmt(x - 9)},{fmt(y + 38)} {fmt(x - 10)},{fmt(y + 16)} {fmt(x)},{fmt(y)} Z"
+                        ),
+                        key=drop_key,
+                    )
+                )
         elif mark == "sweat":
             dx, dy = _wob(W, "sweat", WOBBLE_POINT * 0.7)
             x = FACE_CX + span_x * 0.72 + dx
@@ -840,6 +885,29 @@ def _mark_prims(p: FaceParams, W: Wob = NO_WOB) -> list[Prim]:
                     key="tongue",
                 )
             )
+        elif mark == "teeth":
+            # A few short dividers across the mouth's own curve — a jagged
+            # bite rather than a second mouth shape. The same convention a
+            # hand-drawn doodle uses for a gritted grin, an angry snarl or a
+            # scared chatter, depending on what the brows around it are
+            # doing.
+            mid_y = p.mouth.y + p.mouth.curve * 30
+            half = min(p.mouth.width * 0.4, 30)
+            count = 4
+            for i in range(count):
+                t = (i + 0.5) / count
+                x = FACE_CX - half + half * 2 * t
+                key = f"teeth{i}"
+                ax, ay = _wob(W, f"{key}p0", WOBBLE_POINT * 0.5)
+                bx, by = _wob(W, f"{key}p1", WOBBLE_POINT * 0.5)
+                out.append(
+                    Prim(
+                        kind="stroke",
+                        d=f"M{fmt(x + ax)},{fmt(mid_y - 7 + ay)} L{fmt(x + bx)},{fmt(mid_y + 7 + by)}",
+                        w=STROKE * 0.55,
+                        key=key,
+                    )
+                )
         elif mark == "sparkle":
             dx, dy = _wob(W, "sparkle", WOBBLE_POINT * 0.6)
             x = FACE_CX + span_x * 0.74 + dx

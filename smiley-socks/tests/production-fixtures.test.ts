@@ -59,7 +59,7 @@ function edgeCases(): { name: string; face: FaceParams }[] {
     marks: over.marks ?? base.marks,
   });
 
-  const shapes = ['bar', 'tick', 'round', 'arc', 'cross', 'line', 'spiral', 'heart', 'lash'] as const;
+  const shapes = ['bar', 'tick', 'round', 'arc', 'cross', 'line', 'spiral', 'heart', 'lash', 'star'] as const;
   const cases: { name: string; face: FaceParams }[] = shapes.map((shape) => ({
     name: `eye-${shape}`,
     face: at({}, { eyes: { ...base.eyes, shape } }),
@@ -82,8 +82,8 @@ function edgeCases(): { name: string; face: FaceParams }[] {
     { name: 'brows-on', face: at({}, { brows: { on: true, y: 40, angle: 30, length: 34 } }) },
     { name: 'eyes-squint', face: at({}, { eyes: { ...base.eyes, squint: 1, tilt: 40 } }) },
     // Marks reposition themselves when there is no rim to hang off.
-    { name: 'marks-all-bare', face: at({ gap: 360, marks: ['tear', 'sweat', 'blush', 'static', 'zzz', 'sparkle', 'tongue', 'shades'] }) },
-    { name: 'marks-all-rimmed', face: at({ gap: 0, marks: ['tear', 'sweat', 'blush', 'static', 'zzz', 'sparkle', 'tongue', 'shades'] }) },
+    { name: 'marks-all-bare', face: at({ gap: 360, marks: ['tear', 'sweat', 'blush', 'static', 'zzz', 'sparkle', 'tongue', 'shades', 'teeth', 'bawling'] }) },
+    { name: 'marks-all-rimmed', face: at({ gap: 0, marks: ['tear', 'sweat', 'blush', 'static', 'zzz', 'sparkle', 'tongue', 'shades', 'teeth', 'bawling'] }) },
     { name: 'wink', face: at({ marks: ['wink'] }) },
     // Out-of-range on purpose: the port has to clamp identically, not just draw
     // identically.

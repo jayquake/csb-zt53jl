@@ -44,7 +44,7 @@ class FaceGeometryTest(unittest.TestCase):
         # A fixture that quietly stopped covering the templates would let the
         # port drift on exactly the faces customers actually buy.
         self.assertGreaterEqual(len([n for n in names if n.startswith("template-")]), 24)
-        for shape in ("bar", "tick", "round", "arc", "cross", "line", "spiral", "heart", "lash"):
+        for shape in ("bar", "tick", "round", "arc", "cross", "line", "spiral", "heart", "lash", "star"):
             self.assertIn(f"eye-{shape}", names)
 
     def _assert_geometry_matches(self, name: str, finish: str, theirs: dict) -> int:

@@ -179,6 +179,15 @@ export const TEMPLATES: Template[] = [
     }),
   },
   {
+    id: 'starstruck',
+    name: 'Starstruck',
+    blurb: "Somehow this is going well and I don't trust it yet.",
+    face: face({
+      eyes: { shape: 'star', size: 15, y: 82 },
+      mouth: { curve: 0.85, width: 60, y: 126, flick: 0.6 },
+    }),
+  },
+  {
     id: 'sly',
     name: 'Sly',
     blurb: "Fine. Mostly. Ask me later and I'll deny it.",
@@ -248,6 +257,17 @@ export const TEMPLATES: Template[] = [
     }),
   },
   {
+    id: 'rattled',
+    name: 'Rattled',
+    blurb: 'That was too close. Give me a second.',
+    face: face({
+      eyes: { shape: 'round', size: 12, y: 82 },
+      brows: { on: true, y: 44, angle: -30, length: 26 },
+      mouth: { curve: -0.1, width: 40, open: 0.5, y: 138 },
+      marks: ['teeth'],
+    }),
+  },
+  {
     id: 'relieved',
     name: 'Relieved',
     blurb: 'It is over. It went fine.',
@@ -308,6 +328,18 @@ export const TEMPLATES: Template[] = [
       brows: { on: true, y: 62, angle: -32, length: 28 },
       mouth: { curve: -0.9, width: 50, y: 152 },
       marks: ['tear'],
+    }),
+  },
+  {
+    id: 'sobbing',
+    name: 'Sobbing',
+    blurb: "Not holding it together right now, and that's allowed.",
+    face: face({
+      squish: -8,
+      eyes: { shape: 'bar', size: 13, y: 88, squint: 0.5 },
+      brows: { on: true, y: 60, angle: -22, length: 26 },
+      mouth: { curve: -0.6, width: 40, open: 0.35, y: 148 },
+      marks: ['bawling'],
     }),
   },
   {

@@ -117,7 +117,7 @@ is a 9-megapixel file that some uploaders reject) and the other templates to
 python3 -m smileysocks moods --out ./shelf
 ```
 
-Writes all 29 template faces as artwork — for a lookbook, a size check, or
+Writes all 32 template faces as artwork — for a lookbook, a size check, or
 handing a manufacturer the range in one go. It reads the shelf from the fixture
 the app writes, so the range here is the range on the site.
 
@@ -143,7 +143,7 @@ the truth and second copies drift, so there is a mechanism, not a promise:
 
 1. `npm test` runs `tests/production-fixtures.test.ts`, which executes the
    **real TypeScript** and writes what it produces to
-   `tools/tests/fixtures/geometry.json` — 55 faces (every template, every eye
+   `tools/tests/fixtures/geometry.json` — 60 faces (every template, every eye
    shape, every mark, both extremes of every limit, plus deliberately
    out-of-range input), **each rendered in both `clean` and `chalk` finish**,
    the sock metrics for all three heights, every placement's spots, the

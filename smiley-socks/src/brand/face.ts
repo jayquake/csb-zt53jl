@@ -20,8 +20,19 @@ export const FACE_CY = 100;
 /** Mono-line weight, matched to Grinline so type and faces print as one system. */
 export const STROKE = 10;
 
-export type EyeShape = 'bar' | 'tick' | 'round' | 'arc' | 'cross' | 'line' | 'spiral' | 'heart' | 'lash';
-export type Mark = 'tear' | 'sweat' | 'blush' | 'static' | 'zzz' | 'sparkle' | 'wink' | 'tongue' | 'shades';
+export type EyeShape = 'bar' | 'tick' | 'round' | 'arc' | 'cross' | 'line' | 'spiral' | 'heart' | 'lash' | 'star';
+export type Mark =
+  | 'tear'
+  | 'sweat'
+  | 'blush'
+  | 'static'
+  | 'zzz'
+  | 'sparkle'
+  | 'wink'
+  | 'tongue'
+  | 'shades'
+  | 'teeth'
+  | 'bawling';
 
 /** How the line is drawn. Chalk is the house look; clean is a flat vector. */
 export type Finish = 'clean' | 'chalk';
@@ -457,6 +468,28 @@ function eyePrims(p: FaceParams, side: -1 | 1, W: Wob = NO_WOB): Prim[] {
       });
       break;
     }
+    case 'star': {
+      // The same four-point twinkle the `sparkle` mark draws, recentred as an
+      // eye rather than tied to a face corner — the starstruck look, and it
+      // reuses geometry already proven to read clearly at cuff-hit size
+      // rather than inventing a second "star" shape for the brand to carry.
+      const st = s * 1.05;
+      const [dx, dy] = wob(W, `${key}c`, WOBBLE_POINT * 0.6);
+      const sj = radiusJitter(W, `${key}s`, WOBBLE_RADIUS);
+      const cx2 = cx + dx;
+      const cy2 = cy + dy;
+      const sz = st * sj;
+      prims.push({
+        kind: 'fill',
+        d:
+          `M${r(cx2)},${r(cy2 - sz)} Q${r(cx2 + 2)},${r(cy2 - 2)} ${r(cx2 + sz)},${r(cy2)} ` +
+          `Q${r(cx2 + 2)},${r(cy2 + 2)} ${r(cx2)},${r(cy2 + sz)} ` +
+          `Q${r(cx2 - 2)},${r(cy2 + 2)} ${r(cx2 - sz)},${r(cy2)} ` +
+          `Q${r(cx2 - 2)},${r(cy2 - 2)} ${r(cx2)},${r(cy2 - sz)} Z`,
+        key,
+      });
+      break;
+    }
     case 'spiral': {
       // Two and a bit turns — the "I am not really here" eye.
       const turns = 2.25;
@@ -587,6 +620,27 @@ function markPrims(p: FaceParams, W: Wob = NO_WOB): Prim[] {
         });
         break;
       }
+      case 'bawling': {
+        // The full-on cry: a streaming tear under both eyes, not one small
+        // drop under one — `tear` stays the quiet version, this is the loud
+        // one.
+        const drop = (side: -1 | 1, dropKey: string): void => {
+          const [dx, dy] = wob(W, dropKey, WOBBLE_POINT * 0.6);
+          const x = (side < 0 ? eyeL : eyeR) + dx;
+          const y = p.eyes.y + p.eyes.size + 12 + dy;
+          out.push({
+            kind: 'fill',
+            d:
+              `M${r(x)},${r(y)} ` +
+              `C${r(x + 10)},${r(y + 16)} ${r(x + 9)},${r(y + 38)} ${r(x)},${r(y + 38)} ` +
+              `C${r(x - 9)},${r(y + 38)} ${r(x - 10)},${r(y + 16)} ${r(x)},${r(y)} Z`,
+            key: dropKey,
+          });
+        };
+        drop(-1, 'bawlingL');
+        drop(1, 'bawlingR');
+        break;
+      }
       case 'sweat': {
         const [dx, dy] = wob(W, 'sweat', WOBBLE_POINT * 0.7);
         const x = FACE_CX + spanX * 0.72 + dx;
@@ -686,6 +740,29 @@ function markPrims(p: FaceParams, W: Wob = NO_WOB): Prim[] {
             `C${r(cx - w2)},${r(midY + drop + dy)} ${r(cx + w2)},${r(midY + drop + dy)} ${r(cx + w2)},${r(midY - 1 + dy)} Z`,
           key: 'tongue',
         });
+        break;
+      }
+      case 'teeth': {
+        // A few short dividers across the mouth's own curve — a jagged bite
+        // rather than a second mouth shape. The same convention a hand-drawn
+        // doodle uses for a gritted grin, an angry snarl or a scared
+        // chatter, depending on what the brows around it are doing.
+        const midY = p.mouth.y + p.mouth.curve * 30;
+        const half = Math.min(p.mouth.width * 0.4, 30);
+        const count = 4;
+        for (let i = 0; i < count; i++) {
+          const t = (i + 0.5) / count;
+          const x = FACE_CX - half + half * 2 * t;
+          const key = `teeth${i}`;
+          const [ax, ay] = wob(W, `${key}p0`, WOBBLE_POINT * 0.5);
+          const [bx, by] = wob(W, `${key}p1`, WOBBLE_POINT * 0.5);
+          out.push({
+            kind: 'stroke',
+            d: `M${r(x + ax)},${r(midY - 7 + ay)} L${r(x + bx)},${r(midY + 7 + by)}`,
+            w: STROKE * 0.55,
+            key,
+          });
+        }
         break;
       }
       case 'sparkle': {
