@@ -13,10 +13,12 @@ from .catalog import COLORWAYS, HEIGHTS, PLACEMENTS, PrintSpot, print_mm, print_
 from .design import Design
 from .face import FaceParams, Finish, build_face, clamp_face
 from .sock import SockMetrics, sock_metrics
+from .template import CHOSEN_SUPPLIER, VendorChoice
 
 __version__ = "1.0.0"
 
 __all__ = [
+    "CHOSEN_SUPPLIER",
     "COLORWAYS",
     "HEIGHTS",
     "PLACEMENTS",
@@ -25,6 +27,7 @@ __all__ = [
     "Finish",
     "PrintSpot",
     "SockMetrics",
+    "VendorChoice",
     "build_face",
     "clamp_face",
     "print_mm",

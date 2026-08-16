@@ -20,7 +20,7 @@ from pathlib import Path
 
 from .design import Design
 from .export import export_design
-from .template import MIN_ALLOVER_DPI, TEMPLATES, template_by_id
+from .template import CHOSEN_SUPPLIER, MIN_ALLOVER_DPI, TEMPLATES, template_by_id
 
 
 def main(argv: list[str] | None = None) -> int:
@@ -79,6 +79,12 @@ def main(argv: list[str] | None = None) -> int:
 
 
 def _list_templates() -> int:
+    v = CHOSEN_SUPPLIER
+    print(f"Printing with: {v.supplier} — {v.product} (${v.price_usd:.2f}/pair, {v.size_count} sizes)")
+    print(f"  {v.url}")
+    print(f"  {v.reasoning}")
+    print(f"  STILL NEEDED: {v.still_needed}")
+    print()
     for t in TEMPLATES:
         print(f"{t.id:<9} {t.name}")
         print(f"{'':<9} {t.notes}")

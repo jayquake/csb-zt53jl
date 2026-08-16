@@ -59,6 +59,28 @@ python3 -m smileysocks templates
 - **`artwork`** — the face alone at its true printed size, for vinyl, DTG or
   embroidery digitising.
 
+### Who we're printing with
+
+**Locked in: [Printful — Sublimation Socks](https://www.printful.com/custom/socks/personalized/sublimation-socks).**
+$7/pair, no minimum, true all-over dye sublimation. Chosen over Printify
+(broker model — quality depends on which third-party provider fulfils the
+order, vs. Printful running its own facilities) and over Printful's own
+*Black Foot Sublimated Socks* (fixed black sole with no cuff/heel/toe colour
+control, and reviewers report white fabric showing through darker prints).
+This product is a genuine all-over blank — cuff, heel, toe and leg colour all
+come from the print file — which is what our colorway system already assumes.
+
+**What's still missing: the actual print-file template.** Pixel dimensions,
+DPI and bleed sit behind Printful's product configurator (add the product in
+an account, then its own *File guidelines* tab) — not on the public product
+page, so this session couldn't pull them. Run `python3 -m smileysocks
+templates` to see this recorded in one place (`template.CHOSEN_SUPPLIER`).
+Once someone with account access has the real numbers: add a
+`printful-socks` entry to `SUPPLIER_TEMPLATES` in `template.py` with the real
+`width_mm`/`height_mm`/`dpi`, and `--template printful-socks` uses it exactly.
+Do **not** guess those numbers in the meantime — `SUPPLIER_TEMPLATES` stays
+empty on purpose until then, which is what keeps a run from being misprinted.
+
 ### Read this before you send anything to a supplier
 
 **The canvas sizes are our derivation, not any vendor's template.** They are

@@ -15,6 +15,11 @@ quoting one number for socks, and requires at least 150 DPI for all-over print
 ordering, and pass its dimensions with ``--width-mm/--height-mm/--dpi``, or add
 it to ``SUPPLIER_TEMPLATES`` once you have it in hand.
 
+The vendor itself — which supplier, which product — is a separate decision
+from the template dimensions, and it is locked in: see ``CHOSEN_SUPPLIER``
+below. What is not locked in yet is that product's exact print-file template,
+which is why it is not in ``SUPPLIER_TEMPLATES``.
+
 What the geometry buys you regardless of vendor is proportion. Whatever canvas
 the supplier specifies, the print lands the correct number of millimetres below
 the cuff, at the millimetre size the customer was quoted, because both come from
@@ -130,6 +135,65 @@ TEMPLATES: tuple[PrintTemplate, ...] = (
 #: Canvases a supplier has actually specified. Empty on purpose — adding one you
 #: have not read off the vendor's own template pack is how a run gets misprinted.
 SUPPLIER_TEMPLATES: dict[str, PrintTemplate] = {}
+
+
+@dataclass(frozen=True)
+class VendorChoice:
+    """Who we're printing with, and why — kept separate from
+    ``SUPPLIER_TEMPLATES`` on purpose. This records a decision; it is not a
+    template, and it must never grow a ``width_mm``/``height_mm`` that someone
+    guessed rather than read off the vendor's own product page."""
+
+    supplier: str
+    product: str
+    url: str
+    price_usd: float
+    #: Count only — the exact size labels/ranges were not visible on the
+    #: public product page and must not be guessed here.
+    size_count: int
+    print_method: str
+    minimum_order: str
+    reasoning: str
+    #: What is still missing before `wrap` can be replaced with a real
+    #: SUPPLIER_TEMPLATES entry for this product.
+    still_needed: str
+
+
+#: Locked in 2026-08-16. Chosen over Printify (broker model — print quality
+#: varies by which third-party provider fulfils the order, vs. Printful
+#: owning and running its own facilities) and over Printful's own "Black Foot
+#: Sublimated Socks" (fixed black sole with no cuff/heel/toe colour control,
+#: and multiple reviewers report white fabric/stitching showing through on
+#: darker prints). This product is a true all-over blank: cuff, heel, toe and
+#: leg colour all come from the print file, which is what our colorway
+#: system in `catalog.py` already assumes — it maps directly onto the `wrap`
+#: template above rather than needing a new `kind`.
+CHOSEN_SUPPLIER = VendorChoice(
+    supplier="Printful",
+    product="Sublimation Socks",
+    url="https://www.printful.com/custom/socks/personalized/sublimation-socks",
+    price_usd=7.0,
+    size_count=3,
+    print_method="dye sublimation, true all-over print, cushioned sole",
+    minimum_order="none",
+    reasoning=(
+        "Printful owns and runs its own fulfilment (more consistent print "
+        "quality than Printify's third-party network), and this specific "
+        "product is a genuine all-over blank rather than a fixed-colour sole "
+        "— it matches how our colorway system already treats the whole sock "
+        "as printable, cuff to toe."
+    ),
+    still_needed=(
+        "The actual print-file template — pixel dimensions, DPI, bleed — "
+        "sits behind Printful's product configurator (add the product in a "
+        "Printful account, then its own 'File guidelines' tab), not on the "
+        "public product page. Until someone with account access pulls that, "
+        "`wrap`'s canvas stays measured from our own sock geometry — real "
+        "proportions, but not Printful's exact numbers. Once you have them: "
+        "add a 'printful-socks' entry to SUPPLIER_TEMPLATES with the real "
+        "width_mm/height_mm/dpi, and pass --template printful-socks."
+    ),
+)
 
 
 def template_by_id(template_id: str) -> PrintTemplate:

@@ -25,7 +25,7 @@ from smileysocks.layout import build_layout, face_ops, guide_ops
 from smileysocks.raster import Canvas
 from smileysocks.render import MM_PER_INCH, render_png
 from smileysocks.sock import sock_metrics
-from smileysocks.template import template_by_id
+from smileysocks.template import CHOSEN_SUPPLIER, SUPPLIER_TEMPLATES, template_by_id
 
 SMITTEN = {
     "label": "Smitten",
@@ -245,6 +245,39 @@ class WrapSeamTest(unittest.TestCase):
         # so it necessarily overhangs. Two ellipses, not one.
         ellipses = [op for op in ops if op.fill and op.d.count("C") == 4]
         self.assertGreaterEqual(len(ellipses), 2, "the heel was not wrapped round the seam")
+
+
+class VendorChoiceTest(unittest.TestCase):
+    """The supplier decision is recorded, but it is not a licence to guess a
+    template. `CHOSEN_SUPPLIER` names who we're printing with; it must never
+    grow the kind of invented width_mm/height_mm that SUPPLIER_TEMPLATES
+    exists to keep out."""
+
+    def test_the_decision_is_recorded(self) -> None:
+        v = CHOSEN_SUPPLIER
+        self.assertTrue(v.supplier)
+        self.assertTrue(v.product)
+        self.assertTrue(v.url.startswith("https://"))
+        self.assertGreater(v.price_usd, 0)
+        self.assertGreater(v.size_count, 0)
+        self.assertTrue(v.reasoning)
+
+    def test_the_template_is_not_guessed(self) -> None:
+        # This is the actual point of the split: naming a vendor must not
+        # quietly grow into a fabricated print-file template. The moment a
+        # real one is confirmed it belongs in SUPPLIER_TEMPLATES, not here.
+        self.assertTrue(CHOSEN_SUPPLIER.still_needed, "should say what's missing until it isn't")
+        self.assertNotIn("printful-socks", SUPPLIER_TEMPLATES)
+
+    def test_naming_a_vendor_does_not_change_what_export_does(self) -> None:
+        # Recording CHOSEN_SUPPLIER must be inert: it exists to be read, not
+        # to alter template_by_id's behaviour for anyone who doesn't ask for
+        # it by id.
+        design = Design.from_dict(SMITTEN)
+        ops, layout = build_layout(design, template_by_id("wrap"))
+        self.assertIsNone(template_by_id("wrap").width_mm)
+        self.assertGreater(layout.width_mm, 0)
+        self.assertTrue(ops)
 
 
 class ExportTest(unittest.TestCase):

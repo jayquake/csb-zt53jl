@@ -209,8 +209,15 @@ cuff, and a manifest of every number pre-press would otherwise measure off a
 screen. The studio's **Text** tab has a *Download design file* button that
 writes the input.
 
-Two decisions worth knowing:
+Three decisions worth knowing:
 
+- **Who we're printing with is locked in: [Printful — Sublimation Socks](https://www.printful.com/custom/socks/personalized/sublimation-socks)**,
+  $7/pair, true all-over dye sublimation, no minimum — a genuine blank where
+  cuff/heel/toe/leg colour all come from the print file, matching how our
+  colorway system already treats the sock. What isn't locked in yet is that
+  product's exact print-file template (pixel size, DPI, bleed) — it sits
+  behind Printful's own product configurator, not the public page. See
+  `tools/README.md` § "Who we're printing with" and `template.CHOSEN_SUPPLIER`.
 - **The canvas sizes are our own derivation, not a vendor's template.** A full
   wrap really is the leg circumference by the centreline length, measured from
   the same geometry the site previews — but suppliers publish their own template
