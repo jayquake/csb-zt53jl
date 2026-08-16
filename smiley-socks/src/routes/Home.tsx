@@ -4,6 +4,7 @@ import { AnimatedFace, useFaceAnimation } from '../brand/AnimatedFace';
 import { Sock } from '../brand/Sock';
 import { templateById, TEMPLATES, type Template } from '../brand/templates';
 import { Reel } from '../components/Reel';
+import { PackShelf } from '../components/PackShelf';
 import { DEFAULT_DESIGN } from '../store/design';
 import { DONATION_RATE, money, PRICE } from '../store/catalog';
 
@@ -101,6 +102,8 @@ export function Home() {
           </li>
         </ol>
       </section>
+
+      <PackShelf />
 
       <Reel />
 

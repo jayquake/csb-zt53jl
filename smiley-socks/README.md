@@ -18,7 +18,7 @@ npm run build      # typecheck + production build into dist/
 
 | Screen | Route | What it does |
 | --- | --- | --- |
-| Home | `#/` | The pitch, the reel, the 13 starting moods, pack pricing, FAQ |
+| Home | `#/` | The pitch, three-packs, the reel, the 24-face catalog, FAQ |
 | Studio | `#/studio` | Design a pair: face editor, sock, photo, cuff text |
 | The 10% | `#/10-percent` | What the pledge means, in plain terms |
 | Bag | `#/bag` | Line items, pack pricing, live donation line, demo checkout |
@@ -141,6 +141,20 @@ most of that character:
 
 A wink is the one asymmetry allowed. Eyes are otherwise always mirrored,
 because independent eyes read as a bug rather than a choice.
+
+## Sold in threes
+
+Socks in this category sell as three-packs, and the pack rate already existed
+in `catalog.ts` — but it only appeared once you had guessed your way to three
+pairs in the bag. `store/packs.ts` makes it a product: three curated trios,
+one price, one tap.
+
+A trio is three template ids and three colourways; everything else comes from
+the design defaults, so a pack is a shortcut into the studio's data model
+rather than a parallel one. **There is no second price list** — a test asserts
+the shelf's price equals what the bag charges for the same three pairs, because
+a shelf advertising a number the checkout won't honour is the classic way this
+breaks.
 
 ## The 3D view
 

@@ -468,6 +468,85 @@ svg {
   max-width: 68ch;
 }
 
+/* --- Three-packs -------------------------------------------------------- */
+
+.packs {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: var(--space-5) var(--space-3) 0;
+}
+
+.packs__grid {
+  list-style: none;
+  margin: var(--space-4) 0 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+}
+
+.pack {
+  display: grid;
+  gap: var(--space-1);
+  /* Grid items default to min-width: auto, so three fixed-height socks would
+     widen the card past its column instead of sharing the space. */
+  min-width: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper-raised);
+}
+
+.pack__socks {
+  /* Three equal columns: the socks divide the card rather than each claiming
+     their natural width. */
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  align-items: end;
+  gap: var(--space-2);
+  margin-bottom: var(--space-2);
+}
+
+.pack__sock {
+  width: 100%;
+  height: auto;
+  max-height: 170px;
+}
+
+.pack__name {
+  font-size: var(--title-s);
+  margin: 0;
+}
+
+.pack__blurb,
+.pack__faces {
+  color: var(--muted);
+  font-size: var(--text-s);
+  margin: 0;
+}
+
+.pack__faces {
+  font-weight: 600;
+}
+
+.pack__buy {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+.pack__price {
+  font-size: var(--text-l);
+  font-weight: 700;
+}
+
+.packs__note {
+  margin-top: var(--space-3);
+  color: var(--muted);
+  font-size: var(--text-s);
+}
+
 /* --- The reel ----------------------------------------------------------- */
 
 .reel {
@@ -1230,6 +1309,10 @@ input[type='range'] {
 /* --- Wider screens ------------------------------------------------------ */
 
 @media (min-width: 700px) {
+  .packs__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .reel__stage {
     grid-template-columns: 260px minmax(0, 1fr);
     align-items: center;

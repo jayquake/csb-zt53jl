@@ -13,7 +13,10 @@ import {
   type PricedDesign,
 } from '../src/store/catalog';
 import { printZones, sockOutline } from '../src/brand/Sock';
-import { ANKLE_Y, LEG } from '../src/store/catalog';
+import { ANKLE_Y, COLORWAYS, LEG } from '../src/store/catalog';
+import { TRIOS, trioDesigns, trioPrice } from '../src/store/packs';
+import { templateById } from '../src/brand/templates';
+import { pricedFrom } from '../src/store/design';
 
 const plain: PricedDesign = { heightId: 'crew', placementId: 'cuff', hasPhoto: false };
 
@@ -103,5 +106,44 @@ describe('sock geometry', () => {
       expect(d).not.toMatch(/NaN|undefined/);
       expect(d.trim().endsWith('Z')).toBe(true);
     }
+  });
+});
+
+describe('three-packs', () => {
+  it('names three real templates and three real colourways per trio', () => {
+    for (const trio of TRIOS) {
+      expect(trio.faces).toHaveLength(3);
+      expect(trio.colorways).toHaveLength(3);
+      for (const id of trio.faces) expect(templateById(id), id).toBeDefined();
+      for (const id of trio.colorways) expect(COLORWAYS.some((c) => c.id === id), id).toBe(true);
+    }
+  });
+
+  it('charges exactly the bag would for the same three pairs', () => {
+    // The pack is not a separate price list — if these ever disagree, the
+    // shelf is advertising something the checkout will not honour.
+    const designs = trioDesigns(TRIOS[0]);
+    const bag = totals(designs.map((d) => ({ design: pricedFrom(d), quantity: 1 })));
+    expect(bag.subtotal).toBe(trioPrice());
+    expect(bag.pairs).toBe(3);
+  });
+
+  it('never gets more expensive by being added to a fuller bag', () => {
+    const designs = trioDesigns(TRIOS[1]);
+    const alone = totals(designs.map((d) => ({ design: pricedFrom(d), quantity: 1 })));
+    const withMore = totals([
+      ...designs.map((d) => ({ design: pricedFrom(d), quantity: 1 })),
+      { design: pricedFrom(trioDesigns(TRIOS[2])[0]), quantity: 3 },
+    ]);
+    const perPairAlone = alone.subtotal / alone.pairs;
+    const perPairTogether = withMore.subtotal / withMore.pairs;
+    expect(perPairTogether).toBeLessThanOrEqual(perPairAlone);
+  });
+
+  it('gives each design in a trio its own face object', () => {
+    const [a, b] = trioDesigns(TRIOS[0]);
+    a.face.eyes.x = 47;
+    expect(b.face.eyes.x).not.toBe(47);
+    expect(templateById(TRIOS[0].faces[0])!.face.eyes.x).not.toBe(47);
   });
 });
