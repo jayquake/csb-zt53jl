@@ -174,7 +174,13 @@ export function Mockup() {
               {[
                 ['#191710', 'Ink'],
                 ['#F5F0E4', 'Off-white'],
-                ...COLORWAYS.slice(2, 5).map((c) => [c.ink, c.name] as [string, string]),
+                // Named by id, not sliced by position: three more inks for hue
+                // variety beyond black/off-white. A positional slice silently
+                // points at different colours every time a colorway is added.
+                ...(['clay', 'moss', 'bubblegum'] as const)
+                  .map((id) => COLORWAYS.find((c) => c.id === id))
+                  .filter((c): c is (typeof COLORWAYS)[number] => c !== undefined)
+                  .map((c) => [c.ink, c.name] as [string, string]),
               ].map(([value, label]) => (
                 <button
                   key={value}

@@ -66,6 +66,13 @@
         "ink": "#191710"
       },
       {
+        "id": "fog",
+        "name": "Fog",
+        "base": "#F1F1EF",
+        "accent": "#B3B3B0",
+        "ink": "#1C1C1A"
+      },
+      {
         "id": "midnight",
         "name": "Midnight",
         "base": "#1E2542",

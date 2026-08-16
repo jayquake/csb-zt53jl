@@ -73,6 +73,7 @@ export interface Colorway {
 
 export const COLORWAYS: Colorway[] = [
   { id: 'bone', name: 'Bone', base: '#F0EADE', accent: '#DED5C4', ink: '#191710' },
+  { id: 'fog', name: 'Fog', base: '#F1F1EF', accent: '#B3B3B0', ink: '#1C1C1A' },
   { id: 'midnight', name: 'Midnight', base: '#1E2542', accent: '#2E3A63', ink: '#F5F0E4' },
   { id: 'clay', name: 'Clay', base: '#C4553B', accent: '#9E3F2A', ink: '#FBEFE2' },
   { id: 'moss', name: 'Moss', base: '#3D5A44', accent: '#2C4433', ink: '#F0EEDC' },

@@ -58,6 +58,7 @@ class Colorway:
 
 COLORWAYS: tuple[Colorway, ...] = (
     Colorway("bone", "Bone", "#F0EADE", "#DED5C4", "#191710"),
+    Colorway("fog", "Fog", "#F1F1EF", "#B3B3B0", "#1C1C1A"),
     Colorway("midnight", "Midnight", "#1E2542", "#2E3A63", "#F5F0E4"),
     Colorway("clay", "Clay", "#C4553B", "#9E3F2A", "#FBEFE2"),
     Colorway("moss", "Moss", "#3D5A44", "#2C4433", "#F0EEDC"),
