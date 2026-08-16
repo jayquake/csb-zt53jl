@@ -8,6 +8,7 @@ import { Home } from './routes/Home';
 import { Shop } from './routes/Shop';
 import { Product } from './routes/Product';
 import { Studio } from './routes/Studio';
+import { Mockup } from './routes/Mockup';
 import { Mission } from './routes/Mission';
 import { Bag } from './routes/Bag';
 
@@ -33,6 +34,7 @@ export function App() {
             <Route path="/shop" element={<Shop />} />
             <Route path="/p/:id" element={<Product />} />
             <Route path="/studio" element={<Studio />} />
+            <Route path="/mockup" element={<Mockup />} />
             <Route path="/10-percent" element={<Mission />} />
             <Route path="/bag" element={<Bag />} />
             <Route path="*" element={<Home />} />

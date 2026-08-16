@@ -15,6 +15,7 @@ export function Footer() {
           <Link to="/studio">Design a pair</Link>
           <Link to="/10-percent">Where the {Math.round(DONATION_RATE * 100)}% goes</Link>
           <Link to="/bag">Bag</Link>
+          <Link to="/mockup">Photo mockup</Link>
         </nav>
 
         <p className="footer__note">

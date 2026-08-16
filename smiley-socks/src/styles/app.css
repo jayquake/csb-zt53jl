@@ -468,6 +468,59 @@ svg {
   max-width: 68ch;
 }
 
+/* --- Photo mockup ------------------------------------------------------- */
+
+.mockup__stage {
+  display: grid;
+  gap: var(--space-4);
+  margin: var(--space-4) 0;
+  min-width: 0;
+}
+
+.mockup__canvaswrap {
+  display: grid;
+  min-width: 0;
+  padding: var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper-raised);
+}
+
+.mockup__canvas {
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-s);
+}
+
+.mockup__controls {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.mockup__actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.mockup__notes ul {
+  padding-left: 1.1rem;
+  color: var(--muted);
+}
+
+.mockup__notes li {
+  margin-bottom: var(--space-2);
+}
+
+@media (min-width: 900px) {
+  .mockup__stage {
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    align-items: start;
+  }
+}
+
 /* --- Shop (listing) ----------------------------------------------------- */
 
 .shop__head {

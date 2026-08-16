@@ -67,8 +67,12 @@ function facePaths(face: FaceParams) {
   return { g };
 }
 
-/** Draw one face, centred on (x, y), scaled so the art spans `size` pixels. */
-function paintFace(
+/**
+ * Draw one face, centred on (x, y), scaled so the art spans `size` pixels.
+ * Exported because the photo mockup tool paints the same face onto a
+ * photograph — one face renderer, three surfaces (SVG, 3D texture, mockup).
+ */
+export function paintFace(
   ctx: CanvasRenderingContext2D,
   face: FaceParams,
   x: number,

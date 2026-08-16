@@ -21,6 +21,7 @@ npm run build      # typecheck + production build into dist/
 | Home | `#/` | The pitch, three-packs, the reel, the 24-face catalog, FAQ |
 | Shop | `#/shop` | Listing page: 24 pairs, search and colourway filters (in the URL) |
 | Product | `#/p/:id` | Gallery (flat + 3D), variants, live price, spec, add to bag |
+| Mockup | `#/mockup` | Brand tool: put a face onto a photo of a real sock |
 | Studio | `#/studio` | Design a pair: face editor, sock, photo, cuff text |
 | The 10% | `#/10-percent` | What the pledge means, in plain terms |
 | Bag | `#/bag` | Line items, pack pricing, live donation line, demo checkout |
@@ -143,6 +144,31 @@ most of that character:
 
 A wink is the one asymmetry allowed. Eyes are otherwise always mirrored,
 because independent eyes read as a bug rather than a choice.
+
+## Putting the print on a real sock
+
+`#/mockup` composites a face onto a photograph. Pasting artwork flat always
+looks pasted, so two operations do the work a Photoshop smart object would:
+
+- **Displacement.** The photo's own luminance is a rough height map of the
+  cloth, and sampling the artwork along the *gradient* of that map bends the
+  print into the folds. The map is computed from the photo, so there is no
+  second file to keep in sync.
+- **Multiply.** Compositing the ink with multiply lets the photo's shadows show
+  through, so the print sits in the weave instead of on top of it.
+
+The warp is **normalised against each photo's own contrast**. The gradient of a
+blurred luminance map is tiny — around 0.002 per pixel on a softly lit sock —
+so a slider in "pixels" moved the art by a fraction of one and did nothing at
+all on gentle photographs. Scaling by the strongest slope present makes the
+number mean what the label says. Where the print lands on genuinely flat cloth
+there are no folds and the warp correctly does nothing.
+
+**It ships with no photograph on purpose.** Every usable sock photo belongs to
+somebody: a licensed mockup, a supplier's image you may use, or one you shot.
+The page spells out the three routes and the two traps (someone else's branded
+sock is a trademark regardless of licence; a knitted cuff hit needs a mill and
+a minimum order, where print-on-demand renders it as surface ink).
 
 ## It behaves like a shop
 
