@@ -10,7 +10,7 @@ Live-ish demo: build it and open `dist/index.html`, or run `npm run dev`.
 ```
 npm install
 npm run dev        # vite dev server
-npm test           # 83 unit tests, no browser needed
+npm test           # 109 unit tests, no browser needed
 npm run build      # typecheck + production build into dist/
 ```
 
@@ -18,8 +18,8 @@ npm run build      # typecheck + production build into dist/
 
 | Screen | Route | What it does |
 | --- | --- | --- |
-| Home | `#/` | The pitch, three-packs, the reel, the 24-face catalog, FAQ |
-| Shop | `#/shop` | Listing page: 24 pairs, search and colourway filters (in the URL) |
+| Home | `#/` | The pitch, three-packs, the reel, the 29-face catalog, FAQ |
+| Shop | `#/shop` | Listing page: 29 pairs, search and colourway filters (in the URL) |
 | Product | `#/p/:id` | Gallery (flat + 3D), variants, live price, spec, add to bag |
 | Mockup | `#/mockup` | Brand tool: put a face onto a photo of a real sock |
 | Studio | `#/studio` | Design a pair: face editor, sock, photo, cuff text |
@@ -40,7 +40,7 @@ squint/tilt, brow height and angle, mouth width/curve/open/wobble, plus marks
 drawing primitives, and `Face.tsx` turns primitives into SVG. Nothing else
 knows how a face is drawn.
 
-The twenty-eight templates in `templates.ts` are presets of those same numbers,
+The twenty-nine templates in `templates.ts` are presets of those same numbers,
 which is why editing one costs nothing: there is no "preset mode" to leave.
 
 `FACE_LIMITS` is the single source of truth for what each number may be. The
@@ -107,7 +107,7 @@ system type, where it belongs.
 
 ## Drawn, not generated-looking
 
-The catalog is **28 emotions**, drawn in a chalk finish: Sunny through
+The catalog is **29 emotions**, drawn in a chalk finish: Sunny through
 Crushed, by way of Fuzzy, Bored, Smug, Queasy, Lonely, Flirty and Unbothered.
 It is a face set, not a mood scale — most days are not on a happy-to-sad line.
 
@@ -232,7 +232,7 @@ text is positioned rather than lettered) is in [`tools/README.md`](tools/README.
 ## It behaves like a shop
 
 The studio is the point of the brand, but designing something is not the only
-way people buy. `store/products.ts` puts the 24 faces on a shelf as pairs that
+way people buy. `store/products.ts` puts the 29 faces on a shelf as pairs that
 already exist — a product is a face plus a colourway, and height/size/print
 stay variants chosen on the product page. It is the same `Design` the studio
 edits, so "Change the face" hands the product straight to the editor.

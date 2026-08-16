@@ -148,6 +148,17 @@ export const TEMPLATES: Template[] = [
     }),
   },
   {
+    id: 'melancholy',
+    name: 'Melancholy',
+    blurb: 'Somewhere else today. Not gone, just drifting.',
+    face: face({
+      tilt: -6,
+      squish: -5,
+      eyes: { shape: 'line', size: 12, y: 84, tilt: 15 },
+      mouth: { curve: -0.3, width: 50, y: 134, wave: 0.25 },
+    }),
+  },
+  {
     id: 'hopeful',
     name: 'Hopeful',
     blurb: 'Better than last week. Counting it.',

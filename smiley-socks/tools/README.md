@@ -95,7 +95,7 @@ is a 9-megapixel file that some uploaders reject) and the other templates to
 python3 -m smileysocks moods --out ./shelf
 ```
 
-Writes all 26 template faces as artwork — for a lookbook, a size check, or
+Writes all 29 template faces as artwork — for a lookbook, a size check, or
 handing a manufacturer the range in one go. It reads the shelf from the fixture
 the app writes, so the range here is the range on the site.
 
