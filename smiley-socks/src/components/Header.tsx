@@ -13,6 +13,9 @@ export function Header() {
         </Link>
 
         <nav className="header__nav" aria-label="Main">
+          <NavLink to="/shop" className="header__link">
+            Shop
+          </NavLink>
           <NavLink to="/studio" className="header__link">
             Studio
           </NavLink>

@@ -5,6 +5,8 @@ import { ChalkDefs } from './brand/Chalk';
 import { Header } from './components/Header';
 import { Footer } from './components/Footer';
 import { Home } from './routes/Home';
+import { Shop } from './routes/Shop';
+import { Product } from './routes/Product';
 import { Studio } from './routes/Studio';
 import { Mission } from './routes/Mission';
 import { Bag } from './routes/Bag';
@@ -28,6 +30,8 @@ export function App() {
         <main id="main">
           <Routes>
             <Route path="/" element={<Home />} />
+            <Route path="/shop" element={<Shop />} />
+            <Route path="/p/:id" element={<Product />} />
             <Route path="/studio" element={<Studio />} />
             <Route path="/10-percent" element={<Mission />} />
             <Route path="/bag" element={<Bag />} />

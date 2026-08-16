@@ -150,15 +150,7 @@ function Print({
   );
 }
 
-export function Sock({
-  design,
-  className,
-  showBrand = true,
-}: {
-  design: Design;
-  className?: string;
-  showBrand?: boolean;
-}) {
+export function Sock({ design, className }: { design: Design; className?: string }) {
   // React's useId contains colons, which are legal in an id but awkward inside
   // url(#...) references — strip them rather than debug it later.
   const uid = useId().replace(/[^a-zA-Z0-9]/g, '');
@@ -179,8 +171,12 @@ export function Sock({
     ? Math.min(9, (76 / measure(design.cuffText, 12)) * 140) / 140
     : 0;
 
-  const brandScale = 6.5 / 140;
-  const brandWidth = measure('SMILEY SOCKS', 10) * brandScale;
+  // Ids have to be unique per instance: several socks share a page and an
+  // id collision would have them all sampling the first one's fills.
+  const knit = `knit-${uid}`;
+  const rib = `rib-${uid}`;
+  const legShade = `legshade-${uid}`;
+  const footShade = `footshade-${uid}`;
 
   return (
     <svg
@@ -194,27 +190,73 @@ export function Sock({
         <clipPath id={clip}>
           <path d={outline} />
         </clipPath>
+
+        {/* Knit. A jersey stitch is a row of little Vs, and at this scale one
+            stitch is about 5 units across — small enough to read as fabric
+            rather than as a pattern. */}
+        <pattern id={knit} width={5} height={6} patternUnits="userSpaceOnUse">
+          <path
+            d="M0.6,6 L2.5,2.7 L4.4,6"
+            fill="none"
+            stroke={colorway.ink}
+            strokeOpacity={0.16}
+            strokeWidth={0.9}
+            strokeLinecap="round"
+          />
+        </pattern>
+
+        {/* Rib: the cuff is knitted in columns, so it catches light in stripes
+            rather than lying flat. */}
+        <pattern id={rib} width={9} height={6} patternUnits="userSpaceOnUse">
+          <rect x={0} y={0} width={4.5} height={6} fill={colorway.ink} opacity={0.13} />
+          <rect x={4.5} y={0} width={4.5} height={6} fill="#ffffff" opacity={0.07} />
+        </pattern>
+
+        {/* Roundness. A sock is a tube: the sides fall away from the light and
+            the sole sits in shadow. Two gradients do most of the work of
+            making a flat drawing look like an object. */}
+        <linearGradient id={legShade} x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0%" stopColor={colorway.ink} stopOpacity={0.24} />
+          <stop offset="20%" stopColor={colorway.ink} stopOpacity={0.04} />
+          <stop offset="42%" stopColor="#ffffff" stopOpacity={0.12} />
+          <stop offset="72%" stopColor={colorway.ink} stopOpacity={0.05} />
+          <stop offset="100%" stopColor={colorway.ink} stopOpacity={0.26} />
+        </linearGradient>
+        <linearGradient id={footShade} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={colorway.ink} stopOpacity={0.16} />
+          <stop offset="34%" stopColor="#ffffff" stopOpacity={0.1} />
+          <stop offset="100%" stopColor={colorway.ink} stopOpacity={0.24} />
+        </linearGradient>
       </defs>
 
       {/* Body */}
       <path d={outline} fill={colorway.base} />
 
       <g clipPath={`url(#${clip})`}>
-        {/* Heel and toe blocks, in the accent — curved edges come from the
-            ellipses themselves, so no seam line ever looks ruled. */}
+        {/* Heel and toe, in the accent. Real socks reinforce both, and the
+            curved edge comes from the shape itself so no seam looks ruled. */}
         <ellipse cx={104} cy={414} rx={54} ry={56} fill={colorway.accent} />
         <ellipse cx={302} cy={414} rx={64} ry={46} fill={colorway.accent} />
 
-        {/* Ribbed cuff */}
+        {/* Ribbed cuff, knitted in columns. */}
         <rect x={LEG.left} y={legTop} width={LEG.right - LEG.left} height={CUFF_BAND} fill={colorway.accent} />
-        <g stroke={colorway.base} strokeWidth={1.6} opacity={0.45}>
-          {Array.from({ length: 13 }, (_, i) => LEG.left + 4 + i * 8).map((x) => (
-            <line key={x} x1={x} y1={legTop + 2} x2={x} y2={legTop + CUFF_BAND - 2} />
-          ))}
-        </g>
+        <rect x={LEG.left} y={legTop} width={LEG.right - LEG.left} height={CUFF_BAND} fill={`url(#${rib})`} />
 
-        {/* Knit shading down the back of the leg and under the arch. */}
-        <path d={outline} fill="none" stroke={colorway.ink} strokeWidth={10} opacity={0.07} />
+        {/* The stitch, over every block of colour so the whole sock is one
+            fabric rather than flat panels with a texture on top of some. */}
+        <rect x={0} y={0} width={SOCK_BOX.w} height={SOCK_BOX.h} fill={`url(#${knit})`} />
+
+        {/* Form. */}
+        <rect x={LEG.left - 8} y={legTop} width={LEG.right - LEG.left + 16} height={ANKLE_Y + 70 - legTop} fill={`url(#${legShade})`} />
+        <rect x={40} y={330} width={300} height={140} fill={`url(#${footShade})`} />
+
+        {/* Stitched seams where the reinforced panels meet the body, and the
+            toe closure every knitted sock has. */}
+        <g fill="none" stroke={colorway.ink} strokeOpacity={0.2} strokeWidth={1.4} strokeDasharray="3 4">
+          <ellipse cx={104} cy={414} rx={54} ry={56} />
+          <ellipse cx={302} cy={414} rx={64} ry={46} />
+          <path d="M292,372 C300,392 300,436 292,456" />
+        </g>
 
         {/* The print */}
         <g style={{ color: colorway.ink }}>
@@ -231,24 +273,12 @@ export function Sock({
           ))}
         </g>
 
-        {/* Brand hit on the cuff: the wordmark left, the 10% right. Small on
-            purpose — the face is the product, this is just the label. */}
-        {showBrand && (
-          <g style={{ color: colorway.ink }} opacity={0.85}>
-            <GrinlineGroup
-              text="SMILEY SOCKS"
-              weight={13}
-              tracking={10}
-              transform={`translate(${LEG.left + 8} ${legTop + 16}) scale(${brandScale}) translate(0 -8)`}
-            />
-            <GrinlineGroup
-              text="10%"
-              weight={15}
-              tracking={10}
-              transform={`translate(${LEG.left + 8 + brandWidth + 8} ${legTop + 16}) scale(${brandScale}) translate(0 -8)`}
-            />
-          </g>
-        )}
+        {/*
+          No brand name knitted on the cuff. Real socks in this category carry
+          a small woven mark at most, and printing "SMILEY SOCKS 10%" across
+          the rib made the product look like a sample. The face is the brand;
+          the 10% belongs on the site, not on the leg.
+        */}
 
         {/* The wearer's own cuff text */}
         {design.cuffText && (

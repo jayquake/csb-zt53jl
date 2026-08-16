@@ -19,6 +19,8 @@ npm run build      # typecheck + production build into dist/
 | Screen | Route | What it does |
 | --- | --- | --- |
 | Home | `#/` | The pitch, three-packs, the reel, the 24-face catalog, FAQ |
+| Shop | `#/shop` | Listing page: 24 pairs, search and colourway filters (in the URL) |
+| Product | `#/p/:id` | Gallery (flat + 3D), variants, live price, spec, add to bag |
 | Studio | `#/studio` | Design a pair: face editor, sock, photo, cuff text |
 | The 10% | `#/10-percent` | What the pledge means, in plain terms |
 | Bag | `#/bag` | Line items, pack pricing, live donation line, demo checkout |
@@ -141,6 +143,23 @@ most of that character:
 
 A wink is the one asymmetry allowed. Eyes are otherwise always mirrored,
 because independent eyes read as a bug rather than a choice.
+
+## It behaves like a shop
+
+The studio is the point of the brand, but designing something is not the only
+way people buy. `store/products.ts` puts the 24 faces on a shelf as pairs that
+already exist — a product is a face plus a colourway, and height/size/print
+stay variants chosen on the product page. It is the same `Design` the studio
+edits, so "Change the face" hands the product straight to the editor.
+
+Two details that make it a storefront rather than a grid:
+
+- **Filters live in the URL** (`#/shop?colour=midnight`), so a filtered shelf
+  can be linked, shared and survives a refresh and the back button.
+- **The product page price is live.** Height and print placement genuinely cost
+  different amounts, so a page quoting one fixed number would be lying by the
+  time you reached the bag. Verified end to end: $18 → $20 knee-high → $23
+  all-over, and the bag charges $23.
 
 ## Sold in threes
 

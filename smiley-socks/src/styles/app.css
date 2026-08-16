@@ -468,6 +468,202 @@ svg {
   max-width: 68ch;
 }
 
+/* --- Shop (listing) ----------------------------------------------------- */
+
+.shop__head {
+  max-width: 62ch;
+}
+
+.shop__filters {
+  display: grid;
+  gap: var(--space-2);
+  margin: var(--space-4) 0 var(--space-2);
+}
+
+.shop__search .field__input {
+  width: 100%;
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.shop__colours {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+.chip--sm {
+  min-height: var(--tap);
+  padding: 0 var(--space-2);
+  font-size: var(--text-s);
+}
+
+.shop__count {
+  color: var(--muted);
+  font-size: var(--text-s);
+  margin: 0 0 var(--space-3);
+}
+
+.shop__empty {
+  color: var(--muted);
+}
+
+.shop__grid {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.card {
+  display: grid;
+  gap: 2px;
+  min-width: 0;
+  height: 100%;
+  padding: var(--space-3) var(--space-2);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper-raised);
+  text-decoration: none;
+}
+
+.card__art {
+  display: block;
+  text-align: center;
+  margin-bottom: var(--space-2);
+}
+
+.card__sock {
+  width: auto;
+  height: clamp(120px, 30vw, 190px);
+  margin: 0 auto;
+}
+
+.card__name {
+  font-weight: 700;
+}
+
+.card__blurb {
+  color: var(--muted);
+  font-size: var(--text-s);
+  line-height: 1.4;
+}
+
+.card__price {
+  margin-top: var(--space-1);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Product page ------------------------------------------------------- */
+
+.pdp {
+  max-width: 1140px;
+  margin: 0 auto;
+  padding: var(--space-4) var(--space-3) 0;
+  display: grid;
+  gap: var(--space-4);
+  min-width: 0;
+}
+
+.pdp__crumbs {
+  color: var(--muted);
+  font-size: var(--text-s);
+}
+
+.pdp__gallery {
+  display: grid;
+  justify-items: center;
+  gap: var(--space-2);
+  padding: var(--space-4) var(--space-3);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--paper-raised);
+}
+
+.pdp__sock {
+  width: auto;
+  height: min(46vh, 340px);
+}
+
+.pdp__buy {
+  display: grid;
+  gap: var(--space-3);
+  min-width: 0;
+}
+
+.pdp__title {
+  font-size: var(--title-m);
+  margin: 0;
+}
+
+.pdp__blurb {
+  color: var(--muted);
+  margin: 0;
+}
+
+.pdp__price {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  margin: 0;
+  font-size: var(--title-s);
+}
+
+.pdp__pack {
+  color: var(--muted);
+  font-size: var(--text-s);
+  font-weight: 400;
+}
+
+.pdp__donation {
+  margin: -0.5rem 0 0;
+  color: var(--signal);
+  font-size: var(--text-s);
+  font-weight: 600;
+}
+
+.pdp__actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.pdp__actions .btn {
+  flex: 1 1 12rem;
+}
+
+.pdp__spec {
+  margin: 0;
+  display: grid;
+  gap: var(--space-1);
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--line);
+}
+
+.pdp__specrow {
+  display: grid;
+  grid-template-columns: 8rem minmax(0, 1fr);
+  gap: var(--space-2);
+  font-size: var(--text-s);
+}
+
+.pdp__specrow dt {
+  color: var(--muted);
+}
+
+.pdp__specrow dd {
+  margin: 0;
+}
+
+.pdp__note {
+  margin: 0;
+  color: var(--muted);
+  font-size: 12px;
+}
+
 /* --- Three-packs -------------------------------------------------------- */
 
 .packs {
@@ -1309,6 +1505,10 @@ input[type='range'] {
 /* --- Wider screens ------------------------------------------------------ */
 
 @media (min-width: 700px) {
+  .shop__grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
   .packs__grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
@@ -1354,6 +1554,32 @@ input[type='range'] {
 @media (min-width: 900px) {
   :root {
     --header-h: 66px;
+  }
+
+  .shop__grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .shop__filters {
+    grid-template-columns: minmax(0, 18rem) minmax(0, 1fr);
+    align-items: center;
+  }
+
+  /* Gallery left, everything you decide on right — the standard product-page
+     split, and the gallery stays put while the options scroll. */
+  .pdp {
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    align-items: start;
+    column-gap: var(--space-5);
+  }
+
+  .pdp__crumbs {
+    grid-column: 1 / -1;
+  }
+
+  .pdp__gallery {
+    position: sticky;
+    top: calc(var(--header-h) + var(--space-3));
   }
 
   .gallery__grid {

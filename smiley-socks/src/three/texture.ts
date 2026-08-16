@@ -192,12 +192,27 @@ export function paintSockTexture(ctx: CanvasRenderingContext2D, design: Design, 
   ctx.fill();
   ctx.fillRect(0, landmarks.toeStart * H, W, H - landmarks.toeStart * H);
 
-  // The brand hit on the cuff: wordmark and the 10%, small, side by side.
-  const brandCap = Math.max(8, 0.42 * pxPerCmU);
-  const brandY = cuffPx * 0.62;
-  const wordW = layout('SMILEY SOCKS', 10).width * (brandCap / 140);
-  paintWord(ctx, 'SMILEY SOCKS', 0.5 * W - wordW / 2 - brandCap * 0.9, brandY, brandCap, colorway.ink);
-  paintWord(ctx, '10%', 0.5 * W + wordW / 2 - brandCap * 0.4, brandY, brandCap, colorway.ink);
+  // No brand name on the cuff — see the note in Sock.tsx. The rib above is
+  // the only thing the cuff carries.
+
+  // The knit, over every block of colour: a jersey stitch is a row of little
+  // Vs, sized here from the sock's real circumference so the stitch gauge is
+  // the same on the model as it is on the flat drawing.
+  const stitch = Math.max(3, pxPerCmU / 9);
+  ctx.strokeStyle = colorway.ink;
+  ctx.globalAlpha = 0.15;
+  ctx.lineWidth = Math.max(0.8, stitch * 0.18);
+  ctx.lineCap = 'round';
+  for (let y = 0; y < H; y += stitch * 1.2) {
+    ctx.beginPath();
+    for (let x = 0; x < W; x += stitch) {
+      ctx.moveTo(x, y + stitch * 1.2);
+      ctx.lineTo(x + stitch / 2, y + stitch * 0.45);
+      ctx.lineTo(x + stitch, y + stitch * 1.2);
+    }
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
 
   // The print.
   for (const spot of printSpots(design, landmarks)) {
