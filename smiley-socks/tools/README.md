@@ -121,20 +121,24 @@ the truth and second copies drift, so there is a mechanism, not a promise:
 
 1. `npm test` runs `tests/production-fixtures.test.ts`, which executes the
    **real TypeScript** and writes what it produces to
-   `tools/tests/fixtures/geometry.json` — 46 faces (every template, every eye
+   `tools/tests/fixtures/geometry.json` — 55 faces (every template, every eye
    shape, every mark, both extremes of every limit, plus deliberately
-   out-of-range input), the sock metrics for all three heights, every
-   placement's spots, the catalog and the knitted alphabet.
+   out-of-range input), **each rendered in both `clean` and `chalk` finish**,
+   the sock metrics for all three heights, every placement's spots, the
+   catalog and the knitted alphabet.
 2. `python3 -m unittest discover -s tests -t .` asserts this package reproduces
    all of it — **path string for path string**, not within a tolerance, because
    those strings go into the print file verbatim.
 
 Change a curve in `face.ts` and the Python tests go red until the port catches
-up. Neither side can move alone.
+up. Neither side can move alone. That includes the chalk finish's hand-drawn
+wobble — it is baked into the geometry itself (not a browser filter), which is
+what makes it show up in the export at all: without it, a design set to
+"Chalk" on the site would still print as a mathematically clean line.
 
 ```bash
-cd smiley-socks && npm test                       # 102 tests, rewrites the fixture
-cd tools && python3 -m unittest discover -s tests -t .   # 45 tests
+cd smiley-socks && npm test                       # 109 tests, rewrites the fixture
+cd tools && python3 -m unittest discover -s tests -t .   # 48 tests
 ```
 
 The one deliberate tolerance is the sock circumference: the 3D viewer measures

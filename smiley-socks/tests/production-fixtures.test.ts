@@ -59,7 +59,7 @@ function edgeCases(): { name: string; face: FaceParams }[] {
     marks: over.marks ?? base.marks,
   });
 
-  const shapes = ['bar', 'tick', 'round', 'arc', 'cross', 'line', 'spiral', 'heart'] as const;
+  const shapes = ['bar', 'tick', 'round', 'arc', 'cross', 'line', 'spiral', 'heart', 'lash'] as const;
   const cases: { name: string; face: FaceParams }[] = shapes.map((shape) => ({
     name: `eye-${shape}`,
     face: at({}, { eyes: { ...base.eyes, shape } }),
@@ -82,22 +82,45 @@ function edgeCases(): { name: string; face: FaceParams }[] {
     { name: 'brows-on', face: at({}, { brows: { on: true, y: 40, angle: 30, length: 34 } }) },
     { name: 'eyes-squint', face: at({}, { eyes: { ...base.eyes, squint: 1, tilt: 40 } }) },
     // Marks reposition themselves when there is no rim to hang off.
-    { name: 'marks-all-bare', face: at({ gap: 360, marks: ['tear', 'sweat', 'blush', 'static', 'zzz', 'sparkle', 'tongue'] }) },
-    { name: 'marks-all-rimmed', face: at({ gap: 0, marks: ['tear', 'sweat', 'blush', 'static', 'zzz', 'sparkle', 'tongue'] }) },
+    { name: 'marks-all-bare', face: at({ gap: 360, marks: ['tear', 'sweat', 'blush', 'static', 'zzz', 'sparkle', 'tongue', 'shades'] }) },
+    { name: 'marks-all-rimmed', face: at({ gap: 0, marks: ['tear', 'sweat', 'blush', 'static', 'zzz', 'sparkle', 'tongue', 'shades'] }) },
     { name: 'wink', face: at({ marks: ['wink'] }) },
     // Out-of-range on purpose: the port has to clamp identically, not just draw
     // identically.
     { name: 'unclamped', face: at({ width: 999, height: -50, gap: -20, tilt: 99 }) },
+    // Stresses the mouth wobble's width scaling at both ends, and the shades
+    // bridge's clamp against tight eye spacing paired with a large eye size —
+    // the combination that comes closest to inverting the bridge.
+    { name: 'mouth-narrow', face: at({}, { mouth: { ...base.mouth, width: FACE_LIMITS.mouthWidth[0], curve: 0.1 } }) },
+    { name: 'mouth-wide', face: at({}, { mouth: { ...base.mouth, width: FACE_LIMITS.mouthWidth[1], curve: 0.9 } }) },
+    {
+      name: 'shades-tight',
+      face: at(
+        { marks: ['shades'] },
+        { eyes: { ...base.eyes, x: FACE_LIMITS.eyeX[0], size: FACE_LIMITS.eyeSize[1] } },
+      ),
+    },
   );
   return cases;
 }
 
 describe('production fixtures', () => {
   it('writes the geometry contract the Python pipeline is tested against', () => {
+    // Every entry carries both finishes: `geometry` is the clean render (the
+    // contract that already existed), `geometryChalk` is the same face with
+    // the hand-drawn wobble baked in. Chalk is the shelf default, so a port
+    // that only matched the clean render would be wrong for almost every real
+    // print — the wobble touches the outline, every eye shape, both marks and
+    // the mouth, so there is no primitive it is safe to leave unchecked.
     const faces = [
       ...TEMPLATES.map((t) => ({ name: `template-${t.id}`, face: cloneFace(t.face) })),
       ...edgeCases(),
-    ].map(({ name, face }) => ({ name, params: face, geometry: buildFace(face) }));
+    ].map(({ name, face }) => ({
+      name,
+      params: face,
+      geometry: buildFace(face),
+      geometryChalk: buildFace(face, 'chalk'),
+    }));
 
     // The sock's real dimensions, per height. These are what turn a print
     // "34 units wide" into millimetres on a canvas.
@@ -151,13 +174,10 @@ describe('production fixtures', () => {
     // right: every face has to have drawn something.
     expect(faces.length).toBeGreaterThanOrEqual(24 + 20);
     for (const f of faces) {
-      const prims = [
-        ...(f.geometry.outline ? [f.geometry.outline] : []),
-        ...f.geometry.eyesLeft,
-        ...f.geometry.eyesRight,
-        ...f.geometry.rest,
-      ];
-      expect(prims.length, f.name).toBeGreaterThan(1);
+      for (const g of [f.geometry, f.geometryChalk]) {
+        const prims = [...(g.outline ? [g.outline] : []), ...g.eyesLeft, ...g.eyesRight, ...g.rest];
+        expect(prims.length, f.name).toBeGreaterThan(1);
+      }
     }
     expect(socks.every((s) => s.metrics.lengthCm > 20 && s.metrics.circumferenceCm > 10)).toBe(true);
   });

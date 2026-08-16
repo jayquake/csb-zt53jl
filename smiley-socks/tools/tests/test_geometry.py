@@ -27,6 +27,11 @@ def load() -> dict:
         return json.load(handle)
 
 
+def _text_of(prim) -> object:
+    """The comparable payload of a Prim, whatever kind it is."""
+    return (prim.cx, prim.cy, prim.rx, prim.ry) if prim.kind == "dot" else prim.d
+
+
 class FaceGeometryTest(unittest.TestCase):
     """The face engine, path string for path string."""
 
@@ -39,52 +44,104 @@ class FaceGeometryTest(unittest.TestCase):
         # A fixture that quietly stopped covering the templates would let the
         # port drift on exactly the faces customers actually buy.
         self.assertGreaterEqual(len([n for n in names if n.startswith("template-")]), 24)
-        for shape in ("bar", "tick", "round", "arc", "cross", "line", "spiral", "heart"):
+        for shape in ("bar", "tick", "round", "arc", "cross", "line", "spiral", "heart", "lash"):
             self.assertIn(f"eye-{shape}", names)
+
+    def _assert_geometry_matches(self, name: str, finish: str, theirs: dict) -> int:
+        """One (face, finish) pair, checked primitive by primitive. Returns
+        how many primitives were compared, so the caller can prove the
+        fixture is actually exercising the engine rather than trivially
+        passing on empty faces."""
+        mine = build_face(FaceParams.from_dict(self.fixture_params[name]), finish)
+        label = f"{name}[{finish}]"
+        compared = 0
+
+        self.assertAlmostEqual(mine.tilt, theirs["tilt"], places=12, msg=label)
+
+        if theirs["outline"] is None:
+            self.assertIsNone(mine.outline, f"{label}: drew an outline that should not exist")
+        else:
+            self.assertIsNotNone(mine.outline, f"{label}: missing outline")
+            self.assertEqual(mine.outline.d, theirs["outline"]["d"], label)
+
+        for part, ours, ref in (
+            ("eyesLeft", mine.eyes_left, theirs["eyesLeft"]),
+            ("eyesRight", mine.eyes_right, theirs["eyesRight"]),
+            ("rest", mine.rest, theirs["rest"]),
+        ):
+            self.assertEqual(len(ours), len(ref), f"{label}/{part}: primitive count")
+            for a, b in zip(ours, ref):
+                compared += 1
+                self.assertEqual(a.kind, b["kind"], f"{label}/{part}/{a.key}")
+                self.assertEqual(a.key, b["key"], f"{label}/{part}")
+                if a.kind == "dot":
+                    for field in ("cx", "cy", "rx", "ry"):
+                        self.assertAlmostEqual(
+                            getattr(a, field), b[field], places=9, msg=f"{label}/{a.key}/{field}"
+                        )
+                else:
+                    # Exact string equality, not a numeric tolerance: these
+                    # strings go into the print file verbatim, so "close
+                    # enough" is not the contract — that goes double for the
+                    # wobbled chalk finish, where a mismatch would mean the
+                    # printed sock's texture disagrees with the proof.
+                    self.assertEqual(a.d, b["d"], f"{label}/{part}/{a.key}")
+
+        for spin, ref in zip(mine.eye_rotation, (theirs["eyeRotation"]["left"], theirs["eyeRotation"]["right"])):
+            self.assertAlmostEqual(spin.deg, ref["deg"], places=12, msg=label)
+            self.assertAlmostEqual(spin.cx, ref["cx"], places=12, msg=label)
+            self.assertAlmostEqual(spin.cy, ref["cy"], places=12, msg=label)
+
+        return compared
+
+    @property
+    def fixture_params(self) -> dict:
+        return {f["name"]: f["params"] for f in self.fixture["faces"]}
 
     def test_every_face_matches_the_typescript(self) -> None:
         compared = 0
         for entry in self.fixture["faces"]:
-            name = entry["name"]
-            with self.subTest(face=name):
-                mine = build_face(FaceParams.from_dict(entry["params"]))
-                theirs = entry["geometry"]
-
-                self.assertAlmostEqual(mine.tilt, theirs["tilt"], places=12, msg=name)
-
-                if theirs["outline"] is None:
-                    self.assertIsNone(mine.outline, f"{name}: drew an outline that should not exist")
-                else:
-                    self.assertIsNotNone(mine.outline, f"{name}: missing outline")
-                    self.assertEqual(mine.outline.d, theirs["outline"]["d"], name)
-
-                for label, ours, ref in (
-                    ("eyesLeft", mine.eyes_left, theirs["eyesLeft"]),
-                    ("eyesRight", mine.eyes_right, theirs["eyesRight"]),
-                    ("rest", mine.rest, theirs["rest"]),
-                ):
-                    self.assertEqual(len(ours), len(ref), f"{name}/{label}: primitive count")
-                    for a, b in zip(ours, ref):
-                        compared += 1
-                        self.assertEqual(a.kind, b["kind"], f"{name}/{label}/{a.key}")
-                        self.assertEqual(a.key, b["key"], f"{name}/{label}")
-                        if a.kind == "dot":
-                            for field in ("cx", "cy", "rx", "ry"):
-                                self.assertAlmostEqual(
-                                    getattr(a, field), b[field], places=9, msg=f"{name}/{a.key}/{field}"
-                                )
-                        else:
-                            # Exact string equality, not a numeric tolerance:
-                            # these strings go into the print file verbatim, so
-                            # "close enough" is not the contract.
-                            self.assertEqual(a.d, b["d"], f"{name}/{label}/{a.key}")
-
-                for spin, ref in zip(mine.eye_rotation, (theirs["eyeRotation"]["left"], theirs["eyeRotation"]["right"])):
-                    self.assertAlmostEqual(spin.deg, ref["deg"], places=12, msg=name)
-                    self.assertAlmostEqual(spin.cx, ref["cx"], places=12, msg=name)
-                    self.assertAlmostEqual(spin.cy, ref["cy"], places=12, msg=name)
-
+            with self.subTest(face=entry["name"], finish="clean"):
+                compared += self._assert_geometry_matches(entry["name"], "clean", entry["geometry"])
         self.assertGreater(compared, 200, "the fixture stopped exercising the engine")
+
+    def test_every_face_matches_the_typescript_chalk_finish(self) -> None:
+        # Chalk is the shelf default, so this is the render that actually
+        # ships. Every primitive the wobble touches — the outline, every eye
+        # shape, both new marks, the mouth's width-scaled bow — goes through
+        # here on every entry the fixture carries.
+        compared = 0
+        for entry in self.fixture["faces"]:
+            self.assertIn(
+                "geometryChalk", entry, f"{entry['name']}: fixture is missing the chalk render"
+            )
+            with self.subTest(face=entry["name"], finish="chalk"):
+                compared += self._assert_geometry_matches(entry["name"], "chalk", entry["geometryChalk"])
+        self.assertGreater(compared, 200, "the fixture stopped exercising the wobble")
+
+    def test_chalk_wobble_is_deterministic(self) -> None:
+        # Same face in, same wobbled face out — every time, not just once.
+        # A port that leaked any non-determinism (dict ordering, float
+        # formatting quirks) would still match the fixture by luck on a
+        # single run; calling it twice here catches that.
+        for entry in self.fixture["faces"][:8]:
+            params = FaceParams.from_dict(entry["params"])
+            once = build_face(params, "chalk")
+            again = build_face(params, "chalk")
+            self.assertEqual(
+                [_text_of(p) for p in once.rest],
+                [_text_of(p) for p in again.rest],
+                entry["name"],
+            )
+
+    def test_clean_finish_is_the_default(self) -> None:
+        # build_face(params) with no finish argument has to mean the same
+        # thing as build_face(params, "clean") — every existing caller in
+        # this package relies on that default.
+        params = FaceParams.from_dict(self.fixture["faces"][0]["params"])
+        implicit = build_face(params)
+        explicit = build_face(params, "clean")
+        self.assertEqual([_text_of(p) for p in implicit.rest], [_text_of(p) for p in explicit.rest])
 
     def test_limits_are_the_same_numbers(self) -> None:
         for key, (lo, hi) in self.fixture["limits"].items():

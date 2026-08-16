@@ -4,8 +4,7 @@
  * and (in a real build) the factory would receive.
  */
 
-import { clampFace, type FaceParams } from '../brand/face';
-import type { Finish } from '../brand/Face';
+import { clampFace, type FaceParams, type Finish } from '../brand/face';
 import { cloneFace, DEFAULT_TEMPLATE, templateById } from '../brand/templates';
 import { COLORWAYS, HEIGHTS, PLACEMENTS, SIZES, type PricedDesign } from './catalog';
 import { supports } from '../brand/grinline';

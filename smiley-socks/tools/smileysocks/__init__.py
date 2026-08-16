@@ -11,7 +11,7 @@ library only, so a print file can be produced anywhere Python runs.
 
 from .catalog import COLORWAYS, HEIGHTS, PLACEMENTS, PrintSpot, print_mm, print_spots
 from .design import Design
-from .face import FaceParams, build_face, clamp_face
+from .face import FaceParams, Finish, build_face, clamp_face
 from .sock import SockMetrics, sock_metrics
 
 __version__ = "1.0.0"
@@ -22,6 +22,7 @@ __all__ = [
     "PLACEMENTS",
     "Design",
     "FaceParams",
+    "Finish",
     "PrintSpot",
     "SockMetrics",
     "build_face",

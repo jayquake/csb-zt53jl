@@ -22,7 +22,7 @@ import math
 from dataclasses import dataclass, field, replace
 from typing import Any, Iterable, Literal, Sequence
 
-from .jsnum import fmt
+from .jsnum import fmt, js_num, js_round
 
 FACE_BOX = 200
 FACE_CX = 100.0
@@ -38,6 +38,8 @@ RAD = math.pi / 180.0
 
 EyeShape = Literal["bar", "tick", "round", "arc", "cross", "line", "spiral"]
 Mark = Literal["tear", "sweat", "blush", "static", "zzz", "sparkle", "wink"]
+#: How the line is drawn. Chalk is the house look; clean is a flat vector.
+Finish = Literal["clean", "chalk"]
 
 EYE_SHAPES: tuple[str, ...] = (
     "bar",
@@ -48,6 +50,7 @@ EYE_SHAPES: tuple[str, ...] = (
     "line",
     "spiral",
     "heart",
+    "lash",
 )
 MARKS: tuple[str, ...] = (
     "tear",
@@ -58,6 +61,7 @@ MARKS: tuple[str, ...] = (
     "sparkle",
     "wink",
     "tongue",
+    "shades",
 )
 
 #: The one source of truth for what a parameter is allowed to be. Mirrors
@@ -328,7 +332,89 @@ def _signed_pow(value: float, exponent: float) -> float:
     return 0.0
 
 
-def outline_path(p: FaceParams) -> str:
+# ---------------------------------------------------------------------------
+# The hand-drawn wobble
+# ---------------------------------------------------------------------------
+
+# Chalk finish gets a small, stable jitter baked into the geometry itself —
+# not applied as a screen filter — so the same "drawn by hand, not plotted"
+# quality shows up everywhere a face is used: the flat SVG proof, the 3D
+# texture, the photo mockup, and this module's own print file. Ported from the
+# wobble block in face.ts, function for function; the fixture test checks it
+# path string for path string, chalk finish included.
+#
+# Trig-based rather than a bitwise hash, and for the same reason it is in the
+# TypeScript: both sides round every coordinate to two decimal places before
+# it reaches a path string, and math.sin/Math.sin agree to far more precision
+# than that survives — so the same face and the same named point wobble to the
+# same numbers on both sides, with no 32-bit-integer overflow behaviour to
+# reproduce exactly across languages.
+
+
+@dataclass(frozen=True)
+class Wob:
+    seed: float
+    on: bool
+
+
+NO_WOB = Wob(seed=0, on=False)
+
+
+def _seed_of(text: str) -> float:
+    """A small, stable seed for a short string."""
+    h = 0
+    for ch in text:
+        h = (h * 131 + ord(ch)) % 1000003
+    return h
+
+
+def _noise01(seed: float, salt: float) -> float:
+    """A stable pseudo-random unit value in [0,1) for a (seed, salt) pair."""
+    x = math.sin(seed * 12.9898 + salt * 78.233 + 37.719) * 43758.5453
+    return x - math.floor(x)
+
+
+def _wob(W: Wob, key: str, amount: float) -> Pt:
+    """A small, stable 2D offset for one named point on one face. Zero when off."""
+    if not W.on or amount <= 0:
+        return (0.0, 0.0)
+    salt = _seed_of(key)
+    return (
+        (_noise01(W.seed, salt * 2 + 1) * 2 - 1) * amount,
+        (_noise01(W.seed, salt * 2 + 2) * 2 - 1) * amount,
+    )
+
+
+def _radius_jitter(W: Wob, key: str, amount: float) -> float:
+    """A multiplier close to 1, for radii and widths that should not all match exactly."""
+    if not W.on or amount <= 0:
+        return 1.0
+    return 1 + (_noise01(W.seed, _seed_of(key)) - 0.5) * 2 * amount
+
+
+def _bow(W: Wob, key: str, t: float, amount: float, ripple_weight: float = 0.4) -> float:
+    """A gentle bow along a parameter t in [0,1]. One slow wave carries the
+    shape; a quieter, faster ripple rides on top, trimmed back by
+    ``ripple_weight`` for short strokes where it would otherwise zigzag."""
+    if not W.on or amount <= 0:
+        return 0.0
+    salt = _seed_of(key)
+    f1 = 1 + math.floor(_noise01(W.seed, salt * 2 + 3) * 2)  # 1 or 2 slow waves
+    f2 = 3 + math.floor(_noise01(W.seed, salt * 2 + 4) * 2)  # a faster ripple riding on top
+    p1 = _noise01(W.seed, salt * 2 + 5) * math.pi * 2
+    p2 = _noise01(W.seed, salt * 2 + 6) * math.pi * 2
+    return amount * (
+        math.sin(t * math.pi * 2 * f1 + p1) + ripple_weight * math.sin(t * math.pi * 2 * f2 + p2)
+    )
+
+
+#: How far the chalk finish is allowed to nudge a point, in face units.
+WOBBLE_BOW = 2.6
+WOBBLE_POINT = 1.5
+WOBBLE_RADIUS = 0.16
+
+
+def outline_path(p: FaceParams, W: Wob = NO_WOB) -> str:
     """A superellipse, drawn from the far side of the open loop round to the
     near side, so the gap is simply the part we never draw."""
     if p.gap >= NO_OUTLINE_AT:
@@ -348,16 +434,17 @@ def outline_path(p: FaceParams) -> str:
         # The pull: crown and chin move in opposite directions, so dragging the
         # top of the face stretches it like putty instead of just scaling it.
         ry = p.height + (p.squish if st < 0 else -p.squish)
-        pts.append(
-            (
-                FACE_CX + p.width * _signed_pow(ct, 2 / n),
-                FACE_CY + ry * _signed_pow(st, 2 / n),
-            )
-        )
+        x = FACE_CX + p.width * _signed_pow(ct, 2 / n)
+        y = FACE_CY + ry * _signed_pow(st, 2 / n)
+        # A hand tracing a squircle wanders in and out along its own radius,
+        # not sideways across it — pushing along (ct, st) keeps the wobble
+        # from folding the curve back on itself at the corners.
+        b = _bow(W, "outline", i / steps, WOBBLE_BOW)
+        pts.append((x + b * ct, y + b * st))
     return smooth(pts, p.gap <= 0.5)
 
 
-def _eye_prims(p: FaceParams, side: int) -> list[Prim]:
+def _eye_prims(p: FaceParams, side: int, W: Wob = NO_WOB) -> list[Prim]:
     cx = FACE_CX + side * p.eyes.x
     cy = p.eyes.y
     s = p.eyes.size
@@ -366,15 +453,26 @@ def _eye_prims(p: FaceParams, side: int) -> list[Prim]:
     prims: list[Prim] = []
 
     if p.eyes.shape == "round":
+        dx, dy = _wob(W, f"{key}c", WOBBLE_POINT * 0.6)
+        rj = _radius_jitter(W, f"{key}r", WOBBLE_RADIUS)
         prims.append(
-            Prim(kind="dot", cx=cx, cy=cy, rx=s * 0.62, ry=s * 0.62 * open_ + 0.6, key=key)
+            Prim(
+                kind="dot",
+                cx=cx + dx,
+                cy=cy + dy,
+                rx=s * 0.62 * rj,
+                ry=(s * 0.62 * open_ + 0.6) * rj,
+                key=key,
+            )
         )
     elif p.eyes.shape == "bar":
         h = s * 1.5 * open_
+        ax, ay = _wob(W, f"{key}p0", WOBBLE_POINT)
+        bx, by = _wob(W, f"{key}p1", WOBBLE_POINT)
         prims.append(
             Prim(
                 kind="stroke",
-                d=f"M{fmt(cx)},{fmt(cy - h / 2)} L{fmt(cx)},{fmt(cy + h / 2)}",
+                d=f"M{fmt(cx + ax)},{fmt(cy - h / 2 + ay)} L{fmt(cx + bx)},{fmt(cy + h / 2 + by)}",
                 w=s * 0.95,
                 key=key,
             )
@@ -383,12 +481,14 @@ def _eye_prims(p: FaceParams, side: int) -> list[Prim]:
         # The eye as a single flicked stroke.
         h = s * 1.35 * open_
         lean = s * 0.28
+        ax, ay = _wob(W, f"{key}p0", WOBBLE_POINT)
+        bx, by = _wob(W, f"{key}p1", WOBBLE_POINT)
         prims.append(
             Prim(
                 kind="stroke",
                 d=(
-                    f"M{fmt(cx - side * lean)},{fmt(cy - h / 2)} "
-                    f"L{fmt(cx + side * lean)},{fmt(cy + h / 2)}"
+                    f"M{fmt(cx - side * lean + ax)},{fmt(cy - h / 2 + ay)} "
+                    f"L{fmt(cx + side * lean + bx)},{fmt(cy + h / 2 + by)}"
                 ),
                 w=STROKE * 0.95,
                 key=key,
@@ -398,52 +498,107 @@ def _eye_prims(p: FaceParams, side: int) -> list[Prim]:
         # The happy squint.
         w = s * 1.35
         lift = s * (0.75 + 0.5 * open_)
+        ax, ay = _wob(W, f"{key}p0", WOBBLE_POINT)
+        qx, qy = _wob(W, f"{key}pq", WOBBLE_POINT)
+        bx, by = _wob(W, f"{key}p1", WOBBLE_POINT)
         prims.append(
             Prim(
                 kind="stroke",
                 d=(
-                    f"M{fmt(cx - w)},{fmt(cy + lift * 0.35)} "
-                    f"Q{fmt(cx)},{fmt(cy - lift)} "
-                    f"{fmt(cx + w)},{fmt(cy + lift * 0.35)}"
+                    f"M{fmt(cx - w + ax)},{fmt(cy + lift * 0.35 + ay)} "
+                    f"Q{fmt(cx + qx)},{fmt(cy - lift + qy)} "
+                    f"{fmt(cx + w + bx)},{fmt(cy + lift * 0.35 + by)}"
                 ),
                 key=key,
             )
         )
-    elif p.eyes.shape == "line":
-        w = s * 1.4
-        prims.append(
-            Prim(kind="stroke", d=f"M{fmt(cx - w)},{fmt(cy)} L{fmt(cx + w)},{fmt(cy)}", key=key)
-        )
-    elif p.eyes.shape == "cross":
-        w = s * 1.05
+    elif p.eyes.shape == "lash":
+        # The laughing/flirty eye: the same closed-eye arc as `arc`, with two
+        # short flicks fanned off the outer corner — the detail that turns a
+        # plain closed eye into an eyelash doodle.
+        w = s * 1.3
+        lift = s * (0.62 + 0.42 * open_)
+        ax, ay = _wob(W, f"{key}p0", WOBBLE_POINT)
+        qx, qy = _wob(W, f"{key}pq", WOBBLE_POINT)
+        bx, by = _wob(W, f"{key}p1", WOBBLE_POINT)
+        corner_x = cx + side * w
+        corner_y = cy + lift * 0.3
         prims.append(
             Prim(
                 kind="stroke",
-                d=f"M{fmt(cx - w)},{fmt(cy - w)} L{fmt(cx + w)},{fmt(cy + w)}",
+                d=(
+                    f"M{fmt(cx - w + ax)},{fmt(cy + lift * 0.3 + ay)} "
+                    f"Q{fmt(cx + qx)},{fmt(cy - lift + qy)} "
+                    f"{fmt(cx + w + bx)},{fmt(cy + lift * 0.3 + by)}"
+                ),
+                key=key,
+            )
+        )
+        lashes = [(0.98, -0.22, 0.62), (0.45, -0.9, 0.6)]
+        for i, (ux, uy, scale) in enumerate(lashes):
+            length = s * scale
+            lx, ly = _wob(W, f"{key}L{i}", WOBBLE_POINT * 0.6)
+            prims.append(
+                Prim(
+                    kind="stroke",
+                    d=(
+                        f"M{fmt(corner_x + lx)},{fmt(corner_y + ly)} "
+                        f"L{fmt(corner_x + side * ux * length + lx)},{fmt(corner_y + uy * length + ly)}"
+                    ),
+                    w=STROKE * 0.55,
+                    key=f"{key}L{i}",
+                )
+            )
+    elif p.eyes.shape == "line":
+        w = s * 1.4
+        ax, ay = _wob(W, f"{key}p0", WOBBLE_POINT)
+        bx, by = _wob(W, f"{key}p1", WOBBLE_POINT)
+        prims.append(
+            Prim(
+                kind="stroke",
+                d=f"M{fmt(cx - w + ax)},{fmt(cy + ay)} L{fmt(cx + w + bx)},{fmt(cy + by)}",
+                key=key,
+            )
+        )
+    elif p.eyes.shape == "cross":
+        w = s * 1.05
+        ax, ay = _wob(W, f"{key}ap0", WOBBLE_POINT)
+        bx, by = _wob(W, f"{key}ap1", WOBBLE_POINT)
+        cx2, cy2 = _wob(W, f"{key}bp0", WOBBLE_POINT)
+        dx2, dy2 = _wob(W, f"{key}bp1", WOBBLE_POINT)
+        prims.append(
+            Prim(
+                kind="stroke",
+                d=f"M{fmt(cx - w + ax)},{fmt(cy - w + ay)} L{fmt(cx + w + bx)},{fmt(cy + w + by)}",
                 key=f"{key}a",
             )
         )
         prims.append(
             Prim(
                 kind="stroke",
-                d=f"M{fmt(cx + w)},{fmt(cy - w)} L{fmt(cx - w)},{fmt(cy + w)}",
+                d=f"M{fmt(cx + w + cx2)},{fmt(cy - w + cy2)} L{fmt(cx - w + dx2)},{fmt(cy + w + dy2)}",
                 key=f"{key}b",
             )
         )
     elif p.eyes.shape == "heart":
         # Two lobes and a point. Filled rather than stroked, because a heart
         # outlined in a 10-unit mono line at cuff-hit size closes up into a blob.
-        w = s * 0.98
-        h = s * (0.72 + 0.42 * open_)
+        dx, dy = _wob(W, f"{key}c", WOBBLE_POINT * 0.8)
+        wj = _radius_jitter(W, f"{key}w", WOBBLE_RADIUS)
+        hj = _radius_jitter(W, f"{key}h", WOBBLE_RADIUS)
+        cx2 = cx + dx
+        cy2 = cy + dy
+        w = s * 0.98 * wj
+        h = s * (0.72 + 0.42 * open_) * hj
         prims.append(
             Prim(
                 kind="fill",
                 d=(
-                    f"M{fmt(cx)},{fmt(cy + h * 0.72)} "
-                    f"C{fmt(cx - w * 1.18)},{fmt(cy - h * 0.1)} "
-                    f"{fmt(cx - w * 0.62)},{fmt(cy - h * 1.05)} {fmt(cx)},{fmt(cy - h * 0.3)} "
-                    f"C{fmt(cx + w * 0.62)},{fmt(cy - h * 1.05)} "
-                    f"{fmt(cx + w * 1.18)},{fmt(cy - h * 0.1)} {fmt(cx)},{fmt(cy + h * 0.72)} Z"
+                    f"M{fmt(cx2)},{fmt(cy2 + h * 0.72)} "
+                    f"C{fmt(cx2 - w * 1.18)},{fmt(cy2 - h * 0.1)} "
+                    f"{fmt(cx2 - w * 0.62)},{fmt(cy2 - h * 1.05)} {fmt(cx2)},{fmt(cy2 - h * 0.3)} "
+                    f"C{fmt(cx2 + w * 0.62)},{fmt(cy2 - h * 1.05)} "
+                    f"{fmt(cx2 + w * 1.18)},{fmt(cy2 - h * 0.1)} {fmt(cx2)},{fmt(cy2 + h * 0.72)} Z"
                 ),
                 key=key,
             )
@@ -451,72 +606,90 @@ def _eye_prims(p: FaceParams, side: int) -> list[Prim]:
     elif p.eyes.shape == "spiral":
         # Two and a bit turns — the "I am not really here" eye.
         turns = 2.25
+        dx, dy = _wob(W, f"{key}c", WOBBLE_POINT * 0.5)
         pts: list[Pt] = []
         steps = 26
         for i in range(steps + 1):
             t = (i / steps) * turns * 2 * math.pi
             rad = (s * 1.1 * i) / steps
-            pts.append((cx + rad * math.cos(t), cy + rad * math.sin(t)))
+            pts.append((cx + dx + rad * math.cos(t), cy + dy + rad * math.sin(t)))
         prims.append(Prim(kind="stroke", d=smooth(pts), w=STROKE * 0.7, key=key))
     return prims
 
 
-def _wink_prim(p: FaceParams, side: int) -> Prim:
+def _wink_prim(p: FaceParams, side: int, W: Wob = NO_WOB) -> Prim:
     """A shut eye: the lid as one arc."""
     cx = FACE_CX + side * p.eyes.x
     cy = p.eyes.y
     w = p.eyes.size * 1.25
+    key = "eyeL" if side < 0 else "eyeR"
+    ax, ay = _wob(W, f"{key}p0", WOBBLE_POINT)
+    qx, qy = _wob(W, f"{key}pq", WOBBLE_POINT)
+    bx, by = _wob(W, f"{key}p1", WOBBLE_POINT)
     return Prim(
         kind="stroke",
         d=(
-            f"M{fmt(cx - w)},{fmt(cy + 2)} "
-            f"Q{fmt(cx)},{fmt(cy - p.eyes.size * 1.15)} "
-            f"{fmt(cx + w)},{fmt(cy + 2)}"
+            f"M{fmt(cx - w + ax)},{fmt(cy + 2 + ay)} "
+            f"Q{fmt(cx + qx)},{fmt(cy - p.eyes.size * 1.15 + qy)} "
+            f"{fmt(cx + w + bx)},{fmt(cy + 2 + by)}"
         ),
-        key="eyeL" if side < 0 else "eyeR",
+        key=key,
     )
 
 
-def _brow_prim(p: FaceParams, side: int) -> Prim:
+def _brow_prim(p: FaceParams, side: int, W: Wob = NO_WOB) -> Prim:
     cx = FACE_CX + side * p.eyes.x
     half = p.brows.length / 2
+    key = "browL" if side < 0 else "browR"
     # Positive angle drops the inner end. Mirrored so both brows read the same.
     rise = math.tan(p.brows.angle * RAD) * half
     inner = (cx + side * -half, p.brows.y + rise)
     outer = (cx + side * half, p.brows.y - rise)
+    ix, iy = _wob(W, f"{key}p0", WOBBLE_POINT)
+    ox, oy = _wob(W, f"{key}p1", WOBBLE_POINT)
     return Prim(
         kind="stroke",
-        d=f"M{fmt(inner[0])},{fmt(inner[1])} L{fmt(outer[0])},{fmt(outer[1])}",
-        key="browL" if side < 0 else "browR",
+        d=f"M{fmt(inner[0] + ix)},{fmt(inner[1] + iy)} L{fmt(outer[0] + ox)},{fmt(outer[1] + oy)}",
+        key=key,
     )
 
 
-def _mouth_points(p: FaceParams, lip_offset: float = 0) -> list[Pt]:
+def _mouth_points(p: FaceParams, lip_offset: float, W: Wob, key: str) -> list[Pt]:
     half = p.mouth.width / 2
     steps = 18
+    # bow()'s two harmonics complete their cycles over t=0..1 regardless of
+    # how physically wide the stroke is, so the same amplitude that reads as a
+    # gentle bend on the outline's long loop reads as a jagged zigzag on a
+    # short, flat mouth. Scaling by width against a mid-range reference (most
+    # mouths run 46-74 units) keeps the wobble a fraction of the mouth rather
+    # than a fixed absolute nudge.
+    mouth_wobble = WOBBLE_BOW * min(1.15, max(0.32, p.mouth.width / 78))
     pts: list[Pt] = []
     for i in range(steps + 1):
         t = i / steps
         x = FACE_CX - half + p.mouth.width * t
         # Parabola through the ends: 0 at both, 1 in the middle.
-        bow = 4 * t * (1 - t)
-        wave = math.sin(t * math.pi * 3) * 7 * p.mouth.wave * (0.35 + bow)
-        pts.append((x, p.mouth.y + bow * p.mouth.curve * 30 + wave + lip_offset * bow))
+        curve_shape = 4 * t * (1 - t)
+        wave = math.sin(t * math.pi * 3) * 7 * p.mouth.wave * (0.35 + curve_shape)
+        hand = _bow(W, key, t, mouth_wobble, 0.2)
+        pts.append((x, p.mouth.y + curve_shape * p.mouth.curve * 30 + wave + lip_offset * curve_shape + hand))
     return pts
 
 
-def mouth_prims(p: FaceParams) -> list[Prim]:
+def mouth_prims(p: FaceParams, W: Wob = NO_WOB) -> list[Prim]:
     if p.mouth.open > 0.02:
         # Open mouth: the line becomes the upper lip and a mirrored lower lip
-        # closes the shape, so "open" reads as a hole rather than a thick line.
-        upper = _mouth_points(p)
-        lower = list(reversed(_mouth_points(p, 14 + p.mouth.open * 46)))
+        # closes the shape, so "open" reads as a hole rather than a thick
+        # line. The two lips get their own wobble key so they don't bow in
+        # lockstep.
+        upper = _mouth_points(p, 0, W, "mouth")
+        lower = list(reversed(_mouth_points(p, 14 + p.mouth.open * 46, W, "mouthLower")))
         lower_d = smooth(lower)
         if lower_d.startswith("M"):
             lower_d = "L" + lower_d[1:]
         return [Prim(kind="fill", d=f"{smooth(upper)} {lower_d} Z", key="mouth")]
 
-    pts = _mouth_points(p)
+    pts = _mouth_points(p, 0, W, "mouth")
     d = smooth(pts)
     if p.mouth.flick > 0.01:
         # Carry the stroke past the corner and upwards, the way a pen leaves
@@ -526,7 +699,7 @@ def mouth_prims(p: FaceParams) -> list[Prim]:
     return [Prim(kind="stroke", d=d, key="mouth")]
 
 
-def _mark_prims(p: FaceParams) -> list[Prim]:
+def _mark_prims(p: FaceParams, W: Wob = NO_WOB) -> list[Prim]:
     out: list[Prim] = []
     eye_l = FACE_CX - p.eyes.x
     eye_r = FACE_CX + p.eyes.x
@@ -545,8 +718,9 @@ def _mark_prims(p: FaceParams) -> list[Prim]:
 
     for mark in p.marks:
         if mark == "tear":
-            x = eye_l
-            y = p.eyes.y + p.eyes.size + 12
+            dx, dy = _wob(W, "tear", WOBBLE_POINT * 0.7)
+            x = eye_l + dx
+            y = p.eyes.y + p.eyes.size + 12 + dy
             out.append(
                 Prim(
                     kind="fill",
@@ -559,8 +733,9 @@ def _mark_prims(p: FaceParams) -> list[Prim]:
                 )
             )
         elif mark == "sweat":
-            x = FACE_CX + span_x * 0.72
-            y = FACE_CY - span_y * 0.52
+            dx, dy = _wob(W, "sweat", WOBBLE_POINT * 0.7)
+            x = FACE_CX + span_x * 0.72 + dx
+            y = FACE_CY - span_y * 0.52 + dy
             out.append(
                 Prim(
                     kind="fill",
@@ -574,20 +749,47 @@ def _mark_prims(p: FaceParams) -> list[Prim]:
             )
         elif mark == "blush":
             y = p.eyes.y + p.eyes.size + 20
-            out.append(Prim(kind="dot", cx=eye_l - 6, cy=y, rx=13, ry=7, opacity=0.5, key="blushL"))
-            out.append(Prim(kind="dot", cx=eye_r + 6, cy=y, rx=13, ry=7, opacity=0.5, key="blushR"))
+            lx, ly = _wob(W, "blushL", WOBBLE_POINT * 0.5)
+            rx, ry = _wob(W, "blushR", WOBBLE_POINT * 0.5)
+            lj = _radius_jitter(W, "blushLr", WOBBLE_RADIUS)
+            rj = _radius_jitter(W, "blushRr", WOBBLE_RADIUS)
+            out.append(
+                Prim(
+                    kind="dot",
+                    cx=eye_l - 6 + lx,
+                    cy=y + ly,
+                    rx=13 * lj,
+                    ry=7 * lj,
+                    opacity=0.5,
+                    key="blushL",
+                )
+            )
+            out.append(
+                Prim(
+                    kind="dot",
+                    cx=eye_r + 6 + rx,
+                    cy=y + ry,
+                    rx=13 * rj,
+                    ry=7 * rj,
+                    opacity=0.5,
+                    key="blushR",
+                )
+            )
         elif mark == "static":
             # Interference across the face — the overwhelmed look.
             for i in range(3):
                 y = FACE_CY - 18 + i * 26
                 w = span_x * (0.82 if i == 1 else 0.6)
+                key = f"static{i}"
+                ax, ay = _wob(W, f"{key}p0", WOBBLE_POINT * 0.6)
+                bx, by = _wob(W, f"{key}p1", WOBBLE_POINT * 0.6)
                 out.append(
                     Prim(
                         kind="stroke",
-                        d=f"M{fmt(FACE_CX - w)},{fmt(y)} L{fmt(FACE_CX + w)},{fmt(y)}",
+                        d=f"M{fmt(FACE_CX - w + ax)},{fmt(y + ay)} L{fmt(FACE_CX + w + bx)},{fmt(y + by)}",
                         w=STROKE * 0.55,
                         opacity=0.55,
-                        key=f"static{i}",
+                        key=key,
                     )
                 )
         elif mark == "zzz":
@@ -597,15 +799,20 @@ def _mark_prims(p: FaceParams) -> list[Prim]:
                 s = 9 + i * 5
                 x = base + i * 5
                 y = top - i * 20
+                key = f"z{i}"
+                ax, ay = _wob(W, f"{key}p0", WOBBLE_POINT * 0.6)
+                bx, by = _wob(W, f"{key}p1", WOBBLE_POINT * 0.6)
+                cx, cy = _wob(W, f"{key}p2", WOBBLE_POINT * 0.6)
+                dxp, dyp = _wob(W, f"{key}p3", WOBBLE_POINT * 0.6)
                 out.append(
                     Prim(
                         kind="stroke",
                         d=(
-                            f"M{fmt(x - s)},{fmt(y - s)} L{fmt(x + s)},{fmt(y - s)} "
-                            f"L{fmt(x - s)},{fmt(y + s)} L{fmt(x + s)},{fmt(y + s)}"
+                            f"M{fmt(x - s + ax)},{fmt(y - s + ay)} L{fmt(x + s + bx)},{fmt(y - s + by)} "
+                            f"L{fmt(x - s + cx)},{fmt(y + s + cy)} L{fmt(x + s + dxp)},{fmt(y + s + dyp)}"
                         ),
                         w=STROKE * 0.6,
-                        key=f"z{i}",
+                        key=key,
                     )
                 )
         elif mark == "tongue":
@@ -618,20 +825,25 @@ def _mark_prims(p: FaceParams) -> list[Prim]:
             # stroke it hangs off by enough to be a separate shape.
             w = min(13, p.mouth.width * 0.2)
             drop = w * 2.4
+            dx, dy = _wob(W, "tongue", WOBBLE_POINT * 0.6)
+            wj = _radius_jitter(W, "tonguew", WOBBLE_RADIUS)
+            cx = FACE_CX + dx
+            w2 = w * wj
             out.append(
                 Prim(
                     kind="fill",
                     d=(
-                        f"M{fmt(FACE_CX - w)},{fmt(mid_y - 1)} "
-                        f"C{fmt(FACE_CX - w)},{fmt(mid_y + drop)} "
-                        f"{fmt(FACE_CX + w)},{fmt(mid_y + drop)} {fmt(FACE_CX + w)},{fmt(mid_y - 1)} Z"
+                        f"M{fmt(cx - w2)},{fmt(mid_y - 1 + dy)} "
+                        f"C{fmt(cx - w2)},{fmt(mid_y + drop + dy)} "
+                        f"{fmt(cx + w2)},{fmt(mid_y + drop + dy)} {fmt(cx + w2)},{fmt(mid_y - 1 + dy)} Z"
                     ),
                     key="tongue",
                 )
             )
         elif mark == "sparkle":
-            x = FACE_CX + span_x * 0.74
-            y = FACE_CY - span_y * 0.62
+            dx, dy = _wob(W, "sparkle", WOBBLE_POINT * 0.6)
+            x = FACE_CX + span_x * 0.74 + dx
+            y = FACE_CY - span_y * 0.62 + dy
             s = 14
             out.append(
                 Prim(
@@ -644,6 +856,49 @@ def _mark_prims(p: FaceParams) -> list[Prim]:
                     ),
                     key="sparkle",
                 )
+            )
+        elif mark == "shades":
+            # A single bar over both eyes — filled, so it simply sits on top
+            # of whatever eye shape is underneath rather than needing one.
+            # Lens radius follows eye size, so bigger eyes get bigger lenses
+            # instead of a mismatched fit. Each lens is a proper four-bezier
+            # rounded square (the circle-to-bezier kappa constant) — a
+            # two-bezier approximation pinches into a flattened lozenge
+            # instead of reading as a lens.
+            kappa = 0.5522847498307936
+            dx, dy = _wob(W, "shades", WOBBLE_POINT * 0.5)
+            rj = _radius_jitter(W, "shadesr", WOBBLE_RADIUS)
+            y = p.eyes.y + dy
+            rx = p.eyes.size * 1.05 * rj
+            ry = p.eyes.size * 1.15 * rj
+            ox = rx * kappa
+            oy = ry * kappa
+            bridge_h = ry * 0.5
+
+            def lens(lcx: float) -> str:
+                cx2 = lcx + dx
+                return (
+                    f"M{fmt(cx2 - rx)},{fmt(y)} "
+                    f"C{fmt(cx2 - rx)},{fmt(y - oy)} {fmt(cx2 - ox)},{fmt(y - ry)} {fmt(cx2)},{fmt(y - ry)} "
+                    f"C{fmt(cx2 + ox)},{fmt(y - ry)} {fmt(cx2 + rx)},{fmt(y - oy)} {fmt(cx2 + rx)},{fmt(y)} "
+                    f"C{fmt(cx2 + rx)},{fmt(y + oy)} {fmt(cx2 + ox)},{fmt(y + ry)} {fmt(cx2)},{fmt(y + ry)} "
+                    f"C{fmt(cx2 - ox)},{fmt(y + ry)} {fmt(cx2 - rx)},{fmt(y + oy)} {fmt(cx2 - rx)},{fmt(y)} Z"
+                )
+
+            # The bridge overlaps a little into each lens rather than butting
+            # against it exactly, so there is no hairline gap at the seam.
+            bridge_left = eye_l + rx * 0.55 + dx
+            bridge_right = eye_r - rx * 0.55 + dx
+            bridge = (
+                (
+                    f"M{fmt(bridge_left)},{fmt(y - bridge_h / 2)} L{fmt(bridge_right)},{fmt(y - bridge_h / 2)} "
+                    f"L{fmt(bridge_right)},{fmt(y + bridge_h / 2)} L{fmt(bridge_left)},{fmt(y + bridge_h / 2)} Z"
+                )
+                if bridge_right > bridge_left
+                else ""
+            )
+            out.append(
+                Prim(kind="fill", d=f"{lens(eye_l)} {lens(eye_r)} {bridge}", key="shades")
             )
     return out
 
@@ -674,23 +929,51 @@ class FaceGeometry:
         yield from self.rest
 
 
-def build_face(raw: FaceParams) -> FaceGeometry:
+def face_signature(p: FaceParams) -> str:
+    """Stable-ish identity for a face — ported from ``faceSignature`` in
+    face.ts. It is what the chalk wobble seeds itself from, so it has to
+    produce the byte-identical string TypeScript does for the same face:
+    a differently-formatted number here reseeds every wobbled coordinate on
+    both sides, not just this one."""
+    f = clamp_face(p)
+    values: list[Any] = [
+        f.width, f.height, f.squish, f.tilt, f.gap,
+        f.eyes.shape, f.eyes.x, f.eyes.y, f.eyes.size, f.eyes.squint, f.eyes.tilt,
+        1 if f.brows.on else 0, f.brows.y, f.brows.angle, f.brows.length,
+        f.mouth.y, f.mouth.width, f.mouth.curve, f.mouth.open, f.mouth.wave, f.mouth.flick,
+        ".".join(sorted(f.marks)),
+    ]
+    parts = []
+    for v in values:
+        if isinstance(v, (int, float)) and not isinstance(v, bool):
+            parts.append(js_num(js_round(v * 10) / 10))
+        else:
+            parts.append(str(v))
+    return "|".join(parts)
+
+
+def build_face(raw: FaceParams, finish: Finish = "clean") -> FaceGeometry:
     p = clamp_face(raw)
-    outline_d = outline_path(p)
+    # The wobble is keyed off the whole face, not off each primitive alone, so
+    # the same face always wobbles the same way — a re-render, a second
+    # surface (the 3D texture, this print file) or a second visit all draw the
+    # identical "hand".
+    W = Wob(seed=_seed_of(face_signature(p)), on=True) if finish == "chalk" else NO_WOB
+    outline_d = outline_path(p, W)
     return FaceGeometry(
         tilt=p.tilt,
         outline=Prim(kind="stroke", d=outline_d, key="outline") if outline_d else None,
         # A wink is the one asymmetry the face allows: eyes are otherwise always
         # mirrored, because independent eyes read as a bug rather than a choice.
-        eyes_left=[_wink_prim(p, -1)] if "wink" in p.marks else _eye_prims(p, -1),
-        eyes_right=_eye_prims(p, 1),
+        eyes_left=[_wink_prim(p, -1, W)] if "wink" in p.marks else _eye_prims(p, -1, W),
+        eyes_right=_eye_prims(p, 1, W),
         eye_rotation=(
             Spin(deg=-p.eyes.tilt, cx=FACE_CX - p.eyes.x, cy=p.eyes.y),
             Spin(deg=p.eyes.tilt, cx=FACE_CX + p.eyes.x, cy=p.eyes.y),
         ),
         rest=[
-            *([_brow_prim(p, -1), _brow_prim(p, 1)] if p.brows.on else []),
-            *mouth_prims(p),
-            *_mark_prims(p),
+            *([_brow_prim(p, -1, W), _brow_prim(p, 1, W)] if p.brows.on else []),
+            *mouth_prims(p, W),
+            *_mark_prims(p, W),
         ],
     )

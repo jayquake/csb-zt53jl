@@ -3,11 +3,17 @@
  * about what the face looks like lives in face.ts.
  */
 
-import { buildFace, FACE_BOX, STROKE, faceSignature, type FaceParams, type Prim, type Spin } from './face';
+import {
+  buildFace,
+  FACE_BOX,
+  STROKE,
+  faceSignature,
+  type FaceParams,
+  type Finish,
+  type Prim,
+  type Spin,
+} from './face';
 import { chalkFilterId, chalkVariant } from './Chalk';
-
-/** How the line is drawn. Chalk is the house look; clean is a flat vector. */
-export type Finish = 'clean' | 'chalk';
 
 const spin = (s: Spin): string => `rotate(${s.deg} ${s.cx} ${s.cy})`;
 
@@ -55,7 +61,7 @@ export function FaceGlyph({
   /** Keeps one face on one chalk variant, so a grid looks drawn, not stamped. */
   variantKey?: string;
 }) {
-  const g = buildFace(face);
+  const g = buildFace(face, finish);
   const filter =
     finish === 'chalk'
       ? `url(#${chalkFilterId(chalkVariant(variantKey ?? faceSignature(face)))})`

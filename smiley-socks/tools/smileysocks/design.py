@@ -19,7 +19,7 @@ from pathlib import Path
 from typing import Any
 
 from .catalog import COLORWAYS, HEIGHTS, PLACEMENTS, SIZES
-from .face import FaceParams, clamp_face
+from .face import FaceParams, Finish, clamp_face
 
 CUFF_TEXT_MAX = 10
 
@@ -52,7 +52,7 @@ class Design:
     photo: Photo | None = None
     cuff_text: str = ""
     #: How the line is printed: chalky and hand-drawn, or a clean vector.
-    finish: str = "chalk"
+    finish: Finish = "chalk"
 
     @staticmethod
     def from_dict(raw: dict[str, Any] | None) -> "Design":

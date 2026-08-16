@@ -6,13 +6,21 @@ import {
   faceSignature,
   outlinePath,
   type FaceParams,
+  type Finish,
 } from '../src/brand/face';
 import { cloneFace, TEMPLATES } from '../src/brand/templates';
 
 const base = TEMPLATES[0].face;
 
-function pathsOf(f: FaceParams): string[] {
-  const g = buildFace(f);
+/** The text a Prim would contribute to a path — `d` for strokes/fills, the
+ * ellipse numbers for a dot — so tests can compare any primitive uniformly. */
+function textOf(p: { kind: string; d?: string; cx?: number; cy?: number; rx?: number; ry?: number } | null): string {
+  if (!p) return '';
+  return p.kind === 'dot' ? `${p.cx} ${p.cy} ${p.rx} ${p.ry}` : (p.d ?? '');
+}
+
+function pathsOf(f: FaceParams, finish: Finish = 'clean'): string[] {
+  const g = buildFace(f, finish);
   return [g.outline, ...g.eyesLeft, ...g.eyesRight, ...g.rest]
     .filter((p) => p !== null)
     .map((p) => (p.kind === 'dot' ? `${p.cx} ${p.cy} ${p.rx} ${p.ry}` : p.d))
@@ -60,18 +68,35 @@ describe('face geometry', () => {
           wave: pick('mouthWave'),
           flick: pick('mouthFlick'),
         },
-        marks: ['tear', 'sweat', 'blush', 'static', 'zzz', 'sparkle', 'wink'],
+        marks: ['tear', 'sweat', 'blush', 'static', 'zzz', 'sparkle', 'wink', 'tongue', 'shades'],
       };
       for (const d of pathsOf(f)) expect(d).not.toMatch(/NaN|Infinity/);
+      // The same extremes again, chalk finish: the wobble reads the same
+      // params and must survive them exactly as cleanly as the plain draw.
+      const gc = buildFace(f, 'chalk');
+      for (const p of [gc.outline, ...gc.eyesLeft, ...gc.eyesRight, ...gc.rest]) {
+        if (!p) continue;
+        const text = p.kind === 'dot' ? `${p.cx} ${p.cy} ${p.rx} ${p.ry}` : p.d;
+        expect(text).not.toMatch(/NaN|Infinity/);
+      }
     }
   });
 
   it('draws every eye shape', () => {
-    for (const shape of ['bar', 'tick', 'round', 'arc', 'cross', 'line', 'spiral', 'heart'] as const) {
+    for (const shape of ['bar', 'tick', 'round', 'arc', 'cross', 'line', 'spiral', 'heart', 'lash'] as const) {
       const f = { ...cloneFace(base), eyes: { ...base.eyes, shape } };
       const g = buildFace(f);
       expect(g.eyesLeft.length, shape).toBeGreaterThan(0);
       expect(g.eyesRight.length, shape).toBeGreaterThan(0);
+    }
+  });
+
+  it('draws every mark', () => {
+    const marks = ['tear', 'sweat', 'blush', 'static', 'zzz', 'sparkle', 'tongue', 'shades'] as const;
+    for (const mark of marks) {
+      const f = { ...cloneFace(base), marks: [mark] };
+      const g = buildFace(f);
+      expect(g.rest.length, mark).toBeGreaterThan(0);
     }
   });
 
@@ -123,4 +148,76 @@ describe('face geometry', () => {
     expect(base.eyes.x).not.toBe(99);
     expect(base.marks).not.toContain('tear');
   });
+
+  describe('the chalk wobble', () => {
+    // The wobble is baked into the path data itself (not a screen filter), so
+    // it has to behave like geometry: the same face draws the same wobble
+    // every time, a different face draws a different one, and the clean
+    // finish stays exactly what it always was.
+    it('leaves the clean finish untouched — buildFace(f) and buildFace(f, "clean") agree', () => {
+      for (const t of TEMPLATES) {
+        const a = buildFace(t.face);
+        const b = buildFace(t.face, 'clean');
+        expect(textOf(a.outline)).toBe(textOf(b.outline));
+        expect(a.rest.map(textOf)).toEqual(b.rest.map(textOf));
+      }
+    });
+
+    it('is deterministic — the same face draws the same chalk wobble every time', () => {
+      for (const t of [TEMPLATES[0], TEMPLATES[5], TEMPLATES[10]]) {
+        const once = buildFace(cloneFace(t.face), 'chalk');
+        const again = buildFace(cloneFace(t.face), 'chalk');
+        expect(textOf(once.outline)).toBe(textOf(again.outline));
+        expect(once.rest.map(textOf)).toEqual(again.rest.map(textOf));
+      }
+    });
+
+    it('actually moves the geometry — chalk differs from clean', () => {
+      // "Emphasise hand-drawn" only means something if the path data itself
+      // changes; a face with an outline and a stroked mouth is guaranteed to
+      // have both to compare.
+      const f = { ...cloneFace(base), gap: 0 };
+      const clean = buildFace(f, 'clean');
+      const chalk = buildFace(f, 'chalk');
+      expect(textOf(chalk.outline)).not.toBe(textOf(clean.outline));
+      const cleanMouth = clean.rest.find((p) => p.key === 'mouth');
+      const chalkMouth = chalk.rest.find((p) => p.key === 'mouth');
+      expect(textOf(chalkMouth ?? null)).not.toBe(textOf(cleanMouth ?? null));
+    });
+
+    it('wobbles two different faces differently', () => {
+      const a = buildFace(cloneFace(TEMPLATES[0].face), 'chalk');
+      const b = buildFace(cloneFace(TEMPLATES[1].face), 'chalk');
+      const am = a.rest.find((p) => p.key === 'mouth') ?? null;
+      const bm = b.rest.find((p) => p.key === 'mouth') ?? null;
+      expect(textOf(am)).not.toBe(textOf(bm));
+    });
+
+    it('keeps the wobble small relative to the stroke — never enough to break the shape', () => {
+      // A hand tremor, not a redraw: every coordinate the wobble touches
+      // should stay within a few units of its clean counterpart, on every
+      // template — including the marks and eyes, not just the outline.
+      for (const t of TEMPLATES) {
+        const f = { ...cloneFace(t.face), gap: 0 };
+        const clean = extractPoints(pathsOf(f).join(' '));
+        const chalk = extractPoints(pathsOf(f, 'chalk').join(' '));
+        expect(chalk.length, t.id).toBe(clean.length);
+        const maxDelta = Math.max(...chalk.map((v, i) => Math.abs(v - clean[i])));
+        expect(maxDelta, t.id).toBeLessThan(8);
+      }
+    });
+
+    it('draws the new eye shape and mark from a chalk finish without NaNs', () => {
+      const lash = { ...cloneFace(base), eyes: { ...base.eyes, shape: 'lash' as const } };
+      const shades = { ...cloneFace(base), marks: ['shades' as const] };
+      for (const f of [lash, shades]) {
+        for (const d of pathsOf(f, 'chalk')) expect(d).not.toMatch(/NaN|Infinity/);
+      }
+    });
+  });
 });
+
+/** Pull the raw numbers out of a path string, for a coarse distance check. */
+function extractPoints(d: string): number[] {
+  return (d.match(/-?\d+(\.\d+)?/g) ?? []).map(Number);
+}

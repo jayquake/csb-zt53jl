@@ -11,7 +11,7 @@
  * leg, 0.75 the back and the heel), v runs from the cuff opening to the toe.
  */
 
-import { buildFace, STROKE, type FaceParams } from '../brand/face';
+import { buildFace, STROKE, type FaceParams, type Finish } from '../brand/face';
 import { layout } from '../brand/grinline';
 import { COLORWAYS, HEIGHTS, PLACEMENTS, type Colorway } from '../store/catalog';
 import type { Design } from '../store/design';
@@ -62,8 +62,8 @@ export function printSpots(design: Design, landmarks: PaintOptions['landmarks'])
   }
 }
 
-function facePaths(face: FaceParams) {
-  const g = buildFace(face);
+function facePaths(face: FaceParams, finish: Finish) {
+  const g = buildFace(face, finish);
   return { g };
 }
 
@@ -71,6 +71,8 @@ function facePaths(face: FaceParams) {
  * Draw one face, centred on (x, y), scaled so the art spans `size` pixels.
  * Exported because the photo mockup tool paints the same face onto a
  * photograph — one face renderer, three surfaces (SVG, 3D texture, mockup).
+ * Chalk by default: the house look, and the finish the 3D preview and the
+ * mockup tool had no way to opt out of visually anyway.
  */
 export function paintFace(
   ctx: CanvasRenderingContext2D,
@@ -80,8 +82,9 @@ export function paintFace(
   sizeX: number,
   sizeY: number,
   ink: string,
+  finish: Finish = 'chalk',
 ) {
-  const { g } = facePaths(face);
+  const { g } = facePaths(face, finish);
   const SPAN = 160; // the face art spans ~160 of its 200 box, stroke included
 
   ctx.save();
@@ -230,7 +233,7 @@ export function paintSockTexture(ctx: CanvasRenderingContext2D, design: Design, 
       // the spot list is shared so both paths agree on placement.
       continue;
     }
-    paintFace(ctx, design.face, x, y, sizeX, sizeY, colorway.ink);
+    paintFace(ctx, design.face, x, y, sizeX, sizeY, colorway.ink, design.finish);
   }
 
   // The wearer's own text, down the outer leg under the print.

@@ -62,7 +62,10 @@ def face_ops(
     design: Design, cx: float, cy: float, size_mm: float, ink: str
 ) -> list[Op]:
     """One face, centred on (cx, cy), spanning ``size_mm``."""
-    geometry = build_face(design.face)
+    # The design's own finish choice — chalk is the shelf default, so a
+    # design exported without one still gets the hand-drawn wobble the
+    # customer saw on the flat proof, not a mathematically clean line.
+    geometry = build_face(design.face, design.finish)
     scale = size_mm / FACE_SPAN
 
     # Face space is 200 units centred on (100, 100): move that centre to the

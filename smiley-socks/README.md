@@ -40,7 +40,7 @@ squint/tilt, brow height and angle, mouth width/curve/open/wobble, plus marks
 drawing primitives, and `Face.tsx` turns primitives into SVG. Nothing else
 knows how a face is drawn.
 
-The twenty-six templates in `templates.ts` are presets of those same numbers,
+The twenty-eight templates in `templates.ts` are presets of those same numbers,
 which is why editing one costs nothing: there is no "preset mode" to leave.
 
 `FACE_LIMITS` is the single source of truth for what each number may be. The
@@ -107,25 +107,47 @@ system type, where it belongs.
 
 ## Drawn, not generated-looking
 
-The catalog is **24 emotions**, drawn in a chalk finish: Sunny through Crushed,
-by way of Fuzzy, Bored, Smug, Queasy and Lonely. It is a face set, not a mood
-scale — most days are not on a happy-to-sad line.
+The catalog is **28 emotions**, drawn in a chalk finish: Sunny through
+Crushed, by way of Fuzzy, Bored, Smug, Queasy, Lonely, Flirty and Unbothered.
+It is a face set, not a mood scale — most days are not on a happy-to-sad line.
 
-The chalk look is `src/brand/Chalk.tsx`: two SVG filter primitives, no new
-artwork. `feTurbulence` + `feDisplacementMap` make the edge wander;
-`feTurbulence` + `luminanceToAlpha` give the line its tooth. Six filter
-variants live once at the root of the app and each face picks one from its own
-signature, so a grid of them looks drawn rather than stamped. `finish` is part
-of the design (`chalk` by default, `clean` available), which means it applies
-to the print on the sock, not just to the page.
+Chalk finish is two things stacked, one on the page and one in the geometry
+itself:
+
+- **`src/brand/Chalk.tsx`** — two SVG filter primitives, no new artwork.
+  `feTurbulence` + `feDisplacementMap` make the edge wander;
+  `feTurbulence` + `luminanceToAlpha` give the line its tooth. Six filter
+  variants live once at the root of the app and each face picks one from its
+  own signature, so a grid of them looks drawn rather than stamped. This part
+  is browser-only — an SVG filter means nothing to a PNG or a PDF.
+- **The wobble in `face.ts` itself** — a small, seeded jitter baked into the
+  path data before any renderer sees it: the outline bows along its own
+  radius, every eye shape and mark nudges off its "ideal" point by a unit or
+  two, and the mouth bows by an amount scaled to its own width so a short flat
+  mouth doesn't zigzag the way a wide curved one can afford to. It is
+  deterministic — the same face always wobbles the same way, keyed off
+  `faceSignature()` — so a re-render, the 3D texture, the photo mockup and the
+  exported print file all draw the identical "hand". This is the part that
+  makes "hand-drawn" true of the sock itself and not just the page: the
+  Python production pipeline reads the same `d` strings, so the wobble ships
+  on the actual print.
+
+`finish` is part of the design (`chalk` by default, `clean` available), and
+now reaches every surface that draws a face — the flat proof, the 3D preview,
+the photo mockup and the production export — not just the page.
 
 The editor canvas stays clean on purpose — you cannot aim a drag handle at a
 wandering line.
 
-The face vocabulary comes from a pen-on-paper sketch, and three details carry
+The face vocabulary comes from a pen-on-paper sketch, and a few details carry
 most of that character:
 
 - **tick eyes** — an eye as one short flicked stroke.
+- **lash eyes** — a closed-eye arc with two short flicks fanned off the outer
+  corner, for the flirty/laughing moods.
+- **shades** — a mark, not an eye shape: two rounded lenses and a bridge that
+  sit over whatever eyes are underneath, sized off `eyes.size` so they always
+  fit.
 - **the flick** — smiles carry the upswept tail of a pen leaving the paper
   (`mouth.flick`). It is the most recognisable thing about a hand-drawn smile
   and costs one line segment.
@@ -200,9 +222,9 @@ Two decisions worth knowing:
 - **The port cannot drift silently.** `face.py`, `sock.py` and `catalog.py`
   duplicate `face.ts`, `sockMesh.ts` and `catalog.ts`, so `npm test` runs the
   real TypeScript and writes what it produces to a fixture, and the Python suite
-  asserts it reproduces all of it — path string for path string, 46 faces,
-  every eye shape and mark, both extremes of every limit. Change a curve on
-  either side and the other goes red.
+  asserts it reproduces all of it — path string for path string, 55 faces in
+  both finishes, every eye shape and mark, both extremes of every limit.
+  Change a curve on either side and the other goes red.
 
 Full detail, including the deliberate limits (photos are not composited; cuff
 text is positioned rather than lettered) is in [`tools/README.md`](tools/README.md).

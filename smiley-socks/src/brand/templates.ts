@@ -321,6 +321,25 @@ export const TEMPLATES: Template[] = [
     }),
   },
   {
+    id: 'flirty',
+    name: 'Flirty',
+    blurb: "Feeling myself today, thanks for noticing.",
+    face: face({
+      eyes: { shape: 'lash', size: 14, x: 29, y: 80 },
+      mouth: { curve: 0.6, width: 48, y: 130, flick: 0.55 },
+      marks: ['blush'],
+    }),
+  },
+  {
+    id: 'unbothered',
+    name: 'Unbothered',
+    blurb: "Whatever it is, it's not getting in today.",
+    face: face({
+      marks: ['shades'],
+      mouth: { curve: 0.15, width: 50, y: 130 },
+    }),
+  },
+  {
     id: 'blank',
     name: 'Blank',
     blurb: 'Watching myself from across the room.',
