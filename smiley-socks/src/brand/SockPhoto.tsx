@@ -29,6 +29,7 @@ import oatmealUrl from '../assets/sock-photo-oatmeal.png';
 import bubblegumUrl from '../assets/sock-photo-bubblegum.png';
 import midnightUrl from '../assets/sock-photo-midnight.png';
 import mossUrl from '../assets/sock-photo-moss.png';
+import clayUrl from '../assets/sock-photo-clay.png';
 
 const ART = 512;
 
@@ -80,6 +81,14 @@ const PHOTOS: Record<string, PhotoEntry> = {
     height: 'knee',
     // Same reason as Midnight: light ink on a dark sock.
     place: { x: 0.468, y: 0.335, size: 0.157, rotation: 0, displace: 5, opacity: 0.94, blend: 'normal' },
+  },
+  clay: {
+    url: clayUrl,
+    height: 'knee',
+    // Terracotta base is mid-toned, not light — Clay's cream ink (#FBEFE2)
+    // multiplied onto it would barely move, the same failure mode as
+    // Midnight and Moss, so normal blend again.
+    place: { x: 0.401, y: 0.301, size: 0.21, rotation: 0, displace: 5, opacity: 0.94, blend: 'normal' },
   },
 };
 
