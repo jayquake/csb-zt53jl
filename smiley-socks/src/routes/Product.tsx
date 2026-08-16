@@ -62,6 +62,7 @@ export function Product() {
 
   const placement = PLACEMENTS.find((p) => p.id === design.placementId) ?? PLACEMENTS[0];
   const colorway = COLORWAYS.find((c) => c.id === design.colorwayId) ?? COLORWAYS[0];
+  const height = HEIGHTS.find((h) => h.id === design.heightId) ?? HEIGHTS[1];
   const update = (patch: Partial<Design>) => {
     setDesign((d) => (d ? { ...d, ...patch } : d));
     setAdded(false);
@@ -75,7 +76,13 @@ export function Product() {
 
       <div className="pdp__gallery">
         {view === 'photo' && photoReady ? (
-          <SockPhoto face={design.face} ink={colorway.ink} finish={design.finish} className="pdp__sock" />
+          <SockPhoto
+            colorwayId={design.colorwayId}
+            face={design.face}
+            ink={colorway.ink}
+            finish={design.finish}
+            className="pdp__sock"
+          />
         ) : view === 'flat' ? (
           <Sock design={design} className="pdp__sock" />
         ) : (
@@ -107,7 +114,9 @@ export function Product() {
           )}
         </div>
         {photoReady && view === 'photo' && (
-          <p className="pdp__phototag">The actual sock, photographed — Fog, knee-high, cuff hit.</p>
+          <p className="pdp__phototag">
+            The actual sock, photographed — {colorway.name}, {height.name.toLowerCase()}, cuff hit.
+          </p>
         )}
       </div>
 

@@ -66,6 +66,13 @@
         "ink": "#191710"
       },
       {
+        "id": "oatmeal",
+        "name": "Oatmeal",
+        "base": "#CDC2B3",
+        "accent": "#7E7871",
+        "ink": "#211C16"
+      },
+      {
         "id": "fog",
         "name": "Fog",
         "base": "#F1F1EF",
