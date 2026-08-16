@@ -641,6 +641,13 @@ svg {
   height: min(46vh, 340px);
 }
 
+.pdp__phototag {
+  margin: 0;
+  font-size: var(--text-s);
+  color: var(--muted);
+  text-align: center;
+}
+
 .pdp__buy {
   display: grid;
   gap: var(--space-3);

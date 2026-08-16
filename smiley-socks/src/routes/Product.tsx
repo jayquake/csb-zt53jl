@@ -7,9 +7,10 @@
  * you got to the bag.
  */
 
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { Sock } from '../brand/Sock';
+import { SockPhoto, sockPhotoMatches } from '../brand/SockPhoto';
 import { SockThree } from '../three/SockThree';
 import { ChoiceRow } from '../components/Controls';
 import { useCart } from '../store/cart';
@@ -34,10 +35,18 @@ export function Product() {
   const { add } = useCart();
 
   const [design, setDesign] = useState<Design | null>(() => (product ? productDesign(product) : null));
-  const [view, setView] = useState<'flat' | '3d'>('flat');
+  const [view, setView] = useState<'flat' | '3d' | 'photo'>('flat');
   const [added, setAdded] = useState(false);
 
   const price = useMemo(() => (design ? priceOne(pricedFrom(design)) : 0), [design]);
+  const photoReady = design ? sockPhotoMatches(design) : false;
+
+  // The photo view only stands in for one real garment (Fog, knee-high, cuff
+  // hit) — if a variant change moves the design away from that, keep showing
+  // a real render instead of quietly switching back under the shopper.
+  useEffect(() => {
+    if (view === 'photo' && !photoReady) setView('flat');
+  }, [view, photoReady]);
 
   if (!product || !design) {
     return (
@@ -65,7 +74,13 @@ export function Product() {
       </nav>
 
       <div className="pdp__gallery">
-        {view === 'flat' ? <Sock design={design} className="pdp__sock" /> : <SockThree design={design} />}
+        {view === 'photo' && photoReady ? (
+          <SockPhoto face={design.face} ink={colorway.ink} finish={design.finish} className="pdp__sock" />
+        ) : view === 'flat' ? (
+          <Sock design={design} className="pdp__sock" />
+        ) : (
+          <SockThree design={design} />
+        )}
         <div className="viewtoggle" role="radiogroup" aria-label="How to view the sock">
           {(['flat', '3d'] as const).map((v) => (
             <button
@@ -79,7 +94,21 @@ export function Product() {
               {v === 'flat' ? 'Flat' : '3D'}
             </button>
           ))}
+          {photoReady && (
+            <button
+              type="button"
+              role="radio"
+              aria-checked={view === 'photo'}
+              className={`viewtoggle__btn${view === 'photo' ? ' is-on' : ''}`}
+              onClick={() => setView('photo')}
+            >
+              Photo
+            </button>
+          )}
         </div>
+        {photoReady && view === 'photo' && (
+          <p className="pdp__phototag">The actual sock, photographed — Fog, knee-high, cuff hit.</p>
+        )}
       </div>
 
       <div className="pdp__buy">
