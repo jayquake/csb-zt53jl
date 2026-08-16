@@ -27,6 +27,7 @@ import {
   SIZES,
 } from '../store/catalog';
 import { CUFF_TEXT_MAX, DEFAULT_DESIGN, normaliseCuffText, pricedFrom, type Design } from '../store/design';
+import { downloadDesign } from '../store/handoff';
 import { useCart } from '../store/cart';
 
 const TABS = [
@@ -322,6 +323,23 @@ export function Studio() {
               Up to {CUFF_TEXT_MAX} characters, knitted in Grinline — our own alphabet, the same one the logo is
               drawn in. Letters, numbers and a few marks; anything it can't knit is dropped as you type.
             </p>
+
+            {/*
+              The hand-off to production. Everything above this line is a
+              preview; this is the actual record, and `tools/` turns it into the
+              print files a manufacturer works from. Same JSON the bag stores,
+              so what gets made is what was designed.
+            */}
+            <div className="panel__handoff">
+              <h3 className="panel__subhead">Send it to production</h3>
+              <p className="panel__note">
+                Downloads this design as a file. Our tooling turns it into a print-ready sock —
+                <code> python3 -m smileysocks export design.json</code>
+              </p>
+              <button type="button" className="btn btn--ghost" onClick={() => downloadDesign(design)}>
+                Download design file
+              </button>
+            </div>
           </section>
         )}
       </div>

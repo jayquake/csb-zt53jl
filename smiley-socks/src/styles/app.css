@@ -1010,6 +1010,41 @@ svg {
   margin: 0;
 }
 
+/* The production hand-off, set apart from the design controls above it: it
+   does something to a file rather than to the sock on screen. */
+.panel__handoff {
+  display: grid;
+  gap: var(--space-2);
+  justify-items: start;
+  padding-top: var(--space-3);
+  border-top: 1px solid var(--line);
+}
+
+/* Grid children default to min-width: auto, so a long unbroken token — here the
+   export command — pushes the whole sheet sideways rather than wrapping. This
+   project has been bitten by exactly this three times now. */
+.panel__handoff > * {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.panel__subhead {
+  margin: 0;
+  font-size: var(--text-s);
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.panel__handoff code {
+  /* Long enough to wrap on a 360px phone, and it must wrap rather than push
+     the sheet sideways. */
+  display: inline-block;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  font-size: 0.9em;
+}
+
 .segmented {
   display: flex;
   gap: 4px;
