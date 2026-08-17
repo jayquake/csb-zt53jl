@@ -98,6 +98,16 @@ export function sockPhotoMatches(design: { colorwayId: string; heightId: string;
   return !!entry && entry.height === design.heightId && design.placementId === 'cuff';
 }
 
+/**
+ * Whether a colourway has a real photo at all, independent of height or
+ * placement — for a shop-grid thumbnail, which is a "here's this face for
+ * real" preview rather than the exact configuration being sold, so it isn't
+ * worth gating on the height/placement a shopper hasn't chosen yet.
+ */
+export function sockPhotoAvailable(colorwayId: string): boolean {
+  return colorwayId in PHOTOS;
+}
+
 export function SockPhoto({
   colorwayId,
   face,

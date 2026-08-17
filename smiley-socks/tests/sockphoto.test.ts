@@ -6,7 +6,7 @@
  */
 
 import { describe, expect, it } from 'vitest';
-import { sockPhotoMatches } from '../src/brand/SockPhoto';
+import { sockPhotoAvailable, sockPhotoMatches } from '../src/brand/SockPhoto';
 
 describe('sockPhotoMatches', () => {
   it('matches every garment that was actually photographed', () => {
@@ -32,5 +32,17 @@ describe('sockPhotoMatches', () => {
 
   it('refuses a placement the photo was not shot for', () => {
     expect(sockPhotoMatches({ colorwayId: 'fog', heightId: 'knee', placementId: 'allover' })).toBe(false);
+  });
+});
+
+describe('sockPhotoAvailable', () => {
+  it('is true for every photographed colourway, regardless of height or placement', () => {
+    for (const id of ['fog', 'bone', 'butter', 'oatmeal', 'midnight', 'moss', 'clay', 'bubblegum']) {
+      expect(sockPhotoAvailable(id), id).toBe(true);
+    }
+  });
+
+  it('is false for a colourway nobody photographed', () => {
+    expect(sockPhotoAvailable('nonexistent')).toBe(false);
   });
 });

@@ -8,7 +8,8 @@
 
 import { Link, useSearchParams } from 'react-router-dom';
 import { Sock } from '../brand/Sock';
-import { money, PRICE } from '../store/catalog';
+import { SockPhoto, sockPhotoAvailable } from '../brand/SockPhoto';
+import { COLORWAYS, money, PRICE } from '../store/catalog';
 import { filterProducts, PRODUCTS, productDesign, shelfColorways } from '../store/products';
 
 export function Shop() {
@@ -89,18 +90,32 @@ export function Shop() {
         </p>
       ) : (
         <ul className="shop__grid">
-          {shown.map((product) => (
-            <li key={product.id}>
-              <Link className="card" to={`/p/${product.id}`}>
-                <span className="card__art">
-                  <Sock design={productDesign(product)} className="card__sock" />
-                </span>
-                <span className="card__name">{product.name}</span>
-                <span className="card__blurb">{product.blurb}</span>
-                <span className="card__price">{money(PRICE.single)}</span>
-              </Link>
-            </li>
-          ))}
+          {shown.map((product) => {
+            const design = productDesign(product);
+            const ink = COLORWAYS.find((c) => c.id === design.colorwayId)?.ink ?? '#191710';
+            return (
+              <li key={product.id}>
+                <Link className="card" to={`/p/${product.id}`}>
+                  <span className="card__art">
+                    {sockPhotoAvailable(design.colorwayId) ? (
+                      <SockPhoto
+                        colorwayId={design.colorwayId}
+                        face={design.face}
+                        ink={ink}
+                        finish={design.finish}
+                        className="card__sock"
+                      />
+                    ) : (
+                      <Sock design={design} className="card__sock" />
+                    )}
+                  </span>
+                  <span className="card__name">{product.name}</span>
+                  <span className="card__blurb">{product.blurb}</span>
+                  <span className="card__price">{money(PRICE.single)}</span>
+                </Link>
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>
