@@ -1,18 +1,22 @@
 /*
  * The chalk finish.
  *
- * A hand-drawn chalk line does two things a vector stroke does not: its edge
- * wanders, and its body is patchy where the stick skipped the surface. Both
- * are SVG filter primitives, so we get the look without a single new asset —
- * the same face geometry, roughened on the way to the screen.
+ * Soft charcoal, not a marker: edges blur outward instead of staying crisp,
+ * and each stroke reads as a denser core inside a fainter halo — the way a
+ * stick of charcoal or an airbrush lays down more pigment where it lingers
+ * and less at the edge of the pass. All of it is SVG filter primitives, so
+ * it costs no new asset — the same face geometry, softened on the way to
+ * the screen.
  *
- *   feTurbulence + feDisplacementMap  → the wandering edge
- *   feTurbulence + luminanceToAlpha   → the grain that eats into the stroke
+ *   feGaussianBlur (wide, faint)              → the halo
+ *   feGaussianBlur (tight, capped short of black) → the core, merged over the halo
+ *   feTurbulence + luminanceToAlpha, applied last → fine speckle in the fill,
+ *     kept after the blur so it survives as grain instead of smoothing away
  *
- * The filters live once at the root of the app and every face points at one by
- * id, because a filter per face would mean a hundred noise fields on the home
- * page. Faces pick a variant from their own signature, so a grid of them looks
- * hand-drawn rather than stamped.
+ * The filters live once at the root of the app and every face points at one
+ * by id, because a filter per face would mean a hundred noise fields on the
+ * home page. Faces pick a variant from their own signature, so a grid of
+ * them looks hand-drawn rather than stamped.
  */
 
 const SEEDS = [7, 23, 41, 58, 76, 91];
@@ -42,42 +46,40 @@ export function ChalkDefs() {
           <filter
             key={seed}
             id={chalkFilterId(i)}
-            // Room for the displacement to push strokes outside the artwork's
-            // own box without clipping them.
-            x="-25%"
-            y="-25%"
-            width="150%"
-            height="150%"
+            // Room for the blur to spread outside the artwork's own box
+            // without clipping the halo.
+            x="-60%"
+            y="-60%"
+            width="220%"
+            height="220%"
             colorInterpolationFilters="sRGB"
           >
-            {/* The wandering edge. Low frequency: long, lazy waves rather than
-                a fuzzy outline. */}
-            <feTurbulence type="fractalNoise" baseFrequency="0.028" numOctaves="4" seed={seed} result="warp" />
-            <feDisplacementMap
-              in="SourceGraphic"
-              in2="warp"
-              scale="3.6"
-              xChannelSelector="R"
-              yChannelSelector="G"
-              result="rough"
-            />
-
-            {/* The grain. High frequency noise turned into a patchy alpha mask,
-                then used to eat into the stroke. */}
-            <feTurbulence type="fractalNoise" baseFrequency="0.33" numOctaves="3" seed={seed + 5} result="grain" />
-            <feColorMatrix in="grain" type="luminanceToAlpha" result="grainAlpha" />
-            <feComponentTransfer in="grainAlpha" result="grainMask">
-              {/*
-                Biased hard towards solid. luminanceToAlpha on noise averages
-                out near 0.5, and multiplying a stroke by that leaves it looking
-                eaten rather than chalky — especially at chip size, where the
-                grain is large relative to the line. This maps the whole range
-                into 0.62–1, so the texture reads as tooth on paper while the
-                line stays a line.
-              */}
-              <feFuncA type="table" tableValues="0.62 0.92 1 1" />
+            {/* The halo: a wide, faint blur underneath. */}
+            <feGaussianBlur in="SourceGraphic" stdDeviation="3.4" result="halo" />
+            <feComponentTransfer in="halo" result="haloFaint">
+              <feFuncA type="linear" slope="0.32" />
             </feComponentTransfer>
-            <feComposite in="rough" in2="grainMask" operator="in" />
+
+            {/* The core: a light blur, capped short of solid black — charcoal
+                grey, not ink. */}
+            <feGaussianBlur in="SourceGraphic" stdDeviation="0.9" result="coreBlur" />
+            <feComponentTransfer in="coreBlur" result="core">
+              <feFuncA type="linear" slope="0.8" />
+            </feComponentTransfer>
+
+            <feMerge result="merged">
+              <feMergeNode in="haloFaint" />
+              <feMergeNode in="core" />
+            </feMerge>
+
+            {/* Fine grain, applied after the blur so it survives as visible
+                speckle in the fill instead of smoothing away with the edge. */}
+            <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed={seed} result="fineGrain" />
+            <feColorMatrix in="fineGrain" type="luminanceToAlpha" result="fineGrainAlpha" />
+            <feComponentTransfer in="fineGrainAlpha" result="fineGrainMask">
+              <feFuncA type="table" tableValues="0.55 0.85 1 0.92 0.65" />
+            </feComponentTransfer>
+            <feComposite in="merged" in2="fineGrainMask" operator="in" />
           </filter>
         ))}
       </defs>

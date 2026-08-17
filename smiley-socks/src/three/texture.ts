@@ -67,32 +67,10 @@ function facePaths(face: FaceParams, finish: Finish) {
   return { g };
 }
 
-/**
- * Draw one face, centred on (x, y), scaled so the art spans `size` pixels.
- * Exported because the photo mockup tool paints the same face onto a
- * photograph — one face renderer, three surfaces (SVG, 3D texture, mockup).
- * Chalk by default: the house look, and the finish the 3D preview and the
- * mockup tool had no way to opt out of visually anyway.
- */
-export function paintFace(
-  ctx: CanvasRenderingContext2D,
-  face: FaceParams,
-  x: number,
-  y: number,
-  sizeX: number,
-  sizeY: number,
-  ink: string,
-  finish: Finish = 'chalk',
-) {
-  const { g } = facePaths(face, finish);
-  const SPAN = 160; // the face art spans ~160 of its 200 box, stroke included
+const SPAN = 160; // the face art spans ~160 of its 200 box, stroke included
 
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.scale(sizeX / SPAN, sizeY / SPAN);
-  ctx.rotate((g.tilt * Math.PI) / 180);
-  ctx.translate(-100, -100); // face-space centre
-
+/** One face, drawn crisp with no filter — the shared core both paint paths use. */
+function drawPrimitives(ctx: CanvasRenderingContext2D, g: ReturnType<typeof buildFace>, ink: string) {
   ctx.strokeStyle = ink;
   ctx.fillStyle = ink;
   ctx.lineCap = 'round';
@@ -126,6 +104,76 @@ export function paintFace(
     ctx.restore();
   }
   g.rest.forEach(draw);
+}
+
+/**
+ * Draw one face, centred on (x, y), scaled so the art spans `size` pixels.
+ * Exported because the photo mockup tool paints the same face onto a
+ * photograph — one face renderer, three surfaces (SVG, 3D texture, mockup).
+ * Chalk by default: the house look, and the finish the 3D preview and the
+ * mockup tool had no way to opt out of visually anyway.
+ */
+export function paintFace(
+  ctx: CanvasRenderingContext2D,
+  face: FaceParams,
+  x: number,
+  y: number,
+  sizeX: number,
+  sizeY: number,
+  ink: string,
+  finish: Finish = 'chalk',
+) {
+  const { g } = facePaths(face, finish);
+
+  if (finish !== 'chalk') {
+    ctx.save();
+    ctx.translate(x, y);
+    ctx.scale(sizeX / SPAN, sizeY / SPAN);
+    ctx.rotate((g.tilt * Math.PI) / 180);
+    ctx.translate(-100, -100); // face-space centre
+    drawPrimitives(ctx, g, ink);
+    ctx.restore();
+    return;
+  }
+
+  /*
+   * Canvas has no filter-primitive graph the way SVG does — `ctx.filter`
+   * blurs whatever was drawn since it was set, so filtering per primitive
+   * would mean two blur passes for every eye, brow and mark. That's cheap
+   * once; it is not cheap 24 times a second, which is what the animated
+   * home hero asks of it. So: draw the whole face crisp to an offscreen
+   * canvas once, then blur-composite *that* — two filtered draws total,
+   * not two per primitive, mirroring how the SVG filter in Chalk.tsx is
+   * applied once to the whole face group rather than once per path.
+   *
+   * The blur radii below are the same numbers as Chalk.tsx's SVG
+   * stdDeviation — `ctx.filter` blur, like the SVG version, operates in the
+   * current (already-scaled) coordinate space, so writing them in
+   * face-space units keeps the softness proportionally right whether this
+   * is a 24px thumbnail or the full print, and keeps the two renderers
+   * looking like the same face.
+   */
+  const pad = 1.5; // room for the halo blur to spread past the face box
+  const off = document.createElement('canvas');
+  off.width = Math.ceil(sizeX * pad);
+  off.height = Math.ceil(sizeY * pad);
+  const octx = off.getContext('2d');
+  if (!octx) return;
+  octx.translate(off.width / 2, off.height / 2);
+  octx.scale(sizeX / SPAN, sizeY / SPAN);
+  octx.rotate((g.tilt * Math.PI) / 180);
+  octx.translate(-100, -100);
+  drawPrimitives(octx, g, ink);
+
+  const dx = x - off.width / 2;
+  const dy = y - off.height / 2;
+  ctx.save();
+  ctx.filter = 'blur(3.4px)';
+  ctx.globalAlpha = 0.32;
+  ctx.drawImage(off, dx, dy);
+  ctx.filter = 'blur(0.9px)';
+  ctx.globalAlpha = 0.8;
+  ctx.drawImage(off, dx, dy);
   ctx.restore();
 }
 
