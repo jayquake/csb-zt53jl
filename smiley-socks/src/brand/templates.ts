@@ -417,7 +417,11 @@ export const TEMPLATES: Template[] = [
 
 ];
 
-export const DEFAULT_TEMPLATE = TEMPLATES.find((t) => t.id === 'steady')!;
+// The face a fresh design starts as, everywhere one is needed with no other
+// steer — the studio with no template in the URL, a brand-new cart line. It
+// leads the reordered shelf for the same reason: this is the face the brand
+// puts forward by default now.
+export const DEFAULT_TEMPLATE = TEMPLATES.find((t) => t.id === 'sunny')!;
 
 export function templateById(id: string): Template | undefined {
   return TEMPLATES.find((t) => t.id === id);

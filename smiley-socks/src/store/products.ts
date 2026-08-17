@@ -31,11 +31,13 @@ export interface Product {
  */
 const COLOUR_FOR: Record<string, string> = {
   sunny: 'butter',
+  smitten: 'oatmeal',
+  flirty: 'bubblegum',
   steady: 'bone',
-  fuzzy: 'bone',
+  fuzzy: 'fog',
   wired: 'clay',
   heavy: 'midnight',
-  static: 'midnight',
+  static: 'oatmeal',
   tender: 'bubblegum',
   fierce: 'clay',
   drained: 'moss',
@@ -53,6 +55,12 @@ const COLOUR_FOR: Record<string, string> = {
   determined: 'clay',
   curious: 'butter',
   crushed: 'midnight',
+  rattled: 'fog',
+  goofy: 'clay',
+  starstruck: 'midnight',
+  melancholy: 'fog',
+  sobbing: 'midnight',
+  unbothered: 'oatmeal',
   blank: 'bone',
 };
 

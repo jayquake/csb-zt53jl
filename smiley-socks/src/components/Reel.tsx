@@ -13,7 +13,7 @@ import { useFaceAnimation, useOnScreen } from '../brand/AnimatedFace';
 import { templateById, type Template } from '../brand/templates';
 
 /** A day, roughly. Not a mood scale — an order that reads like hours passing. */
-const REEL = ['hopeful', 'steady', 'wired', 'static', 'heavy', 'drained', 'tender', 'sly'];
+const REEL = ['relieved', 'silly', 'queasy', 'sly', 'curious', 'melancholy', 'shy', 'unbothered'];
 
 export function Reel() {
   const frames = REEL.map((id) => templateById(id)).filter(Boolean) as Template[];

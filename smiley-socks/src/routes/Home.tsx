@@ -9,7 +9,7 @@ import { PackShelf } from '../components/PackShelf';
 import { DEFAULT_DESIGN } from '../store/design';
 import { COLORWAYS, DONATION_RATE, money, PRICE } from '../store/catalog';
 
-const HERO_ROTATION = ['steady', 'heavy', 'wired', 'sunny', 'fuzzy', 'sly', 'fierce'];
+const HERO_ROTATION = ['sunny', 'smitten', 'flirty', 'starstruck', 'crushed', 'fierce', 'proud'];
 const COLOUR_ROTATION = ['bone', 'midnight', 'clay', 'butter', 'moss', 'bubblegum'];
 const HERO_FACES = HERO_ROTATION.map((id) => templateById(id)).filter(Boolean) as Template[];
 
