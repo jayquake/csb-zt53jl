@@ -855,7 +855,6 @@ svg {
 .reel__frame {
   width: 44px;
   height: 44px;
-  padding: 4px;
   border-radius: var(--radius-s);
   border: 1.5px solid transparent;
   opacity: 0.35;
@@ -865,6 +864,18 @@ svg {
   opacity: 1;
   border-color: var(--ink);
   background: color-mix(in srgb, var(--glow) 26%, transparent);
+}
+
+.reel__frame:hover,
+.reel__frame:focus-within {
+  opacity: 1;
+}
+
+.reel__framelink {
+  display: block;
+  width: 100%;
+  height: 100%;
+  padding: 4px;
 }
 
 .reel__framefaces {

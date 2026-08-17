@@ -3,7 +3,7 @@
  * whether the thing is actually on screen.
  */
 
-import { useEffect, useRef, useState } from 'react';
+import { startTransition, useEffect, useRef, useState } from 'react';
 import { faceAt, BOIL_FPS, type AnimationSpec, type ReelFrame } from './animation';
 import { prefersReducedMotion, subscribe } from './ticker';
 import { FaceSvg } from './Face';
@@ -36,7 +36,14 @@ export function useFaceAnimation(spec: AnimationSpec, active = true): ReelFrame 
     return subscribe((elapsed) => {
       if (elapsed - last < interval) return;
       last = elapsed;
-      setFrame(faceAt(specRef.current, elapsed));
+      // Low priority: this fires continuously for as long as the face is on
+      // screen, and nothing about it is urgent. Marking it a transition lets
+      // a real interaction elsewhere on the page — clicking a link, say —
+      // preempt it instead of the animation's own next tick winning the race
+      // every time and the interaction never getting a frame to land in.
+      startTransition(() => {
+        setFrame(faceAt(specRef.current, elapsed));
+      });
     });
   }, [active, fps]);
 

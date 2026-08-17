@@ -7,6 +7,7 @@
  */
 
 import { useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { FaceSvg } from '../brand/Face';
 import { useFaceAnimation, useOnScreen } from '../brand/AnimatedFace';
 import { templateById, type Template } from '../brand/templates';
@@ -48,10 +49,12 @@ export function Reel() {
           </p>
         </div>
 
-        <ol className="reel__strip" aria-hidden="true">
+        <ol className="reel__strip">
           {frames.map((f, i) => (
             <li key={f.id} className={`reel__frame${i === index ? ' is-on' : ''}`}>
-              <FaceSvg face={f.face} className="reel__framefaces" />
+              <Link to={`/studio?start=${f.id}`} className="reel__framelink" aria-label={`${f.name} — open in studio`}>
+                <FaceSvg face={f.face} className="reel__framefaces" title={f.name} />
+              </Link>
             </li>
           ))}
         </ol>
