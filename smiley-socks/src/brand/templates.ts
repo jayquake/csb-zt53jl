@@ -61,6 +61,233 @@ export const TEMPLATES: Template[] = [
     }),
   },
   {
+    id: 'smitten',
+    name: 'Smitten',
+    blurb: 'Completely gone. No notes.',
+    face: face({
+      eyes: { shape: 'heart', size: 15, x: 30, y: 80 },
+      mouth: { curve: 0.85, width: 56, y: 136, flick: 0.6 },
+      marks: ['blush'],
+    }),
+  },
+  {
+    id: 'flirty',
+    name: 'Flirty',
+    blurb: "Feeling myself today, thanks for noticing.",
+    face: face({
+      eyes: { shape: 'lash', size: 14, x: 29, y: 80 },
+      mouth: { curve: 0.6, width: 48, y: 130, flick: 0.55 },
+      marks: ['blush'],
+    }),
+  },
+  {
+    id: 'relieved',
+    name: 'Relieved',
+    blurb: 'It is over. It went fine.',
+    face: face({
+      eyes: { shape: 'arc', size: 14, y: 86, squint: 0.55 },
+      mouth: { curve: 0.45, width: 52, y: 132, flick: 0.5 },
+      marks: ['sweat'],
+    }),
+  },
+  {
+    id: 'crushed',
+    name: 'Crushed',
+    blurb: 'That one landed. Give it a minute.',
+    face: face({
+      squish: -12,
+      eyes: { shape: 'arc', size: 13, y: 90, squint: 0.5, tilt: 18 },
+      brows: { on: true, y: 62, angle: -32, length: 28 },
+      mouth: { curve: -0.9, width: 50, y: 152 },
+      marks: ['tear'],
+    }),
+  },
+  {
+    id: 'rattled',
+    name: 'Rattled',
+    blurb: 'That was too close. Give me a second.',
+    face: face({
+      eyes: { shape: 'round', size: 12, y: 82 },
+      brows: { on: true, y: 44, angle: -30, length: 26 },
+      mouth: { curve: -0.1, width: 40, open: 0.5, y: 138 },
+      marks: ['teeth'],
+    }),
+  },
+  {
+    id: 'silly',
+    name: 'Silly',
+    blurb: 'No notes. No dignity either.',
+    face: face({
+      tilt: 7,
+      eyes: { shape: 'round', size: 16, x: 31, y: 80 },
+      mouth: { curve: 0.9, width: 70, open: 0.45, y: 134 },
+    }),
+  },
+  {
+    id: 'queasy',
+    name: 'Queasy',
+    blurb: 'Something is not sitting right.',
+    face: face({
+      tilt: -6,
+      squish: -5,
+      eyes: { shape: 'bar', size: 12, y: 86, squint: 0.55 },
+      brows: { on: true, y: 60, angle: -14, length: 24 },
+      mouth: { curve: -0.3, width: 52, wave: 0.9, y: 142 },
+      marks: ['sweat'],
+    }),
+  },
+  {
+    id: 'goofy',
+    name: 'Goofy',
+    blurb: 'Being normal was not working out.',
+    face: face({
+      tilt: -6,
+      eyes: { shape: 'cross', size: 12, x: 30, y: 80 },
+      mouth: { curve: 0.55, width: 62, y: 126, flick: 0.8 },
+      marks: ['tongue'],
+    }),
+  },
+  {
+    id: 'sly',
+    name: 'Sly',
+    blurb: "Fine. Mostly. Ask me later and I'll deny it.",
+    face: face({
+      tilt: -3,
+      eyes: { shape: 'tick', size: 14, y: 84 },
+      mouth: { curve: 0.55, width: 60, y: 130, flick: 1 },
+      marks: ['wink'],
+    }),
+  },
+  {
+    id: 'starstruck',
+    name: 'Starstruck',
+    blurb: "Somehow this is going well and I don't trust it yet.",
+    face: face({
+      eyes: { shape: 'star', size: 15, y: 82 },
+      mouth: { curve: 0.85, width: 60, y: 126, flick: 0.6 },
+    }),
+  },
+  {
+    id: 'curious',
+    name: 'Curious',
+    blurb: 'Hang on. Say that again.',
+    face: face({
+      tilt: -8,
+      eyes: { shape: 'round', size: 14, x: 29, y: 80 },
+      brows: { on: true, y: 46, angle: -22, length: 24 },
+      mouth: { curve: 0.15, width: 30, open: 0.3, y: 134 },
+    }),
+  },
+  {
+    id: 'smug',
+    name: 'Smug',
+    blurb: 'Called it. Not going to mention it again — much.',
+    face: face({
+      tilt: 5,
+      eyes: { shape: 'line', size: 13, y: 84, tilt: 14 },
+      brows: { on: true, y: 58, angle: -20, length: 26 },
+      mouth: { curve: 0.4, width: 48, y: 132, flick: 0.9 },
+    }),
+  },
+  {
+    id: 'hopeful',
+    name: 'Hopeful',
+    blurb: 'Better than last week. Counting it.',
+    face: face({
+      eyes: { shape: 'arc', size: 14, y: 84, squint: 0.15, tilt: -6 },
+      mouth: { curve: 0.6, width: 56, y: 128, flick: 0.7 },
+      marks: ['sparkle'],
+    }),
+  },
+  {
+    id: 'melancholy',
+    name: 'Melancholy',
+    blurb: 'Somewhere else today. Not gone, just drifting.',
+    face: face({
+      tilt: -6,
+      squish: -5,
+      eyes: { shape: 'line', size: 12, y: 84, tilt: 15 },
+      mouth: { curve: -0.3, width: 50, y: 134, wave: 0.25 },
+    }),
+  },
+  {
+    id: 'bored',
+    name: 'Bored',
+    blurb: 'Waiting for something to happen. Anything.',
+    face: face({
+      tilt: -4,
+      eyes: { shape: 'bar', size: 13, y: 86, squint: 0.62 },
+      brows: { on: true, y: 60, angle: -4, length: 22 },
+      mouth: { curve: -0.06, width: 40, y: 140 },
+    }),
+  },
+  {
+    id: 'fierce',
+    name: 'Fierce',
+    blurb: 'Running hot. Do not test it.',
+    face: face({
+      tilt: 4,
+      width: 76,
+      eyes: { shape: 'bar', size: 14, y: 84, squint: 0.35, tilt: 22 },
+      brows: { on: true, y: 58, angle: 32, length: 30 },
+      mouth: { curve: -0.5, width: 62, open: 0.3, y: 142 },
+    }),
+  },
+  {
+    id: 'sobbing',
+    name: 'Sobbing',
+    blurb: "Not holding it together right now, and that's allowed.",
+    face: face({
+      squish: -8,
+      eyes: { shape: 'bar', size: 13, y: 88, squint: 0.5 },
+      brows: { on: true, y: 60, angle: -22, length: 26 },
+      mouth: { curve: -0.6, width: 40, open: 0.35, y: 148 },
+      marks: ['bawling'],
+    }),
+  },
+  {
+    id: 'proud',
+    name: 'Proud',
+    blurb: 'Did a hard thing. Telling everyone.',
+    face: face({
+      squish: 4,
+      eyes: { shape: 'arc', size: 14, y: 80, squint: 0.15 },
+      brows: { on: true, y: 44, angle: -6, length: 26 },
+      mouth: { curve: 0.75, width: 66, y: 126, flick: 0.7 },
+      marks: ['sparkle'],
+    }),
+  },
+  {
+    id: 'shy',
+    name: 'Shy',
+    blurb: "Would rather not, but here I am.",
+    face: face({
+      width: 66,
+      eyes: { shape: 'arc', size: 11, y: 90, squint: 0.35, tilt: 8 },
+      mouth: { curve: 0.2, width: 34, y: 136, flick: 0.3 },
+      marks: ['blush'],
+    }),
+  },
+  {
+    id: 'unbothered',
+    name: 'Unbothered',
+    blurb: "Whatever it is, it's not getting in today.",
+    face: face({
+      marks: ['shades'],
+      mouth: { curve: 0.15, width: 50, y: 130 },
+    }),
+  },
+  {
+    id: 'loved',
+    name: 'Loved',
+    blurb: 'Someone showed up. It worked.',
+    face: face({
+      eyes: { shape: 'arc', size: 15, y: 86, squint: 0.25 },
+      mouth: { curve: 0.8, width: 66, y: 128, flick: 0.6 },
+      marks: ['blush', 'sparkle'],
+    }),
+  },
+  {
     id: 'steady',
     name: 'Steady',
     blurb: "Nothing dramatic. I'll take it.",
@@ -124,18 +351,6 @@ export const TEMPLATES: Template[] = [
     }),
   },
   {
-    id: 'fierce',
-    name: 'Fierce',
-    blurb: 'Running hot. Do not test it.',
-    face: face({
-      tilt: 4,
-      width: 76,
-      eyes: { shape: 'bar', size: 14, y: 84, squint: 0.35, tilt: 22 },
-      brows: { on: true, y: 58, angle: 32, length: 30 },
-      mouth: { curve: -0.5, width: 62, open: 0.3, y: 142 },
-    }),
-  },
-  {
     id: 'drained',
     name: 'Drained',
     blurb: 'Out of battery. Not out of the woods.',
@@ -145,146 +360,6 @@ export const TEMPLATES: Template[] = [
       brows: { on: true, y: 62, angle: -10, length: 24 },
       mouth: { curve: -0.28, width: 44, y: 146 },
       marks: ['zzz'],
-    }),
-  },
-  {
-    id: 'melancholy',
-    name: 'Melancholy',
-    blurb: 'Somewhere else today. Not gone, just drifting.',
-    face: face({
-      tilt: -6,
-      squish: -5,
-      eyes: { shape: 'line', size: 12, y: 84, tilt: 15 },
-      mouth: { curve: -0.3, width: 50, y: 134, wave: 0.25 },
-    }),
-  },
-  {
-    id: 'hopeful',
-    name: 'Hopeful',
-    blurb: 'Better than last week. Counting it.',
-    face: face({
-      eyes: { shape: 'arc', size: 14, y: 84, squint: 0.15, tilt: -6 },
-      mouth: { curve: 0.6, width: 56, y: 128, flick: 0.7 },
-      marks: ['sparkle'],
-    }),
-  },
-  {
-    id: 'loved',
-    name: 'Loved',
-    blurb: 'Someone showed up. It worked.',
-    face: face({
-      eyes: { shape: 'arc', size: 15, y: 86, squint: 0.25 },
-      mouth: { curve: 0.8, width: 66, y: 128, flick: 0.6 },
-      marks: ['blush', 'sparkle'],
-    }),
-  },
-  {
-    id: 'starstruck',
-    name: 'Starstruck',
-    blurb: "Somehow this is going well and I don't trust it yet.",
-    face: face({
-      eyes: { shape: 'star', size: 15, y: 82 },
-      mouth: { curve: 0.85, width: 60, y: 126, flick: 0.6 },
-    }),
-  },
-  {
-    id: 'sly',
-    name: 'Sly',
-    blurb: "Fine. Mostly. Ask me later and I'll deny it.",
-    face: face({
-      tilt: -3,
-      eyes: { shape: 'tick', size: 14, y: 84 },
-      mouth: { curve: 0.55, width: 60, y: 130, flick: 1 },
-      marks: ['wink'],
-    }),
-  },
-  {
-    id: 'proud',
-    name: 'Proud',
-    blurb: 'Did a hard thing. Telling everyone.',
-    face: face({
-      squish: 4,
-      eyes: { shape: 'arc', size: 14, y: 80, squint: 0.15 },
-      brows: { on: true, y: 44, angle: -6, length: 26 },
-      mouth: { curve: 0.75, width: 66, y: 126, flick: 0.7 },
-      marks: ['sparkle'],
-    }),
-  },
-  {
-    id: 'bored',
-    name: 'Bored',
-    blurb: 'Waiting for something to happen. Anything.',
-    face: face({
-      tilt: -4,
-      eyes: { shape: 'bar', size: 13, y: 86, squint: 0.62 },
-      brows: { on: true, y: 60, angle: -4, length: 22 },
-      mouth: { curve: -0.06, width: 40, y: 140 },
-    }),
-  },
-  {
-    id: 'shy',
-    name: 'Shy',
-    blurb: "Would rather not, but here I am.",
-    face: face({
-      width: 66,
-      eyes: { shape: 'arc', size: 11, y: 90, squint: 0.35, tilt: 8 },
-      mouth: { curve: 0.2, width: 34, y: 136, flick: 0.3 },
-      marks: ['blush'],
-    }),
-  },
-  {
-    id: 'smug',
-    name: 'Smug',
-    blurb: 'Called it. Not going to mention it again — much.',
-    face: face({
-      tilt: 5,
-      eyes: { shape: 'line', size: 13, y: 84, tilt: 14 },
-      brows: { on: true, y: 58, angle: -20, length: 26 },
-      mouth: { curve: 0.4, width: 48, y: 132, flick: 0.9 },
-    }),
-  },
-  {
-    id: 'queasy',
-    name: 'Queasy',
-    blurb: 'Something is not sitting right.',
-    face: face({
-      tilt: -6,
-      squish: -5,
-      eyes: { shape: 'bar', size: 12, y: 86, squint: 0.55 },
-      brows: { on: true, y: 60, angle: -14, length: 24 },
-      mouth: { curve: -0.3, width: 52, wave: 0.9, y: 142 },
-      marks: ['sweat'],
-    }),
-  },
-  {
-    id: 'rattled',
-    name: 'Rattled',
-    blurb: 'That was too close. Give me a second.',
-    face: face({
-      eyes: { shape: 'round', size: 12, y: 82 },
-      brows: { on: true, y: 44, angle: -30, length: 26 },
-      mouth: { curve: -0.1, width: 40, open: 0.5, y: 138 },
-      marks: ['teeth'],
-    }),
-  },
-  {
-    id: 'relieved',
-    name: 'Relieved',
-    blurb: 'It is over. It went fine.',
-    face: face({
-      eyes: { shape: 'arc', size: 14, y: 86, squint: 0.55 },
-      mouth: { curve: 0.45, width: 52, y: 132, flick: 0.5 },
-      marks: ['sweat'],
-    }),
-  },
-  {
-    id: 'silly',
-    name: 'Silly',
-    blurb: 'No notes. No dignity either.',
-    face: face({
-      tilt: 7,
-      eyes: { shape: 'round', size: 16, x: 31, y: 80 },
-      mouth: { curve: 0.9, width: 70, open: 0.45, y: 134 },
     }),
   },
   {
@@ -308,81 +383,6 @@ export const TEMPLATES: Template[] = [
     }),
   },
   {
-    id: 'curious',
-    name: 'Curious',
-    blurb: 'Hang on. Say that again.',
-    face: face({
-      tilt: -8,
-      eyes: { shape: 'round', size: 14, x: 29, y: 80 },
-      brows: { on: true, y: 46, angle: -22, length: 24 },
-      mouth: { curve: 0.15, width: 30, open: 0.3, y: 134 },
-    }),
-  },
-  {
-    id: 'crushed',
-    name: 'Crushed',
-    blurb: 'That one landed. Give it a minute.',
-    face: face({
-      squish: -12,
-      eyes: { shape: 'arc', size: 13, y: 90, squint: 0.5, tilt: 18 },
-      brows: { on: true, y: 62, angle: -32, length: 28 },
-      mouth: { curve: -0.9, width: 50, y: 152 },
-      marks: ['tear'],
-    }),
-  },
-  {
-    id: 'sobbing',
-    name: 'Sobbing',
-    blurb: "Not holding it together right now, and that's allowed.",
-    face: face({
-      squish: -8,
-      eyes: { shape: 'bar', size: 13, y: 88, squint: 0.5 },
-      brows: { on: true, y: 60, angle: -22, length: 26 },
-      mouth: { curve: -0.6, width: 40, open: 0.35, y: 148 },
-      marks: ['bawling'],
-    }),
-  },
-  {
-    id: 'smitten',
-    name: 'Smitten',
-    blurb: 'Completely gone. No notes.',
-    face: face({
-      eyes: { shape: 'heart', size: 15, x: 30, y: 80 },
-      mouth: { curve: 0.85, width: 56, y: 136, flick: 0.6 },
-      marks: ['blush'],
-    }),
-  },
-  {
-    id: 'goofy',
-    name: 'Goofy',
-    blurb: 'Being normal was not working out.',
-    face: face({
-      tilt: -6,
-      eyes: { shape: 'cross', size: 12, x: 30, y: 80 },
-      mouth: { curve: 0.55, width: 62, y: 126, flick: 0.8 },
-      marks: ['tongue'],
-    }),
-  },
-  {
-    id: 'flirty',
-    name: 'Flirty',
-    blurb: "Feeling myself today, thanks for noticing.",
-    face: face({
-      eyes: { shape: 'lash', size: 14, x: 29, y: 80 },
-      mouth: { curve: 0.6, width: 48, y: 130, flick: 0.55 },
-      marks: ['blush'],
-    }),
-  },
-  {
-    id: 'unbothered',
-    name: 'Unbothered',
-    blurb: "Whatever it is, it's not getting in today.",
-    face: face({
-      marks: ['shades'],
-      mouth: { curve: 0.15, width: 50, y: 130 },
-    }),
-  },
-  {
     id: 'blank',
     name: 'Blank',
     blurb: 'Watching myself from across the room.',
@@ -391,9 +391,10 @@ export const TEMPLATES: Template[] = [
       mouth: { curve: 0, width: 40, y: 138 },
     }),
   },
+
 ];
 
-export const DEFAULT_TEMPLATE = TEMPLATES[1]; // Steady
+export const DEFAULT_TEMPLATE = TEMPLATES.find((t) => t.id === 'steady')!;
 
 export function templateById(id: string): Template | undefined {
   return TEMPLATES.find((t) => t.id === id);
