@@ -51,6 +51,13 @@ describe('fold map', () => {
       expect(v).toBeLessThanOrEqual(1);
     }
   });
+
+  it('is deterministic for the same photo — the guarantee a caller relies on to compute it once and reuse it across many recomposites instead of every frame', () => {
+    const photo = image(28, 28, (x, y) => (x * 13 + y * 5) % 256);
+    const a = foldMap(photo);
+    const b = foldMap(photo);
+    expect(Array.from(a)).toEqual(Array.from(b));
+  });
 });
 
 describe('print placement', () => {

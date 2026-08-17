@@ -2,11 +2,12 @@ import { Link } from 'react-router-dom';
 import { Grinline } from '../brand/Grinline';
 import { AnimatedFace, useFaceAnimation } from '../brand/AnimatedFace';
 import { Sock } from '../brand/Sock';
+import { SockPhoto, sockPhotoAvailable } from '../brand/SockPhoto';
 import { templateById, TEMPLATES, type Template } from '../brand/templates';
 import { Reel } from '../components/Reel';
 import { PackShelf } from '../components/PackShelf';
 import { DEFAULT_DESIGN } from '../store/design';
-import { DONATION_RATE, money, PRICE } from '../store/catalog';
+import { COLORWAYS, DONATION_RATE, money, PRICE } from '../store/catalog';
 
 const HERO_ROTATION = ['steady', 'heavy', 'wired', 'sunny', 'fuzzy', 'sly', 'fierce'];
 const COLOUR_ROTATION = ['bone', 'midnight', 'clay', 'butter', 'moss', 'bubblegum'];
@@ -25,12 +26,14 @@ export function Home() {
   });
 
   const template = HERO_FACES[index] ?? HERO_FACES[0];
+  const heroColorwayId = COLOUR_ROTATION[index % COLOUR_ROTATION.length];
   const heroDesign = {
     ...DEFAULT_DESIGN,
     face,
-    colorwayId: COLOUR_ROTATION[index % COLOUR_ROTATION.length],
+    colorwayId: heroColorwayId,
     placementId: 'cuff',
   };
+  const heroInk = COLORWAYS.find((c) => c.id === heroColorwayId)?.ink ?? '#191710';
 
   return (
     <>
@@ -64,7 +67,17 @@ export function Home() {
         </div>
 
         <div className="hero__art">
-          <Sock design={heroDesign} className="hero__sock" />
+          {sockPhotoAvailable(heroColorwayId) ? (
+            <SockPhoto
+              colorwayId={heroColorwayId}
+              face={face}
+              ink={heroInk}
+              finish={heroDesign.finish}
+              className="hero__sock"
+            />
+          ) : (
+            <Sock design={heroDesign} className="hero__sock" />
+          )}
           <p className="hero__caption">{template.name} — {template.blurb}</p>
         </div>
       </section>

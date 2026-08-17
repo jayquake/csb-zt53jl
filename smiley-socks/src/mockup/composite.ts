@@ -97,11 +97,18 @@ export function printRect(place: PlaceOptions, w: number, h: number) {
  * Composite `art` (an RGBA canvas of the print, transparent around it) onto
  * `photo`, and return a new canvas. The original photo canvas is not touched,
  * so the caller can re-composite on every slider move.
+ * `fold` is the photo's own fold map, computed once and passed back in on
+ * every subsequent call. It depends only on the photograph, never on the
+ * artwork, so a caller compositing the same photo repeatedly — a live
+ * animation redrawing every frame, say — would otherwise redo the same
+ * full-image blur every single time for no reason. Omit it to compute fresh,
+ * which is what a one-off composite (the mockup tool) still does.
  */
 export function compositeOntoPhoto(
   photo: HTMLCanvasElement,
   art: HTMLCanvasElement,
   place: PlaceOptions,
+  fold?: Float32Array,
 ): HTMLCanvasElement {
   const w = photo.width;
   const h = photo.height;
@@ -133,7 +140,7 @@ export function compositeOntoPhoto(
   lctx.restore();
 
   if (place.displace > 0.01) {
-    const fold = foldMap(pctx.getImageData(0, 0, w, h));
+    const foldValues = fold ?? foldMap(pctx.getImageData(0, 0, w, h));
     const src = lctx.getImageData(0, 0, w, h);
     const dst = new ImageData(w, h);
 
@@ -160,8 +167,8 @@ export function compositeOntoPhoto(
     for (let y = y0; y <= y1; y++) {
       for (let x = x0; x <= x1; x++) {
         const i = y * w + x;
-        const gx = fold[i + 1] - fold[i - 1];
-        const gy = fold[i + w] - fold[i - w];
+        const gx = foldValues[i + 1] - foldValues[i - 1];
+        const gy = foldValues[i + w] - foldValues[i - w];
         strongest = Math.max(strongest, Math.hypot(gx, gy));
       }
     }
@@ -171,8 +178,8 @@ export function compositeOntoPhoto(
       for (let x = x0; x <= x1; x++) {
         const i = y * w + x;
         // Gradient of the fold map: which way the cloth is sloping here.
-        const gx = fold[i + 1] - fold[i - 1];
-        const gy = fold[i + w] - fold[i - w];
+        const gx = foldValues[i + 1] - foldValues[i - 1];
+        const gy = foldValues[i + w] - foldValues[i - w];
         const sx = Math.round(x - gx * gain);
         const sy = Math.round(y - gy * gain);
         if (sx < 0 || sy < 0 || sx >= w || sy >= h) continue;

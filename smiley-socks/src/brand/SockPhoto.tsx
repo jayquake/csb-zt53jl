@@ -20,7 +20,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import type { FaceParams, Finish } from './face';
 import { paintFace } from '../three/texture';
-import { compositeOntoPhoto, toWorkingCanvas, type PlaceOptions } from '../mockup/composite';
+import { compositeOntoPhoto, foldMap, toWorkingCanvas, type PlaceOptions } from '../mockup/composite';
 import type { Height } from '../store/catalog';
 import fogUrl from '../assets/sock-photo-fog.png';
 import boneUrl from '../assets/sock-photo-bone.png';
@@ -132,13 +132,23 @@ export function SockPhoto({
   const entry = PHOTOS[colorwayId];
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [photo, setPhoto] = useState<HTMLCanvasElement | null>(null);
+  // The fold map is a full-image blur of the photo alone — it never depends
+  // on the face, so it's computed once per photo load and reused on every
+  // recomposite rather than redone on every render. That's what makes this
+  // cheap enough to sit under a continuously animating face (the home hero)
+  // and not just a one-off static view.
+  const [fold, setFold] = useState<Float32Array | null>(null);
 
   useEffect(() => {
     if (!entry) return;
     let cancelled = false;
     const img = new Image();
     img.onload = () => {
-      if (!cancelled) setPhoto(toWorkingCanvas(img));
+      if (cancelled) return;
+      const canvas = toWorkingCanvas(img);
+      setPhoto(canvas);
+      const ctx = canvas.getContext('2d', { willReadFrequently: true });
+      setFold(ctx ? foldMap(ctx.getImageData(0, 0, canvas.width, canvas.height)) : null);
     };
     img.src = entry.url;
     return () => {
@@ -158,11 +168,11 @@ export function SockPhoto({
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas || !photo || !entry) return;
-    const out = compositeOntoPhoto(photo, art, entry.place);
+    const out = compositeOntoPhoto(photo, art, entry.place, fold ?? undefined);
     canvas.width = out.width;
     canvas.height = out.height;
     canvas.getContext('2d')?.drawImage(out, 0, 0);
-  }, [art, photo, entry]);
+  }, [art, photo, fold, entry]);
 
   if (!entry) return null;
 
