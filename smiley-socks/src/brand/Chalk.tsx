@@ -1,5 +1,5 @@
 /*
- * The chalk finish.
+ * The chalk finish — the SVG half of it.
  *
  * Soft charcoal, not a marker: edges blur outward instead of staying crisp,
  * and each stroke reads as a denser core inside a fainter halo — the way a
@@ -17,7 +17,19 @@
  * by id, because a filter per face would mean a hundred noise fields on the
  * home page. Faces pick a variant from their own signature, so a grid of
  * them looks hand-drawn rather than stamped.
+ *
+ * The tuning numbers themselves live in finish.ts, shared with texture.ts's
+ * canvas version of this same look — see that file for why.
  */
+
+import {
+  CHALK_CORE_ALPHA,
+  CHALK_CORE_BLUR,
+  CHALK_GRAIN_ALPHA_TABLE,
+  CHALK_GRAIN_FREQUENCY,
+  CHALK_HALO_ALPHA,
+  CHALK_HALO_BLUR,
+} from './finish';
 
 const SEEDS = [7, 23, 41, 58, 76, 91];
 
@@ -55,16 +67,16 @@ export function ChalkDefs() {
             colorInterpolationFilters="sRGB"
           >
             {/* The halo: a wide, faint blur underneath. */}
-            <feGaussianBlur in="SourceGraphic" stdDeviation="3.4" result="halo" />
+            <feGaussianBlur in="SourceGraphic" stdDeviation={CHALK_HALO_BLUR} result="halo" />
             <feComponentTransfer in="halo" result="haloFaint">
-              <feFuncA type="linear" slope="0.32" />
+              <feFuncA type="linear" slope={CHALK_HALO_ALPHA} />
             </feComponentTransfer>
 
             {/* The core: a light blur, capped short of solid black — charcoal
                 grey, not ink. */}
-            <feGaussianBlur in="SourceGraphic" stdDeviation="0.9" result="coreBlur" />
+            <feGaussianBlur in="SourceGraphic" stdDeviation={CHALK_CORE_BLUR} result="coreBlur" />
             <feComponentTransfer in="coreBlur" result="core">
-              <feFuncA type="linear" slope="0.8" />
+              <feFuncA type="linear" slope={CHALK_CORE_ALPHA} />
             </feComponentTransfer>
 
             <feMerge result="merged">
@@ -74,10 +86,16 @@ export function ChalkDefs() {
 
             {/* Fine grain, applied after the blur so it survives as visible
                 speckle in the fill instead of smoothing away with the edge. */}
-            <feTurbulence type="fractalNoise" baseFrequency="0.9" numOctaves="2" seed={seed} result="fineGrain" />
+            <feTurbulence
+              type="fractalNoise"
+              baseFrequency={CHALK_GRAIN_FREQUENCY}
+              numOctaves="2"
+              seed={seed}
+              result="fineGrain"
+            />
             <feColorMatrix in="fineGrain" type="luminanceToAlpha" result="fineGrainAlpha" />
             <feComponentTransfer in="fineGrainAlpha" result="fineGrainMask">
-              <feFuncA type="table" tableValues="0.55 0.85 1 0.92 0.65" />
+              <feFuncA type="table" tableValues={CHALK_GRAIN_ALPHA_TABLE} />
             </feComponentTransfer>
             <feComposite in="merged" in2="fineGrainMask" operator="in" />
           </filter>

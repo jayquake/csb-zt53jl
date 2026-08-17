@@ -12,6 +12,7 @@
  */
 
 import { buildFace, STROKE, type FaceParams, type Finish } from '../brand/face';
+import { CHALK_CORE_ALPHA, CHALK_CORE_BLUR, CHALK_HALO_ALPHA, CHALK_HALO_BLUR } from '../brand/finish';
 import { layout } from '../brand/grinline';
 import { COLORWAYS, HEIGHTS, PLACEMENTS, type Colorway } from '../store/catalog';
 import type { Design } from '../store/design';
@@ -168,11 +169,11 @@ export function paintFace(
   const dx = x - off.width / 2;
   const dy = y - off.height / 2;
   ctx.save();
-  ctx.filter = 'blur(3.4px)';
-  ctx.globalAlpha = 0.32;
+  ctx.filter = `blur(${CHALK_HALO_BLUR}px)`;
+  ctx.globalAlpha = CHALK_HALO_ALPHA;
   ctx.drawImage(off, dx, dy);
-  ctx.filter = 'blur(0.9px)';
-  ctx.globalAlpha = 0.8;
+  ctx.filter = `blur(${CHALK_CORE_BLUR}px)`;
+  ctx.globalAlpha = CHALK_CORE_ALPHA;
   ctx.drawImage(off, dx, dy);
   ctx.restore();
 }
