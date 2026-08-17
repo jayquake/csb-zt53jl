@@ -93,9 +93,17 @@ const PHOTOS: Record<string, PhotoEntry> = {
 };
 
 /** The one design each photograph can honestly stand in for. */
-export function sockPhotoMatches(design: { colorwayId: string; heightId: string; placementId: string }): boolean {
+export function sockPhotoMatches(design: {
+  colorwayId: string;
+  heightId: string;
+  placementId: string;
+  photo?: unknown;
+}): boolean {
   const entry = PHOTOS[design.colorwayId];
-  return !!entry && entry.height === design.heightId && design.placementId === 'cuff';
+  // A customer's own uploaded cuff print (design.photo) is a different image
+  // entirely — SockPhoto only knows how to composite the parametric face, so
+  // it would silently show the wrong print rather than what they uploaded.
+  return !!entry && entry.height === design.heightId && design.placementId === 'cuff' && !design.photo;
 }
 
 /**

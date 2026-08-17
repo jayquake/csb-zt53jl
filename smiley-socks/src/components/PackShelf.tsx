@@ -9,7 +9,8 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Sock } from '../brand/Sock';
-import { money, PRICE } from '../store/catalog';
+import { SockPhoto, sockPhotoAvailable } from '../brand/SockPhoto';
+import { COLORWAYS, money, PRICE } from '../store/catalog';
 import { TRIOS, trioDesigns, trioPrice } from '../store/packs';
 import { useCart } from '../store/cart';
 
@@ -31,9 +32,20 @@ export function PackShelf() {
           return (
             <li key={trio.id} className="pack">
               <div className="pack__socks">
-                {designs.map((design, i) => (
-                  <Sock key={`${trio.id}-${i}`} design={design} className="pack__sock" />
-                ))}
+                {designs.map((design, i) =>
+                  sockPhotoAvailable(design.colorwayId) ? (
+                    <SockPhoto
+                      key={`${trio.id}-${i}`}
+                      colorwayId={design.colorwayId}
+                      face={design.face}
+                      ink={COLORWAYS.find((c) => c.id === design.colorwayId)?.ink ?? '#191710'}
+                      finish={design.finish}
+                      className="pack__sock"
+                    />
+                  ) : (
+                    <Sock key={`${trio.id}-${i}`} design={design} className="pack__sock" />
+                  ),
+                )}
               </div>
 
               <h3 className="pack__name">{trio.name}</h3>

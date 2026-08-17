@@ -33,6 +33,12 @@ describe('sockPhotoMatches', () => {
   it('refuses a placement the photo was not shot for', () => {
     expect(sockPhotoMatches({ colorwayId: 'fog', heightId: 'knee', placementId: 'allover' })).toBe(false);
   });
+
+  it('refuses a design with its own uploaded print — a different image SockPhoto cannot show', () => {
+    expect(
+      sockPhotoMatches({ colorwayId: 'fog', heightId: 'knee', placementId: 'cuff', photo: { src: 'data:x' } }),
+    ).toBe(false);
+  });
 });
 
 describe('sockPhotoAvailable', () => {

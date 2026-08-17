@@ -1475,7 +1475,8 @@ input[type='range'] {
   background: var(--paper-raised);
 }
 
-.bagline__art svg {
+.bagline__art svg,
+.bagline__art canvas {
   width: 100%;
   height: auto;
 }

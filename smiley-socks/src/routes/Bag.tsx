@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Sock } from '../brand/Sock';
+import { SockPhoto, sockPhotoMatches } from '../brand/SockPhoto';
 import { Stepper } from '../components/Controls';
 import { linePrice, useCart } from '../store/cart';
 import {
@@ -77,7 +78,16 @@ export function Bag() {
         {items.map((item) => (
           <li key={item.id} className="bagline">
             <div className="bagline__art">
-              <Sock design={item.design} />
+              {sockPhotoMatches(item.design) ? (
+                <SockPhoto
+                  colorwayId={item.design.colorwayId}
+                  face={item.design.face}
+                  ink={COLORWAYS.find((c) => c.id === item.design.colorwayId)?.ink ?? '#191710'}
+                  finish={item.design.finish}
+                />
+              ) : (
+                <Sock design={item.design} />
+              )}
             </div>
             <div className="bagline__body">
               <h2 className="bagline__title">

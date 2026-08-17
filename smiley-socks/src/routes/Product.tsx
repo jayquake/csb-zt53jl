@@ -35,17 +35,26 @@ export function Product() {
   const { add } = useCart();
 
   const [design, setDesign] = useState<Design | null>(() => (product ? productDesign(product) : null));
-  const [view, setView] = useState<'flat' | '3d' | 'photo'>('flat');
+  const [view, setView] = useState<'flat' | '3d' | 'photo'>(() =>
+    product && sockPhotoMatches(productDesign(product)) ? 'photo' : 'flat',
+  );
   const [added, setAdded] = useState(false);
 
   const price = useMemo(() => (design ? priceOne(pricedFrom(design)) : 0), [design]);
   const photoReady = design ? sockPhotoMatches(design) : false;
 
-  // The photo view only stands in for one real garment (Fog, knee-high, cuff
-  // hit) — if a variant change moves the design away from that, keep showing
-  // a real render instead of quietly switching back under the shopper.
+  // Photo replaces flat rather than sitting next to it — a drawing of the
+  // sock has no reason to exist once a real photograph of it does. "Flat"
+  // only reappears as a fallback for the variants nobody has photographed
+  // yet. The two effects below keep "flat" and "photo" mutually exclusive as
+  // the shopper changes height/colourway/placement: drop out of photo the
+  // moment it stops being honest, and pick it back up the moment it's
+  // available again, without disturbing anyone actively looking at 3D.
   useEffect(() => {
     if (view === 'photo' && !photoReady) setView('flat');
+  }, [view, photoReady]);
+  useEffect(() => {
+    if (view === 'flat' && photoReady) setView('photo');
   }, [view, photoReady]);
 
   if (!product || !design) {
@@ -89,7 +98,10 @@ export function Product() {
           <SockThree design={design} />
         )}
         <div className="viewtoggle" role="radiogroup" aria-label="How to view the sock">
-          {(['flat', '3d'] as const).map((v) => (
+          {/* Photo replaces flat wherever it's available — offering both would
+              make "flat" look like a deliberate second choice rather than the
+              fallback it is for the variants nobody has photographed. */}
+          {(photoReady ? (['photo', '3d'] as const) : (['flat', '3d'] as const)).map((v) => (
             <button
               key={v}
               type="button"
@@ -98,20 +110,9 @@ export function Product() {
               className={`viewtoggle__btn${view === v ? ' is-on' : ''}`}
               onClick={() => setView(v)}
             >
-              {v === 'flat' ? 'Flat' : '3D'}
+              {v === 'flat' ? 'Flat' : v === 'photo' ? 'Photo' : '3D'}
             </button>
           ))}
-          {photoReady && (
-            <button
-              type="button"
-              role="radio"
-              aria-checked={view === 'photo'}
-              className={`viewtoggle__btn${view === 'photo' ? ' is-on' : ''}`}
-              onClick={() => setView('photo')}
-            >
-              Photo
-            </button>
-          )}
         </div>
         {photoReady && view === 'photo' && (
           <p className="pdp__phototag">
