@@ -55,7 +55,9 @@ export const TEMPLATES: Template[] = [
     name: 'Sunny',
     blurb: 'Genuinely good. Rare enough to print.',
     face: face({
-      eyes: { shape: 'arc', size: 15, y: 84, squint: 0.1 },
+      // Reference: plain close-set dots, not a closed lash-curve — the
+      // simplest, most open-eyed happy in the sheet.
+      eyes: { shape: 'round', size: 13, x: 27, y: 82 },
       mouth: { curve: 0.95, width: 74, y: 126, flick: 0.85 },
       marks: ['sparkle'],
     }),
@@ -65,7 +67,8 @@ export const TEMPLATES: Template[] = [
     name: 'Smitten',
     blurb: 'Completely gone. No notes.',
     face: face({
-      eyes: { shape: 'heart', size: 15, x: 30, y: 80 },
+      // Reference draws the hearts bigger and bolder than a typical eye.
+      eyes: { shape: 'heart', size: 17, x: 30, y: 80 },
       mouth: { curve: 0.85, width: 56, y: 136, flick: 0.6 },
       marks: ['blush'],
     }),
@@ -76,7 +79,9 @@ export const TEMPLATES: Template[] = [
     blurb: "Feeling myself today, thanks for noticing.",
     face: face({
       eyes: { shape: 'lash', size: 14, x: 29, y: 80 },
-      mouth: { curve: 0.6, width: 48, y: 130, flick: 0.55 },
+      // Reference pairs the wink with a smaller, more asymmetric smirk, not
+      // a full open smile.
+      mouth: { curve: 0.6, width: 44, y: 130, flick: 0.75 },
       marks: ['blush'],
     }),
   },
@@ -86,7 +91,9 @@ export const TEMPLATES: Template[] = [
     blurb: 'It is over. It went fine.',
     face: face({
       eyes: { shape: 'arc', size: 14, y: 86, squint: 0.55 },
-      mouth: { curve: 0.45, width: 52, y: 132, flick: 0.5 },
+      // Reference: the closed-eye happy pairs with a real open laugh, not a
+      // closed curve — the exhale is audible.
+      mouth: { curve: 0.55, width: 60, open: 0.25, y: 132, flick: 0.5 },
       marks: ['sweat'],
     }),
   },
@@ -96,7 +103,8 @@ export const TEMPLATES: Template[] = [
     blurb: 'That one landed. Give it a minute.',
     face: face({
       squish: -12,
-      eyes: { shape: 'arc', size: 13, y: 90, squint: 0.5, tilt: 18 },
+      // Reference eyes droop lower and closer together than a simple arc.
+      eyes: { shape: 'arc', size: 13, x: 27, y: 90, squint: 0.62, tilt: 18 },
       brows: { on: true, y: 62, angle: -32, length: 28 },
       mouth: { curve: -0.9, width: 50, y: 152 },
       marks: ['tear'],
@@ -107,9 +115,11 @@ export const TEMPLATES: Template[] = [
     name: 'Rattled',
     blurb: 'That was too close. Give me a second.',
     face: face({
-      eyes: { shape: 'round', size: 12, y: 82 },
+      // Reference eyes are wider and closer to the top of the face — the
+      // startled look reads bigger than a standard round eye.
+      eyes: { shape: 'round', size: 15, y: 80 },
       brows: { on: true, y: 44, angle: -30, length: 26 },
-      mouth: { curve: -0.1, width: 40, open: 0.5, y: 138 },
+      mouth: { curve: -0.1, width: 46, open: 0.5, y: 138 },
       marks: ['teeth'],
     }),
   },
@@ -119,8 +129,9 @@ export const TEMPLATES: Template[] = [
     blurb: 'No notes. No dignity either.',
     face: face({
       tilt: 7,
-      eyes: { shape: 'round', size: 16, x: 31, y: 80 },
-      mouth: { curve: 0.9, width: 70, open: 0.45, y: 134 },
+      eyes: { shape: 'round', size: 14, x: 31, y: 80 },
+      // Reference mouth gapes almost the full width of the face.
+      mouth: { curve: 0.9, width: 76, open: 0.6, y: 134 },
     }),
   },
   {
@@ -141,7 +152,8 @@ export const TEMPLATES: Template[] = [
     name: 'Goofy',
     blurb: 'Being normal was not working out.',
     face: face({
-      tilt: -6,
+      // Reference tilts the whole face further off-axis for the dizzy read.
+      tilt: -10,
       eyes: { shape: 'cross', size: 12, x: 30, y: 80 },
       mouth: { curve: 0.55, width: 62, y: 126, flick: 0.8 },
       marks: ['tongue'],
@@ -154,7 +166,8 @@ export const TEMPLATES: Template[] = [
     face: face({
       tilt: -3,
       eyes: { shape: 'tick', size: 14, y: 84 },
-      mouth: { curve: 0.55, width: 60, y: 130, flick: 1 },
+      // Reference gives the smirk more room — bolder, more asymmetric.
+      mouth: { curve: 0.55, width: 64, y: 130, flick: 1 },
       marks: ['wink'],
     }),
   },
@@ -164,7 +177,8 @@ export const TEMPLATES: Template[] = [
     blurb: "Somehow this is going well and I don't trust it yet.",
     face: face({
       eyes: { shape: 'star', size: 15, y: 82 },
-      mouth: { curve: 0.85, width: 60, y: 126, flick: 0.6 },
+      // Reference mouth is open, not a closed curve — teeth showing.
+      mouth: { curve: 0.85, width: 60, open: 0.4, y: 126, flick: 0.6 },
     }),
   },
   {
@@ -174,7 +188,8 @@ export const TEMPLATES: Template[] = [
     face: face({
       tilt: -8,
       eyes: { shape: 'round', size: 14, x: 29, y: 80 },
-      brows: { on: true, y: 46, angle: -22, length: 24 },
+      // Reference's questioning brow sits higher and steeper.
+      brows: { on: true, y: 42, angle: -26, length: 24 },
       mouth: { curve: 0.15, width: 30, open: 0.3, y: 134 },
     }),
   },
@@ -184,7 +199,7 @@ export const TEMPLATES: Template[] = [
     blurb: 'Called it. Not going to mention it again — much.',
     face: face({
       tilt: 5,
-      eyes: { shape: 'line', size: 13, y: 84, tilt: 14 },
+      eyes: { shape: 'line', size: 13, y: 84, tilt: 18 },
       brows: { on: true, y: 58, angle: -20, length: 26 },
       mouth: { curve: 0.4, width: 48, y: 132, flick: 0.9 },
     }),
@@ -195,7 +210,8 @@ export const TEMPLATES: Template[] = [
     blurb: 'Better than last week. Counting it.',
     face: face({
       eyes: { shape: 'arc', size: 14, y: 84, squint: 0.15, tilt: -6 },
-      mouth: { curve: 0.6, width: 56, y: 128, flick: 0.7 },
+      // Reference: a real open grin, not a closed curve.
+      mouth: { curve: 0.6, width: 60, open: 0.35, y: 128, flick: 0.7 },
       marks: ['sparkle'],
     }),
   },
@@ -207,7 +223,8 @@ export const TEMPLATES: Template[] = [
       tilt: -6,
       squish: -5,
       eyes: { shape: 'line', size: 12, y: 84, tilt: 15 },
-      mouth: { curve: -0.3, width: 50, y: 134, wave: 0.25 },
+      // Reference's frown is one clean stroke, not a wavering line.
+      mouth: { curve: -0.3, width: 50, y: 134, wave: 0.1 },
     }),
   },
   {
@@ -218,7 +235,8 @@ export const TEMPLATES: Template[] = [
       tilt: -4,
       eyes: { shape: 'bar', size: 13, y: 86, squint: 0.62 },
       brows: { on: true, y: 60, angle: -4, length: 22 },
-      mouth: { curve: -0.06, width: 40, y: 140 },
+      // Reference mouth is dead flat — no curve at all.
+      mouth: { curve: 0, width: 40, y: 140 },
     }),
   },
   {
@@ -229,8 +247,9 @@ export const TEMPLATES: Template[] = [
       tilt: 4,
       width: 76,
       eyes: { shape: 'bar', size: 14, y: 84, squint: 0.35, tilt: 22 },
-      brows: { on: true, y: 58, angle: 32, length: 30 },
-      mouth: { curve: -0.5, width: 62, open: 0.3, y: 142 },
+      // Reference brows are sharper and the mouth roars wider open.
+      brows: { on: true, y: 58, angle: 38, length: 30 },
+      mouth: { curve: -0.5, width: 62, open: 0.45, y: 142 },
     }),
   },
   {
@@ -241,7 +260,8 @@ export const TEMPLATES: Template[] = [
       squish: -8,
       eyes: { shape: 'bar', size: 13, y: 88, squint: 0.5 },
       brows: { on: true, y: 60, angle: -22, length: 26 },
-      mouth: { curve: -0.6, width: 40, open: 0.35, y: 148 },
+      // Reference mouth quivers rather than gapes.
+      mouth: { curve: -0.6, width: 40, open: 0.2, wave: 0.3, y: 148 },
       marks: ['bawling'],
     }),
   },
@@ -253,7 +273,8 @@ export const TEMPLATES: Template[] = [
       squish: 4,
       eyes: { shape: 'arc', size: 14, y: 80, squint: 0.15 },
       brows: { on: true, y: 44, angle: -6, length: 26 },
-      mouth: { curve: 0.75, width: 66, y: 126, flick: 0.7 },
+      // Reference mouth is wide open, not a closed grin.
+      mouth: { curve: 0.75, width: 66, open: 0.3, y: 126, flick: 0.7 },
       marks: ['sparkle'],
     }),
   },
@@ -263,7 +284,9 @@ export const TEMPLATES: Template[] = [
     blurb: "Would rather not, but here I am.",
     face: face({
       width: 66,
-      eyes: { shape: 'arc', size: 11, y: 90, squint: 0.35, tilt: 8 },
+      // Reference's closed-eye, blush-flanked version reads softer — eyes
+      // more fully shut.
+      eyes: { shape: 'arc', size: 11, y: 90, squint: 0.45, tilt: 8 },
       mouth: { curve: 0.2, width: 34, y: 136, flick: 0.3 },
       marks: ['blush'],
     }),
