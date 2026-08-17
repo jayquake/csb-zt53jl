@@ -35,6 +35,30 @@ import faceTenderArt from '../assets/face-tender.png';
 import faceShyArt from '../assets/face-shy.png';
 import faceCheekyArt from '../assets/face-cheeky.png';
 import faceSpacedoutArt from '../assets/face-spacedout.png';
+import faceUnbotheredArt from '../assets/face-unbothered.png';
+import faceOverjoyedArt from '../assets/face-overjoyed.png';
+import faceDizzyArt from '../assets/face-dizzy.png';
+import faceLovestruckArt from '../assets/face-lovestruck.png';
+import faceStressedArt from '../assets/face-stressed.png';
+import faceSultryArt from '../assets/face-sultry.png';
+import faceStunnedArt from '../assets/face-stunned.png';
+import faceAnnoyedArt from '../assets/face-annoyed.png';
+import faceSmoothArt from '../assets/face-smooth.png';
+import facePonderingArt from '../assets/face-pondering.png';
+import faceExhaustedArt from '../assets/face-exhausted.png';
+import faceAteaseArt from '../assets/face-atease.png';
+import faceOveritArt from '../assets/face-overit.png';
+import faceWorriedArt from '../assets/face-worried.png';
+import faceSkepticalArt from '../assets/face-skeptical.png';
+import faceHeartbrokenArt from '../assets/face-heartbroken.png';
+import faceNumbArt from '../assets/face-numb.png';
+import faceGlowingArt from '../assets/face-glowing.png';
+import faceNervousArt from '../assets/face-nervous.png';
+import faceLowkeyArt from '../assets/face-lowkey.png';
+import faceWipedArt from '../assets/face-wiped.png';
+import faceBlankArt from '../assets/face-blank.png';
+import faceKnockedoutArt from '../assets/face-knockedout.png';
+import faceSuspiciousArt from '../assets/face-suspicious.png';
 
 const BASE: FaceParams = {
   width: 72,
@@ -377,6 +401,7 @@ export const TEMPLATES: Template[] = [
       marks: ['shades'],
       mouth: { curve: 0.15, width: 50, y: 130 },
     }),
+    artUrl: faceUnbotheredArt,
   },
   {
     id: 'loved',
@@ -492,6 +517,276 @@ export const TEMPLATES: Template[] = [
     face: face({
       eyes: { shape: 'spiral', size: 14, x: 30, y: 82 },
       mouth: { curve: 0, width: 40, y: 138 },
+    }),
+    artUrl: faceBlankArt,
+  },
+  {
+    id: 'overjoyed',
+    name: 'Overjoyed',
+    blurb: "Something actually worked. I'm not okay about it, in a good way.",
+    artUrl: faceOverjoyedArt,
+    face: face({
+      // Reference: fully shut lash-flick crescents (not a plain arc), eyebrows
+      // lifted above them, and the laugh throws a joy drop off to the side.
+      brows: { on: true, y: 46, angle: -8, length: 26 },
+      eyes: { shape: 'lash', size: 14, x: 29, y: 78, squint: 0.62 },
+      mouth: { curve: 0.9, width: 78, open: 0.55, y: 124, flick: 0.4 },
+      marks: ['sweat'],
+    }),
+  },
+  {
+    id: 'dizzy',
+    name: 'Dizzy',
+    blurb: 'The room did a lap without me.',
+    artUrl: faceDizzyArt,
+    face: face({
+      tilt: -8,
+      brows: { on: true, y: 50, angle: -18, length: 22 },
+      eyes: { shape: 'spiral', size: 13, x: 30, y: 80 },
+      mouth: { curve: -0.1, width: 56, wave: 1, y: 136 },
+    }),
+  },
+  {
+    id: 'lovestruck',
+    name: 'Lovestruck',
+    blurb: 'Yes, all of it, immediately.',
+    artUrl: faceLovestruckArt,
+    face: face({
+      // Reference mouth is open and smiling, not the closed curve `smitten`
+      // (the other sheet's heart-eyes template) uses — that's the whole
+      // distinction between the two.
+      eyes: { shape: 'heart', size: 16, x: 30, y: 80 },
+      mouth: { curve: 0.85, width: 58, open: 0.35, y: 128, flick: 0.5 },
+    }),
+  },
+  {
+    id: 'stressed',
+    name: 'Stressed',
+    blurb: 'Everything is fine. Everything is extremely fine.',
+    artUrl: faceStressedArt,
+    face: face({
+      squish: -4,
+      // Reference's cross-hatched cheeks have no direct parametric equivalent;
+      // `static` is the closest stand-in texture the engine has.
+      brows: { on: true, y: 56, angle: -34, length: 26 },
+      eyes: { shape: 'bar', size: 11, y: 88, squint: 0.35 },
+      mouth: { curve: -0.15, width: 34, y: 142 },
+      marks: ['static'],
+    }),
+  },
+  {
+    id: 'sultry',
+    name: 'Sultry',
+    blurb: 'I know. I know.',
+    artUrl: faceSultryArt,
+    face: face({
+      brows: { on: true, y: 48, angle: -14, length: 24 },
+      eyes: { shape: 'lash', size: 14, x: 29, y: 82, squint: 0.45, tilt: -6 },
+      mouth: { curve: 0.15, width: 28, y: 134, flick: 0.2 },
+      marks: ['blush'],
+    }),
+  },
+  {
+    id: 'stunned',
+    name: 'Stunned',
+    blurb: 'Did that just happen.',
+    artUrl: faceStunnedArt,
+    face: face({
+      brows: { on: true, y: 40, angle: -30, length: 24 },
+      mouth: { curve: -0.15, width: 46, open: 0.55, y: 140 },
+      marks: ['shades'],
+    }),
+  },
+  {
+    id: 'annoyed',
+    name: 'Annoyed',
+    blurb: 'One more thing. Just one more thing today.',
+    artUrl: faceAnnoyedArt,
+    face: face({
+      // A lower simmer than `fierce` (the other sheet's angry template) —
+      // narrower brow angle, no wide-open roar, just a clenched grimace.
+      brows: { on: true, y: 54, angle: 34, length: 28 },
+      eyes: { shape: 'bar', size: 12, y: 84, squint: 0.3, tilt: 14 },
+      mouth: { curve: -0.45, width: 46, y: 140, wave: 0.15 },
+      marks: ['teeth'],
+    }),
+  },
+  {
+    id: 'smooth',
+    name: 'Smooth',
+    blurb: 'Yeah, I planned that.',
+    artUrl: faceSmoothArt,
+    face: face({
+      mouth: { curve: 0.5, width: 40, y: 128, flick: 1 },
+      marks: ['shades'],
+    }),
+  },
+  {
+    id: 'pondering',
+    name: 'Pondering',
+    blurb: "Give me a second, I'm building a theory.",
+    artUrl: facePonderingArt,
+    face: face({
+      // No parametric hand/chin prop exists — this leans on the raised brow
+      // and small pursed mouth the way `curious` does, distinguished by an
+      // even smaller, flatter mouth (no open questioning curve).
+      tilt: -6,
+      brows: { on: true, y: 42, angle: -28, length: 24 },
+      eyes: { shape: 'round', size: 12, x: 29, y: 82 },
+      mouth: { curve: 0.1, width: 26, open: 0.15, y: 132 },
+    }),
+  },
+  {
+    id: 'exhausted',
+    name: 'Exhausted',
+    blurb: 'Ran out around noon. Still here somehow.',
+    artUrl: faceExhaustedArt,
+    face: face({
+      // Heavier than `bored` or `drained` — near-maximum squint plus a
+      // downward squish for the sagging read.
+      squish: -6,
+      brows: { on: true, y: 64, angle: -8, length: 24 },
+      eyes: { shape: 'bar', size: 15, y: 92, squint: 0.88 },
+      mouth: { curve: -0.35, width: 40, y: 150 },
+    }),
+  },
+  {
+    id: 'atease',
+    name: 'At Ease',
+    blurb: 'Nowhere else I need to be.',
+    artUrl: faceAteaseArt,
+    face: face({
+      eyes: { shape: 'arc', size: 13, y: 84, squint: 0.3 },
+      mouth: { curve: 0.5, width: 54, y: 128, flick: 0.4 },
+    }),
+  },
+  {
+    id: 'overit',
+    name: 'Over It',
+    blurb: "Heard it. Filed it under 'later.'",
+    artUrl: faceOveritArt,
+    face: face({
+      mouth: { curve: -0.4, width: 44, y: 140 },
+      marks: ['shades'],
+    }),
+  },
+  {
+    id: 'worried',
+    name: 'Worried',
+    blurb: 'This is probably fine. Probably.',
+    artUrl: faceWorriedArt,
+    face: face({
+      brows: { on: true, y: 46, angle: -26, length: 24 },
+      eyes: { shape: 'round', size: 13, x: 28, y: 82 },
+      mouth: { curve: -0.25, width: 28, open: 0.15, y: 136 },
+    }),
+  },
+  {
+    id: 'skeptical',
+    name: 'Skeptical',
+    blurb: 'Sure. Tell me more.',
+    artUrl: faceSkepticalArt,
+    face: face({
+      eyes: { shape: 'tick', size: 13, y: 84, tilt: -10 },
+      mouth: { curve: 0.35, width: 46, y: 130, flick: 0.8 },
+    }),
+  },
+  {
+    id: 'heartbroken',
+    name: 'Heartbroken',
+    blurb: "Didn't see that coming. Should have.",
+    artUrl: faceHeartbrokenArt,
+    face: face({
+      // Louder than `sobbing` (the other sheet's cry) — both eyes stream, and
+      // the mouth is a real wailing gape, not a closed quiver.
+      brows: { on: true, y: 58, angle: -22, length: 26 },
+      eyes: { shape: 'bar', size: 13, y: 88, squint: 0.4 },
+      mouth: { curve: -0.85, width: 46, open: 0.5, y: 152 },
+      marks: ['bawling'],
+    }),
+  },
+  {
+    id: 'numb',
+    name: 'Numb',
+    blurb: "Nothing's getting through today, and that's the point.",
+    artUrl: faceNumbArt,
+    face: face({
+      // The reference is a near-solid shaded panel — no parametric shape
+      // reads that way, so the fallback is just the barely-there dot eyes and
+      // flat mouth the sketch leaves visible against it.
+      eyes: { shape: 'round', size: 7, x: 26, y: 84 },
+      mouth: { curve: 0, width: 30, y: 138 },
+    }),
+  },
+  {
+    id: 'glowing',
+    name: 'Glowing',
+    blurb: "Good news landed and I'm letting it show.",
+    artUrl: faceGlowingArt,
+    face: face({
+      brows: { on: true, y: 46, angle: -8, length: 22 },
+      eyes: { shape: 'round', size: 12, x: 28, y: 80 },
+      mouth: { curve: 0.85, width: 68, open: 0.4, y: 126, flick: 0.6 },
+    }),
+  },
+  {
+    id: 'nervous',
+    name: 'Nervous',
+    blurb: 'Laughing because the alternative is worse.',
+    artUrl: faceNervousArt,
+    face: face({
+      mouth: { curve: 0.85, width: 68, open: 0.5, y: 126 },
+      marks: ['shades', 'sweat'],
+    }),
+  },
+  {
+    id: 'lowkey',
+    name: 'Low-Key',
+    blurb: 'Content. Not discussing it further.',
+    artUrl: faceLowkeyArt,
+    face: face({
+      mouth: { curve: 0.25, width: 40, y: 132 },
+      marks: ['shades'],
+    }),
+  },
+  {
+    id: 'wiped',
+    name: 'Wiped',
+    blurb: 'Ran the whole tank dry and kept driving.',
+    artUrl: faceWipedArt,
+    face: face({
+      tilt: 6,
+      eyes: { shape: 'bar', size: 14, y: 90, squint: 0.8 },
+      mouth: { curve: -0.1, width: 44, y: 140, wave: 0.1 },
+      marks: ['tongue'],
+    }),
+  },
+  {
+    id: 'knockedout',
+    name: 'Knocked Out',
+    blurb: 'That one got me. Fully got me.',
+    artUrl: faceKnockedoutArt,
+    face: face({
+      // The engine mirrors both eyes to the same shape, so the reference's
+      // plain-X / circled-X asymmetry can't be reproduced exactly — `cross`
+      // on both is the nearest single shape available.
+      tilt: -5,
+      eyes: { shape: 'cross', size: 13, x: 30, y: 80 },
+      mouth: { curve: 0.6, width: 60, open: 0.5, y: 128 },
+      marks: ['tongue'],
+    }),
+  },
+  {
+    id: 'suspicious',
+    name: 'Suspicious',
+    blurb: "I've got questions and a theory.",
+    artUrl: faceSuspiciousArt,
+    face: face({
+      // Reads more scheming than `curious` or `pondering` — a tighter smirk
+      // instead of an open questioning mouth.
+      brows: { on: true, y: 48, angle: -20, length: 22 },
+      eyes: { shape: 'round', size: 10, x: 30, y: 82 },
+      mouth: { curve: 0.3, width: 34, y: 132, flick: 0.6 },
     }),
   },
 

@@ -73,4 +73,17 @@ describe('the shelf', () => {
     expect(productById(PRODUCTS[0].id)).toBeDefined();
     expect(productById('not-a-sock')).toBeUndefined();
   });
+
+  it('never puts two of the same colourway next to each other in the grid', () => {
+    // Colourways are assigned so neighbours in the grid never repeat (see
+    // products.ts's COLOUR_FOR comment) — this has broken silently twice
+    // now, once when the shelf was reordered and once from a plain gap in
+    // COLOUR_FOR, so it gets an actual test rather than relying on someone
+    // eyeballing the grid again.
+    for (let i = 1; i < PRODUCTS.length; i++) {
+      expect(PRODUCTS[i].colorwayId, `${PRODUCTS[i - 1].id} -> ${PRODUCTS[i].id}`).not.toBe(
+        PRODUCTS[i - 1].colorwayId,
+      );
+    }
+  });
 });
