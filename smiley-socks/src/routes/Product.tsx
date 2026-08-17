@@ -27,6 +27,7 @@ import {
 } from '../store/catalog';
 import { pricedFrom, type Design } from '../store/design';
 import { productById, productDesign, SPEC } from '../store/products';
+import { templateArtFor } from '../brand/templates';
 
 export function Product() {
   const { id = '' } = useParams();
@@ -90,6 +91,7 @@ export function Product() {
             face={design.face}
             ink={colorway.ink}
             finish={design.finish}
+            artUrl={templateArtFor(design)}
             className="pdp__sock"
           />
         ) : view === 'flat' ? (

@@ -1,5 +1,5 @@
 import { FaceSvg } from '../brand/Face';
-import { TEMPLATES } from '../brand/templates';
+import { TEMPLATES_WITH_ART } from '../brand/templates';
 
 /**
  * The shelf of starting faces. Horizontally scrollable on a phone with
@@ -16,7 +16,7 @@ export function TemplateStrip({
   return (
     <div className="strip">
       <div className="strip__scroll" role="radiogroup" aria-label="Starting face">
-        {TEMPLATES.map((t) => (
+        {TEMPLATES_WITH_ART.map((t) => (
           <button
             key={t.id}
             type="button"
@@ -25,7 +25,11 @@ export function TemplateStrip({
             className={`strip__item${value === t.id ? ' is-on' : ''}`}
             onClick={() => onPick(t.id)}
           >
-            <FaceSvg face={t.face} className="strip__face" title={`${t.name}: ${t.blurb}`} />
+            {t.artUrl ? (
+              <img src={t.artUrl} alt="" className="strip__face" />
+            ) : (
+              <FaceSvg face={t.face} className="strip__face" title={`${t.name}: ${t.blurb}`} />
+            )}
             <span className="strip__name">{t.name}</span>
           </button>
         ))}

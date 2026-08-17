@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Sock } from '../brand/Sock';
 import { SockPhoto, sockPhotoMatches } from '../brand/SockPhoto';
+import { templateArtFor } from '../brand/templates';
 import { Stepper } from '../components/Controls';
 import { linePrice, useCart } from '../store/cart';
 import {
@@ -84,6 +85,7 @@ export function Bag() {
                   face={item.design.face}
                   ink={COLORWAYS.find((c) => c.id === item.design.colorwayId)?.ink ?? '#191710'}
                   finish={item.design.finish}
+                  artUrl={templateArtFor(item.design)}
                 />
               ) : (
                 <Sock design={item.design} />

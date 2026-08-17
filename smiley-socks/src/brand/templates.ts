@@ -10,7 +10,8 @@
  * the entire point of the brand.
  */
 
-import type { FaceParams } from './face';
+import { faceSignature, type FaceParams } from './face';
+import starstruckArt from '../assets/face-starstruck.png';
 
 const BASE: FaceParams = {
   width: 72,
@@ -47,6 +48,13 @@ export interface Template {
   /** One line, in the wearer's voice. Shown under the face in the picker. */
   blurb: string;
   face: FaceParams;
+  /**
+   * The actual reference-sheet drawing for this mood, cleaned to real alpha —
+   * not a parametric redraw. Where set, every renderer prints this image
+   * instead of the parametric line art, because that is more honest than an
+   * approximation of a drawing that already exists.
+   */
+  artUrl?: string;
 }
 
 export const TEMPLATES: Template[] = [
@@ -180,6 +188,7 @@ export const TEMPLATES: Template[] = [
       // Reference mouth is open, not a closed curve — teeth showing.
       mouth: { curve: 0.85, width: 60, open: 0.4, y: 126, flick: 0.6 },
     }),
+    artUrl: starstruckArt,
   },
   {
     id: 'curious',
@@ -417,14 +426,40 @@ export const TEMPLATES: Template[] = [
 
 ];
 
+/**
+ * Temporary, while only a handful of templates carry real reference art:
+ * the customer-facing shelf (Studio's picker, the Shop grid) shows only
+ * these, rather than mixing "the real drawing" in with "a parametric guess
+ * at roughly the same mood" — showing both side by side undersells the ones
+ * that are real. Drop this filter for `TEMPLATES` once art coverage is
+ * broad enough that the distinction stops mattering.
+ */
+export const TEMPLATES_WITH_ART = TEMPLATES.filter((t) => t.artUrl);
+
 // The face a fresh design starts as, everywhere one is needed with no other
-// steer — the studio with no template in the URL, a brand-new cart line. It
-// leads the reordered shelf for the same reason: this is the face the brand
-// puts forward by default now.
-export const DEFAULT_TEMPLATE = TEMPLATES.find((t) => t.id === 'sunny')!;
+// steer — the studio with no template in the URL, a brand-new cart line.
+// While the shelf is filtered down to art-backed templates only, the default
+// follows it — landing on a hidden template would be its own inconsistency.
+export const DEFAULT_TEMPLATE = TEMPLATES_WITH_ART[0] ?? TEMPLATES.find((t) => t.id === 'sunny')!;
 
 export function templateById(id: string): Template | undefined {
   return TEMPLATES.find((t) => t.id === id);
+}
+
+/**
+ * The reference art for a design, if it still honestly applies.
+ *
+ * A template's `artUrl` is a drawing of one specific face — the moment the
+ * wearer drags a handle away from that face, the drawing stops being a
+ * picture of what's on the sock. So this only returns art for a design whose
+ * current face signature still matches the template's own, exactly like the
+ * studio's own "edited" flag; anything else falls through to the parametric
+ * renderer, which can draw whatever the current numbers actually are.
+ */
+export function templateArtFor(design: { templateId: string | null; face: FaceParams }): string | undefined {
+  const template = design.templateId ? templateById(design.templateId) : undefined;
+  if (!template?.artUrl) return undefined;
+  return faceSignature(design.face) === faceSignature(template.face) ? template.artUrl : undefined;
 }
 
 /** Deep copy, so editing a design can never mutate the shelf. */

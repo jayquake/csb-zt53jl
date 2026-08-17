@@ -12,13 +12,16 @@ import {
   productDesign,
   shelfColorways,
 } from '../src/store/products';
-import { templateById, TEMPLATES } from '../src/brand/templates';
+import { templateById, TEMPLATES_WITH_ART } from '../src/brand/templates';
 import { COLORWAYS, priceOne, PRICE } from '../src/store/catalog';
 import { pricedFrom } from '../src/store/design';
 
 describe('the shelf', () => {
-  it('lists every face exactly once, with a real colourway', () => {
-    expect(PRODUCTS).toHaveLength(TEMPLATES.length);
+  it('lists every art-backed face exactly once, with a real colourway', () => {
+    // The shop is filtered to templates that carry real reference art (see
+    // TEMPLATES_WITH_ART) while art coverage is still partial, so it should
+    // track that list, not the full template count.
+    expect(PRODUCTS).toHaveLength(TEMPLATES_WITH_ART.length);
     expect(new Set(PRODUCTS.map((p) => p.id)).size).toBe(PRODUCTS.length);
     for (const p of PRODUCTS) {
       expect(templateById(p.templateId), p.id).toBeDefined();
@@ -41,10 +44,13 @@ describe('the shelf', () => {
   });
 
   it('finds products by name and by mood text', () => {
-    expect(filterProducts(PRODUCTS, { query: 'lonely' })).toHaveLength(1);
-    // The blurb is searched too, so words people actually type still land.
-    expect(filterProducts(PRODUCTS, { query: 'advice' }).length).toBeGreaterThan(0);
-    expect(filterProducts(PRODUCTS, { query: 'zzzzz' })).toHaveLength(0);
+    expect(filterProducts(PRODUCTS, { query: PRODUCTS[0].name })).toHaveLength(1);
+    // The blurb is searched too, so words people actually type still land —
+    // pull a distinctive word straight from a real blurb rather than assume
+    // which moods are on the shelf.
+    const blurbWord = PRODUCTS[0].blurb.split(/\s+/).find((w) => w.length > 4) ?? PRODUCTS[0].blurb;
+    expect(filterProducts(PRODUCTS, { query: blurbWord }).length).toBeGreaterThan(0);
+    expect(filterProducts(PRODUCTS, { query: 'zzzzz-not-a-real-mood' })).toHaveLength(0);
     expect(filterProducts(PRODUCTS, { query: '  ' })).toHaveLength(PRODUCTS.length);
   });
 
@@ -64,7 +70,7 @@ describe('the shelf', () => {
   });
 
   it('resolves a product by id and nothing by a bad one', () => {
-    expect(productById(PRODUCTS[3].id)).toBeDefined();
+    expect(productById(PRODUCTS[0].id)).toBeDefined();
     expect(productById('not-a-sock')).toBeUndefined();
   });
 });

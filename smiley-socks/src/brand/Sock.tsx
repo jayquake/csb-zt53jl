@@ -15,6 +15,7 @@ import { useId } from 'react';
 import { FaceGlyph } from './Face';
 import { GrinlineGroup } from './Grinline';
 import { measure } from './grinline';
+import { templateArtFor } from './templates';
 import type { FaceParams } from './face';
 import {
   ANKLE_Y,
@@ -104,6 +105,7 @@ function Print({
   zone,
   face,
   photo,
+  artUrl,
   clipId,
   index,
   finish,
@@ -111,6 +113,8 @@ function Print({
   zone: Zone;
   face: FaceParams;
   photo: Design['photo'];
+  /** The actual reference-sheet drawing for this design, if one still applies. */
+  artUrl?: string;
   clipId: string;
   index: number;
   finish: Design['finish'];
@@ -137,6 +141,23 @@ function Print({
         </g>
         <circle cx={zone.x} cy={zone.y} r={r} fill="none" stroke="currentColor" strokeWidth={1.6} opacity={0.5} />
       </>
+    );
+  }
+
+  if (artUrl) {
+    // The reference drawing, centred in the same footprint the parametric
+    // face fills — aspect-preserved, since it's a real drawing, not a square
+    // asset to be stretched to fit.
+    const box = zone.size * 0.92;
+    return (
+      <image
+        href={artUrl}
+        x={zone.x - box / 2}
+        y={zone.y - box / 2}
+        width={box}
+        height={box}
+        preserveAspectRatio="xMidYMid meet"
+      />
     );
   }
 
@@ -266,6 +287,7 @@ export function Sock({ design, className }: { design: Design; className?: string
               zone={zone}
               face={design.face}
               photo={design.photo}
+              artUrl={templateArtFor(design)}
               clipId={clip}
               index={i}
               finish={design.finish}

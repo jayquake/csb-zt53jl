@@ -9,6 +9,7 @@
 import { Link, useSearchParams } from 'react-router-dom';
 import { Sock } from '../brand/Sock';
 import { SockPhoto, sockPhotoAvailable } from '../brand/SockPhoto';
+import { templateArtFor } from '../brand/templates';
 import { COLORWAYS, money, PRICE } from '../store/catalog';
 import { filterProducts, PRODUCTS, productDesign, shelfColorways } from '../store/products';
 
@@ -31,7 +32,8 @@ export function Shop() {
       <header className="shop__head">
         <h1 className="page__title">All socks</h1>
         <p className="page__lede">
-          {PRODUCTS.length} faces, ready to go. {money(PRICE.single)} a pair, {money(PRICE.three)} each in
+          {PRODUCTS.length} {PRODUCTS.length === 1 ? 'face' : 'faces'}, ready to go. {money(PRICE.single)} a pair,{' '}
+          {money(PRICE.three)} each in
           threes. Every one of them can be pulled around in the studio afterwards.
         </p>
       </header>
@@ -78,7 +80,7 @@ export function Shop() {
 
       <p className="shop__count" aria-live="polite">
         {shown.length === PRODUCTS.length
-          ? `${shown.length} pairs`
+          ? `${shown.length} ${shown.length === 1 ? 'pair' : 'pairs'}`
           : `${shown.length} of ${PRODUCTS.length} pairs`}
       </p>
 
@@ -103,6 +105,7 @@ export function Shop() {
                         face={design.face}
                         ink={ink}
                         finish={design.finish}
+                        artUrl={templateArtFor(design)}
                         className="card__sock"
                       />
                     ) : (

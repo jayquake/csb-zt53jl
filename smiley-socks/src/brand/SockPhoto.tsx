@@ -17,7 +17,7 @@
  * one, so callers gate on `sockPhotoMatches` before offering it.
  */
 
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import type { FaceParams, Finish } from './face';
 import { paintFace } from '../three/texture';
 import { compositeOntoPhoto, foldMap, toWorkingCanvas, type PlaceOptions } from '../mockup/composite';
@@ -121,12 +121,15 @@ export function SockPhoto({
   face,
   ink,
   finish,
+  artUrl,
   className,
 }: {
   colorwayId: string;
   face: FaceParams;
   ink: string;
   finish: Finish;
+  /** The actual reference-sheet drawing for this design, if one still applies. */
+  artUrl?: string;
   className?: string;
 }) {
   const entry = PHOTOS[colorwayId];
@@ -156,18 +159,48 @@ export function SockPhoto({
     };
   }, [entry]);
 
-  const art = useMemo(() => {
+  // The print art itself: either the reference drawing, loaded and centred,
+  // or the parametric face painted fresh. Either way it lands in the same
+  // ART x ART canvas so the compositor downstream never has to know which.
+  const [art, setArt] = useState<HTMLCanvasElement | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
     const canvas = document.createElement('canvas');
     canvas.width = ART;
     canvas.height = ART;
     const ctx = canvas.getContext('2d');
-    if (ctx) paintFace(ctx, face, ART / 2, ART / 2, ART * 0.86, ART * 0.86, ink, finish);
-    return canvas;
-  }, [face, ink, finish]);
+    if (!ctx) return;
+
+    if (artUrl) {
+      const img = new Image();
+      img.onload = () => {
+        if (cancelled) return;
+        // Centred, aspect-preserved — it's a real drawing, not a square
+        // asset to stretch to fit.
+        const box = ART * 0.86;
+        const scale = Math.min(box / img.width, box / img.height);
+        const w = img.width * scale;
+        const h = img.height * scale;
+        ctx.drawImage(img, ART / 2 - w / 2, ART / 2 - h / 2, w, h);
+        setArt(canvas);
+      };
+      img.src = artUrl;
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    paintFace(ctx, face, ART / 2, ART / 2, ART * 0.86, ART * 0.86, ink, finish);
+    setArt(canvas);
+    return () => {
+      cancelled = true;
+    };
+  }, [face, ink, finish, artUrl]);
 
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !photo || !entry) return;
+    if (!canvas || !photo || !art || !entry) return;
     const out = compositeOntoPhoto(photo, art, entry.place, fold ?? undefined);
     canvas.width = out.width;
     canvas.height = out.height;

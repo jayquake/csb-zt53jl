@@ -14,6 +14,7 @@
 import { buildFace, STROKE, type FaceParams, type Finish } from '../brand/face';
 import { CHALK_CORE_ALPHA, CHALK_CORE_BLUR, CHALK_HALO_ALPHA, CHALK_HALO_BLUR } from '../brand/finish';
 import { layout } from '../brand/grinline';
+import { templateArtFor } from '../brand/templates';
 import { COLORWAYS, HEIGHTS, PLACEMENTS, type Colorway } from '../store/catalog';
 import type { Design } from '../store/design';
 
@@ -277,9 +278,10 @@ export function paintSockTexture(ctx: CanvasRenderingContext2D, design: Design, 
     const sizeX = spot.cm * pxPerCmU;
     const sizeY = spot.cm * pxPerCmV;
 
-    if (design.photo) {
-      // Photos are drawn by the caller (they need an <img> that has loaded);
-      // the spot list is shared so both paths agree on placement.
+    if (design.photo || templateArtFor(design)) {
+      // Photos and reference art are both drawn by the caller (they need an
+      // <img> that has loaded); the spot list is shared so both paths agree
+      // on placement.
       continue;
     }
     paintFace(ctx, design.face, x, y, sizeX, sizeY, colorway.ink, design.finish);

@@ -10,6 +10,7 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Sock } from '../brand/Sock';
 import { SockPhoto, sockPhotoAvailable } from '../brand/SockPhoto';
+import { templateArtFor } from '../brand/templates';
 import { COLORWAYS, money, PRICE } from '../store/catalog';
 import { TRIOS, trioDesigns, trioPrice } from '../store/packs';
 import { useCart } from '../store/cart';
@@ -40,6 +41,7 @@ export function PackShelf() {
                       face={design.face}
                       ink={COLORWAYS.find((c) => c.id === design.colorwayId)?.ink ?? '#191710'}
                       finish={design.finish}
+                      artUrl={templateArtFor(design)}
                       className="pack__sock"
                     />
                   ) : (

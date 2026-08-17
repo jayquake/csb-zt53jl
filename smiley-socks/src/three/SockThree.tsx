@@ -15,6 +15,7 @@ import { useEffect, useRef, useState } from 'react';
 import type * as THREE_NS from 'three';
 import { buildSockMesh, meshBounds } from './sockMesh';
 import { paintSockTexture, printSpots } from './texture';
+import { templateArtFor } from '../brand/templates';
 import { HEIGHTS } from '../store/catalog';
 import type { Design } from '../store/design';
 import { prefersReducedMotion } from '../brand/ticker';
@@ -285,6 +286,32 @@ export function SockThree({ design, className }: { design: Design; className?: s
         kk.texture.needsUpdate = true;
       };
       img.src = d.photo.src;
+    }
+
+    const artUrl = templateArtFor(d);
+    if (artUrl) {
+      // Same two-pass load-then-draw as the photo path above. Unlike a
+      // user's own upload, this is a drawing on a mostly-transparent
+      // background, not a photo meant to fill the print circle — so it's
+      // centred and aspect-contained rather than clipped and covered.
+      const img = new Image();
+      img.onload = () => {
+        const kk = kit.current;
+        if (!kk) return;
+        for (const spot of printSpots(d, kk.landmarks)) {
+          const x = spot.u * TEX_W;
+          const y = spot.v * TEX_H;
+          const rx = (spot.cm * pxPerCmU) / 2;
+          const ry = (spot.cm * pxPerCmV) / 2;
+          const box = Math.max(rx, ry) * 2 * 0.92;
+          const scale = Math.min(box / img.width, box / img.height);
+          const w = img.width * scale;
+          const h = img.height * scale;
+          ctx.drawImage(img, x - w / 2, y - h / 2, w, h);
+        }
+        kk.texture.needsUpdate = true;
+      };
+      img.src = artUrl;
     }
 
     k.texture.needsUpdate = true;

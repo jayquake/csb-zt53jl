@@ -13,7 +13,7 @@
  * shelf can still be opened in the studio and pulled around.
  */
 
-import { cloneFace, TEMPLATES, templateById } from '../brand/templates';
+import { cloneFace, TEMPLATES_WITH_ART, templateById } from '../brand/templates';
 import { COLORWAYS } from './catalog';
 import { DEFAULT_DESIGN, type Design } from './design';
 
@@ -64,7 +64,7 @@ const COLOUR_FOR: Record<string, string> = {
   blank: 'bone',
 };
 
-export const PRODUCTS: Product[] = TEMPLATES.map((template) => ({
+export const PRODUCTS: Product[] = TEMPLATES_WITH_ART.map((template) => ({
   id: template.id,
   templateId: template.id,
   colorwayId: COLOUR_FOR[template.id] ?? 'bone',
