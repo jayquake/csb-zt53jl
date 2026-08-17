@@ -12,6 +12,29 @@
 
 import { faceSignature, type FaceParams } from './face';
 import starstruckArt from '../assets/face-starstruck.png';
+import faceSunnyArt from '../assets/face-sunny.png';
+import faceSmittenArt from '../assets/face-smitten.png';
+import faceFlirtyArt from '../assets/face-flirty.png';
+import faceRelievedArt from '../assets/face-relieved.png';
+import faceCrushedArt from '../assets/face-crushed.png';
+import faceRattledArt from '../assets/face-rattled.png';
+import faceSillyArt from '../assets/face-silly.png';
+import faceQueasyArt from '../assets/face-queasy.png';
+import faceSlyArt from '../assets/face-sly.png';
+import faceGoofyArt from '../assets/face-goofy.png';
+import faceCuriousArt from '../assets/face-curious.png';
+import faceProudArt from '../assets/face-proud.png';
+import faceHopefulArt from '../assets/face-hopeful.png';
+import faceMelancholyArt from '../assets/face-melancholy.png';
+import faceBoredArt from '../assets/face-bored.png';
+import faceFierceArt from '../assets/face-fierce.png';
+import faceSmugArt from '../assets/face-smug.png';
+import faceSobbingArt from '../assets/face-sobbing.png';
+import faceLovedArt from '../assets/face-loved.png';
+import faceTenderArt from '../assets/face-tender.png';
+import faceShyArt from '../assets/face-shy.png';
+import faceCheekyArt from '../assets/face-cheeky.png';
+import faceSpacedoutArt from '../assets/face-spacedout.png';
 
 const BASE: FaceParams = {
   width: 72,
@@ -69,6 +92,7 @@ export const TEMPLATES: Template[] = [
       mouth: { curve: 0.95, width: 74, y: 126, flick: 0.85 },
       marks: ['sparkle'],
     }),
+    artUrl: faceSunnyArt,
   },
   {
     id: 'smitten',
@@ -80,6 +104,7 @@ export const TEMPLATES: Template[] = [
       mouth: { curve: 0.85, width: 56, y: 136, flick: 0.6 },
       marks: ['blush'],
     }),
+    artUrl: faceSmittenArt,
   },
   {
     id: 'flirty',
@@ -92,6 +117,7 @@ export const TEMPLATES: Template[] = [
       mouth: { curve: 0.6, width: 44, y: 130, flick: 0.75 },
       marks: ['blush'],
     }),
+    artUrl: faceFlirtyArt,
   },
   {
     id: 'relieved',
@@ -104,6 +130,7 @@ export const TEMPLATES: Template[] = [
       mouth: { curve: 0.55, width: 60, open: 0.25, y: 132, flick: 0.5 },
       marks: ['sweat'],
     }),
+    artUrl: faceRelievedArt,
   },
   {
     id: 'crushed',
@@ -117,6 +144,7 @@ export const TEMPLATES: Template[] = [
       mouth: { curve: -0.9, width: 50, y: 152 },
       marks: ['tear'],
     }),
+    artUrl: faceCrushedArt,
   },
   {
     id: 'rattled',
@@ -130,6 +158,7 @@ export const TEMPLATES: Template[] = [
       mouth: { curve: -0.1, width: 46, open: 0.5, y: 138 },
       marks: ['teeth'],
     }),
+    artUrl: faceRattledArt,
   },
   {
     id: 'silly',
@@ -141,6 +170,7 @@ export const TEMPLATES: Template[] = [
       // Reference mouth gapes almost the full width of the face.
       mouth: { curve: 0.9, width: 76, open: 0.6, y: 134 },
     }),
+    artUrl: faceSillyArt,
   },
   {
     id: 'queasy',
@@ -154,6 +184,7 @@ export const TEMPLATES: Template[] = [
       mouth: { curve: -0.3, width: 52, wave: 0.9, y: 142 },
       marks: ['sweat'],
     }),
+    artUrl: faceQueasyArt,
   },
   {
     id: 'goofy',
@@ -166,6 +197,7 @@ export const TEMPLATES: Template[] = [
       mouth: { curve: 0.55, width: 62, y: 126, flick: 0.8 },
       marks: ['tongue'],
     }),
+    artUrl: faceGoofyArt,
   },
   {
     id: 'sly',
@@ -178,6 +210,22 @@ export const TEMPLATES: Template[] = [
       mouth: { curve: 0.55, width: 64, y: 130, flick: 1 },
       marks: ['wink'],
     }),
+    artUrl: faceSlyArt,
+  },
+  {
+    id: 'cheeky',
+    name: 'Cheeky',
+    blurb: 'A little too pleased with myself. No regrets.',
+    face: face({
+      tilt: -4,
+      // Reference: one eye winking, one brow arched up, tongue lolling
+      // fully out to the side — bigger and more playful than sly's smirk.
+      eyes: { shape: 'lash', size: 14, x: 29, y: 80 },
+      brows: { on: true, y: 46, angle: -22, length: 24 },
+      mouth: { curve: 0.6, width: 46, y: 128, flick: 1 },
+      marks: ['tongue'],
+    }),
+    artUrl: faceCheekyArt,
   },
   {
     id: 'starstruck',
@@ -201,6 +249,19 @@ export const TEMPLATES: Template[] = [
       brows: { on: true, y: 42, angle: -26, length: 24 },
       mouth: { curve: 0.15, width: 30, open: 0.3, y: 134 },
     }),
+    artUrl: faceCuriousArt,
+  },
+  {
+    id: 'spacedout',
+    name: 'Spaced Out',
+    blurb: 'Technically present. Ask again in a minute.',
+    face: face({
+      // Reference: two clean X strokes for eyes, mouth is a short closed
+      // near-neutral curve — checked out, not upset.
+      eyes: { shape: 'cross', size: 14, x: 29, y: 82 },
+      mouth: { curve: 0.1, width: 40, y: 132 },
+    }),
+    artUrl: faceSpacedoutArt,
   },
   {
     id: 'smug',
@@ -212,6 +273,7 @@ export const TEMPLATES: Template[] = [
       brows: { on: true, y: 58, angle: -20, length: 26 },
       mouth: { curve: 0.4, width: 48, y: 132, flick: 0.9 },
     }),
+    artUrl: faceSmugArt,
   },
   {
     id: 'hopeful',
@@ -223,6 +285,7 @@ export const TEMPLATES: Template[] = [
       mouth: { curve: 0.6, width: 60, open: 0.35, y: 128, flick: 0.7 },
       marks: ['sparkle'],
     }),
+    artUrl: faceHopefulArt,
   },
   {
     id: 'melancholy',
@@ -235,6 +298,7 @@ export const TEMPLATES: Template[] = [
       // Reference's frown is one clean stroke, not a wavering line.
       mouth: { curve: -0.3, width: 50, y: 134, wave: 0.1 },
     }),
+    artUrl: faceMelancholyArt,
   },
   {
     id: 'bored',
@@ -247,6 +311,7 @@ export const TEMPLATES: Template[] = [
       // Reference mouth is dead flat — no curve at all.
       mouth: { curve: 0, width: 40, y: 140 },
     }),
+    artUrl: faceBoredArt,
   },
   {
     id: 'fierce',
@@ -260,6 +325,7 @@ export const TEMPLATES: Template[] = [
       brows: { on: true, y: 58, angle: 38, length: 30 },
       mouth: { curve: -0.5, width: 62, open: 0.45, y: 142 },
     }),
+    artUrl: faceFierceArt,
   },
   {
     id: 'sobbing',
@@ -273,6 +339,7 @@ export const TEMPLATES: Template[] = [
       mouth: { curve: -0.6, width: 40, open: 0.2, wave: 0.3, y: 148 },
       marks: ['bawling'],
     }),
+    artUrl: faceSobbingArt,
   },
   {
     id: 'proud',
@@ -286,6 +353,7 @@ export const TEMPLATES: Template[] = [
       mouth: { curve: 0.75, width: 66, open: 0.3, y: 126, flick: 0.7 },
       marks: ['sparkle'],
     }),
+    artUrl: faceProudArt,
   },
   {
     id: 'shy',
@@ -299,6 +367,7 @@ export const TEMPLATES: Template[] = [
       mouth: { curve: 0.2, width: 34, y: 136, flick: 0.3 },
       marks: ['blush'],
     }),
+    artUrl: faceShyArt,
   },
   {
     id: 'unbothered',
@@ -318,6 +387,7 @@ export const TEMPLATES: Template[] = [
       mouth: { curve: 0.8, width: 66, y: 128, flick: 0.6 },
       marks: ['blush', 'sparkle'],
     }),
+    artUrl: faceLovedArt,
   },
   {
     id: 'steady',
@@ -381,6 +451,7 @@ export const TEMPLATES: Template[] = [
       mouth: { curve: 0.34, width: 46, y: 132, flick: 0.4 },
       marks: ['blush'],
     }),
+    artUrl: faceTenderArt,
   },
   {
     id: 'drained',
