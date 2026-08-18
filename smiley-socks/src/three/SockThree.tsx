@@ -303,7 +303,10 @@ export function SockThree({ design, className }: { design: Design; className?: s
           const y = spot.v * TEX_H;
           const rx = (spot.cm * pxPerCmU) / 2;
           const ry = (spot.cm * pxPerCmV) / 2;
-          const box = Math.max(rx, ry) * 2 * 0.92;
+          // The 0.8 factor matches paintFace's own effective ink fill (its
+          // 200-unit box only draws ~160 units of it) — see the identical
+          // note in SockPhoto.tsx.
+          const box = Math.max(rx, ry) * 2 * 0.92 * 0.8;
           const scale = Math.min(box / img.width, box / img.height);
           const w = img.width * scale;
           const h = img.height * scale;

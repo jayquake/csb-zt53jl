@@ -147,8 +147,10 @@ function Print({
   if (artUrl) {
     // The reference drawing, centred in the same footprint the parametric
     // face fills — aspect-preserved, since it's a real drawing, not a square
-    // asset to be stretched to fit.
-    const box = zone.size * 0.92;
+    // asset to be stretched to fit. The 0.8 factor matches paintFace's own
+    // effective ink fill (its 200-unit box only draws ~160 units of it) —
+    // see the identical note in SockPhoto.tsx.
+    const box = zone.size * 0.92 * 0.8;
     return (
       <image
         href={artUrl}

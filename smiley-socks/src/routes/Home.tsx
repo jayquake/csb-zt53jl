@@ -3,7 +3,7 @@ import { Grinline } from '../brand/Grinline';
 import { AnimatedFace, useFaceAnimation } from '../brand/AnimatedFace';
 import { Sock } from '../brand/Sock';
 import { SockPhoto, sockPhotoAvailable } from '../brand/SockPhoto';
-import { templateById, TEMPLATES, type Template } from '../brand/templates';
+import { templateById, TEMPLATES_WITH_ART, type Template } from '../brand/templates';
 import { Reel } from '../components/Reel';
 import { PackShelf } from '../components/PackShelf';
 import { DEFAULT_DESIGN } from '../store/design';
@@ -98,7 +98,7 @@ export function Home() {
           <li className="step">
             <span className="step__n">1</span>
             <h3>Pick a mood that's close</h3>
-            <p>Twelve starting faces, and not one of them is "fine". Fuzzy and Wired are on the shelf too.</p>
+            <p>{TEMPLATES_WITH_ART.length} real drawings on the shelf, and not one of them is "fine".</p>
           </li>
           <li className="step">
             <span className="step__n">2</span>
@@ -124,14 +124,18 @@ export function Home() {
         <h2 className="section__title">Start from one of these</h2>
         <p className="section__lede">Tap any face to open it in the studio.</p>
         <ul className="gallery__grid">
-          {TEMPLATES.map((t, i) => (
+          {TEMPLATES_WITH_ART.map((t, i) => (
             <li key={t.id}>
               <Link className="moodcard" to={`/studio?start=${t.id}`}>
-                <AnimatedFace
-                  spec={{ faces: [t.face], blink: true, boil: 0.8, phaseMs: i * 640, seed: i + 1 }}
-                  className="moodcard__face"
-                  title={t.name}
-                />
+                {t.artUrl ? (
+                  <img src={t.artUrl} alt="" className="moodcard__face" />
+                ) : (
+                  <AnimatedFace
+                    spec={{ faces: [t.face], blink: true, boil: 0.8, phaseMs: i * 640, seed: i + 1 }}
+                    className="moodcard__face"
+                    title={t.name}
+                  />
+                )}
                 <span className="moodcard__name">{t.name}</span>
                 <span className="moodcard__blurb">{t.blurb}</span>
               </Link>

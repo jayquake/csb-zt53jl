@@ -177,8 +177,16 @@ export function SockPhoto({
       img.onload = () => {
         if (cancelled) return;
         // Centred, aspect-preserved — it's a real drawing, not a square
-        // asset to stretch to fit.
-        const box = ART * 0.86;
+        // asset to stretch to fit. The 0.8 factor matters: a parametric
+        // face's ink only spans ~160 of its 200-unit box (see SPAN in
+        // texture.ts), so paintFace's own effective fill is nowhere near
+        // the full ART*0.86 it's scaled to — there's built-in headroom. A
+        // tightly-cropped reference drawing has no such margin (its ink
+        // reaches close to its own edges), so scaling it to the same 0.86
+        // as the parametric box reads oversized and crowds the cuff rib.
+        // Matching the same *effective* fill keeps every template the same
+        // visual size regardless of which renderer drew it.
+        const box = ART * 0.86 * 0.8;
         const scale = Math.min(box / img.width, box / img.height);
         const w = img.width * scale;
         const h = img.height * scale;
