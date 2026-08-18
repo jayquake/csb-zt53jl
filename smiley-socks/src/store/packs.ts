@@ -30,14 +30,19 @@ export const TRIOS: Trio[] = [
     id: 'honest-week',
     name: 'The Honest Week',
     blurb: 'Good day, flat day, bad day. Most weeks have all three.',
-    faces: ['sunny', 'fuzzy', 'heavy'],
+    // Fuzzy and Heavy have no reference art yet — neither sheet drew them —
+    // so the flat/bad days lean on Blank and Numb instead, which land close
+    // enough on mood and are real drawings rather than a parametric guess.
+    faces: ['sunny', 'blank', 'numb'],
     colorways: ['butter', 'bone', 'midnight'],
   },
   {
     id: 'running-hot',
     name: 'Running Hot',
     blurb: 'For the stretch where everything is due at once.',
-    faces: ['wired', 'determined', 'drained'],
+    // Same reasoning: Wired, Determined and Drained have no art. Stressed,
+    // Annoyed and Wiped are the closest-matching moods that do.
+    faces: ['stressed', 'annoyed', 'wiped'],
     colorways: ['clay', 'moss', 'midnight'],
   },
   {
