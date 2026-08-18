@@ -249,7 +249,7 @@ export function SockThree({ design, className }: { design: Design; className?: s
 
     ctx.setTransform(1, 0, 0, 1, 0, 0);
     ctx.clearRect(0, 0, TEX_W, TEX_H);
-    paintSockTexture(ctx, d, {
+    const { colorway } = paintSockTexture(ctx, d, {
       width: TEX_W,
       height: TEX_H,
       landmarks: k.landmarks,
@@ -310,7 +310,22 @@ export function SockThree({ design, className }: { design: Design; className?: s
           const scale = Math.min(box / img.width, box / img.height);
           const w = img.width * scale;
           const h = img.height * scale;
-          ctx.drawImage(img, x - w / 2, y - h / 2, w, h);
+
+          // Recolour to this colourway's ink before compositing — done on a
+          // small offscreen canvas, not the shared texture, since
+          // `source-in` would otherwise erase everything already painted
+          // there (the whole sock body, not just this print).
+          const patch = document.createElement('canvas');
+          patch.width = Math.ceil(w);
+          patch.height = Math.ceil(h);
+          const pctx = patch.getContext('2d');
+          if (!pctx) continue;
+          pctx.drawImage(img, 0, 0, w, h);
+          pctx.globalCompositeOperation = 'source-in';
+          pctx.fillStyle = colorway.ink;
+          pctx.fillRect(0, 0, patch.width, patch.height);
+
+          ctx.drawImage(patch, x - w / 2, y - h / 2, w, h);
         }
         kk.texture.needsUpdate = true;
       };

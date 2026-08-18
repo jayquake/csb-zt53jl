@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { Grinline } from '../brand/Grinline';
 import { AnimatedFace, useFaceAnimation } from '../brand/AnimatedFace';
+import { ArtGlyph } from '../brand/ArtGlyph';
 import { Sock } from '../brand/Sock';
 import { SockPhoto, sockPhotoAvailable } from '../brand/SockPhoto';
 import { templateById, TEMPLATES_WITH_ART, type Template } from '../brand/templates';
@@ -128,7 +129,7 @@ export function Home() {
             <li key={t.id}>
               <Link className="moodcard" to={`/studio?start=${t.id}`}>
                 {t.artUrl ? (
-                  <img src={t.artUrl} alt="" className="moodcard__face" />
+                  <ArtGlyph src={t.artUrl} className="moodcard__face" />
                 ) : (
                   <AnimatedFace
                     spec={{ faces: [t.face], blink: true, boil: 0.8, phaseMs: i * 640, seed: i + 1 }}

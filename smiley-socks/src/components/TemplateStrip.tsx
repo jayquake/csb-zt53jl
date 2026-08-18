@@ -1,4 +1,5 @@
 import { FaceSvg } from '../brand/Face';
+import { ArtGlyph } from '../brand/ArtGlyph';
 import { TEMPLATES_WITH_ART } from '../brand/templates';
 
 /**
@@ -26,7 +27,7 @@ export function TemplateStrip({
             onClick={() => onPick(t.id)}
           >
             {t.artUrl ? (
-              <img src={t.artUrl} alt="" className="strip__face" />
+              <ArtGlyph src={t.artUrl} className="strip__face" />
             ) : (
               <FaceSvg face={t.face} className="strip__face" title={`${t.name}: ${t.blurb}`} />
             )}

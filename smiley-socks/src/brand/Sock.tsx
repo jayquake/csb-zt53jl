@@ -151,15 +151,37 @@ function Print({
     // effective ink fill (its 200-unit box only draws ~160 units of it) —
     // see the identical note in SockPhoto.tsx.
     const box = zone.size * 0.92 * 0.8;
+    const maskId = `${clipId}-art-mask-${index}`;
+    // Recoloured via an alpha mask, not a filter: `feFlood flood-color=
+    // "currentColor"` looks like the obvious way to do this, but a filter
+    // primitive isn't part of the element it's applied to, so browsers
+    // don't resolve currentColor through it — tested directly, it stays a
+    // fixed colour no matter the ink. A `<mask>` doesn't have that problem;
+    // `fill="currentColor"` on the rect it masks is a normal presentation
+    // attribute and inherits exactly like every parametric stroke already
+    // does. `mask-type: alpha` keys the mask off the drawing's alpha
+    // channel rather than its (irrelevant, near-black) luminance.
     return (
-      <image
-        href={artUrl}
-        x={zone.x - box / 2}
-        y={zone.y - box / 2}
-        width={box}
-        height={box}
-        preserveAspectRatio="xMidYMid meet"
-      />
+      <>
+        <mask id={maskId} maskUnits="userSpaceOnUse" style={{ maskType: 'alpha' }}>
+          <image
+            href={artUrl}
+            x={zone.x - box / 2}
+            y={zone.y - box / 2}
+            width={box}
+            height={box}
+            preserveAspectRatio="xMidYMid meet"
+          />
+        </mask>
+        <rect
+          x={zone.x - box / 2}
+          y={zone.y - box / 2}
+          width={box}
+          height={box}
+          fill="currentColor"
+          mask={`url(#${maskId})`}
+        />
+      </>
     );
   }
 

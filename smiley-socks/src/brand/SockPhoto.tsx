@@ -191,6 +191,15 @@ export function SockPhoto({
         const w = img.width * scale;
         const h = img.height * scale;
         ctx.drawImage(img, ART / 2 - w / 2, ART / 2 - h / 2, w, h);
+        // The drawing is cleaned to a fixed near-black ink, but the print
+        // has to be whatever colour this colourway actually prints in —
+        // cream on Midnight, dark on Bone. `source-in` keeps only the pixels
+        // already drawn (the ink, antialiasing included) and recolours them
+        // to `ink`, the same value the parametric path already takes.
+        ctx.globalCompositeOperation = 'source-in';
+        ctx.fillStyle = ink;
+        ctx.fillRect(0, 0, ART, ART);
+        ctx.globalCompositeOperation = 'source-over';
         setArt(canvas);
       };
       img.src = artUrl;
