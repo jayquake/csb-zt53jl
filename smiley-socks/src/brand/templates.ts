@@ -246,7 +246,10 @@ export const TEMPLATES: Template[] = [
       // fully out to the side — bigger and more playful than sly's smirk.
       eyes: { shape: 'lash', size: 14, x: 29, y: 80 },
       brows: { on: true, y: 46, angle: -22, length: 24 },
-      mouth: { curve: 0.6, width: 46, y: 128, flick: 1 },
+      // flick adds a fixed-length tail regardless of width, so pairing it
+      // with a narrow mouth (as first drafted) reads as a stray spike, not
+      // a curl — 0.75 keeps the same proportion sly's wider mouth gets.
+      mouth: { curve: 0.6, width: 46, y: 128, flick: 0.75 },
       marks: ['tongue'],
     }),
     artUrl: faceCheekyArt,
@@ -617,7 +620,10 @@ export const TEMPLATES: Template[] = [
     blurb: 'Yeah, I planned that.',
     artUrl: faceSmoothArt,
     face: face({
-      mouth: { curve: 0.5, width: 40, y: 128, flick: 1 },
+      // flick's tail is a fixed length, not proportional to width — at
+      // width 40 the original flick:1 read as a stray spike off the mouth
+      // rather than a smirk's curl.
+      mouth: { curve: 0.5, width: 52, y: 128, flick: 0.7 },
       marks: ['shades'],
     }),
   },
@@ -712,10 +718,11 @@ export const TEMPLATES: Template[] = [
     artUrl: faceNumbArt,
     face: face({
       // The reference is a near-solid shaded panel — no parametric shape
-      // reads that way, so the fallback is just the barely-there dot eyes and
-      // flat mouth the sketch leaves visible against it.
-      eyes: { shape: 'round', size: 7, x: 26, y: 84 },
-      mouth: { curve: 0, width: 30, y: 138 },
+      // reads that way, so this is deliberately minimal rather than trying
+      // to fake the panel — but small enough to look intentional, not
+      // broken (size 7 was nearly invisible in the editor).
+      eyes: { shape: 'round', size: 11, x: 27, y: 84 },
+      mouth: { curve: 0, width: 34, y: 138 },
     }),
   },
   {
