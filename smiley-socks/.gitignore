@@ -1,0 +1,7 @@
+node_modules/
+*.local
+.DS_Store
+
+# dist/ is deliberately NOT ignored — it is committed so the branch is
+# viewable without an install. Rebuild it with `npm run build` after any
+# change to src/.
