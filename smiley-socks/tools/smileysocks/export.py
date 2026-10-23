@@ -35,6 +35,7 @@ from .design import Design
 from .layout import Layout, build_layout, guide_ops, scaled_ops
 from .render import Op, TextRun, render_pdf, render_png, render_svg
 from .template import PrintTemplate
+from . import stitch
 
 #: A4, in millimetres. The proof is a document people print and sign.
 PAGE_W_MM = 210.0
@@ -59,6 +60,8 @@ class ExportResult:
         ]
         if m["print"]["dropFromCuffMm"] is not None:
             lines.append(f"  first hit   {m['print']['dropFromCuffMm']} mm below the cuff opening")
+        if self.layout.stitch is not None:
+            lines.append(f"  {self.layout.stitch.summary()}")
         for name, path in self.files.items():
             lines.append(f"  {name:<11} {path}")
         for warning in m["warnings"]:
@@ -106,6 +109,15 @@ def build_manifest(design: Design, template: PrintTemplate, layout: Layout) -> d
         warnings.append(
             f"{len(layout.spots) - len(layout.centres)} print(s) fall outside this template "
             "and were dropped. Use the 'wrap' template for a full all-over."
+        )
+    if layout.stitch is not None and not layout.stitch.native:
+        warnings.append(
+            f"{layout.stitch.clamped} stroke(s) were thinner than the "
+            f"{stitch.MIN_SATIN_MM} mm satin minimum at this size (thinnest "
+            f"{min(v.actual_mm for v in layout.stitch.violations):.2f} mm) and were "
+            "raised to the floor so they can be stitched. The artwork is no longer "
+            "exactly as designed — if this is printed rather than embroidered, build "
+            "the layout with stitch_floor=False."
         )
 
     return {
@@ -162,6 +174,7 @@ def build_manifest(design: Design, template: PrintTemplate, layout: Layout) -> d
             "donationRate": DONATION_RATE,
             "donationOnSingleUsd": round(PRICE["single"] * DONATION_RATE, 2),
         },
+        "stitch": (None if layout.stitch is None else layout.stitch.as_dict()),
         "warnings": warnings,
     }
 
@@ -205,6 +218,20 @@ def proof_pdf(design: Design, template: PrintTemplate, layout: Layout, ops: list
         ("Ink", f"{m['product']['colors']['ink']} on {m['product']['colors']['base']}"),
         ("Template", f"{m['canvas']['templateName']} — {m['canvas']['notes']}"),
     ]
+    if m.get("stitch"):
+        s = m["stitch"]
+        rows.append(
+            (
+                "Stitch",
+                f"strokes {s['thinnestStrokeMm']}–{s['thickestStrokeMm']} mm · "
+                f"min satin {s['minSatinMm']} mm · "
+                + (
+                    "stitchable as drawn"
+                    if s["stitchableAsDrawn"]
+                    else f"{s['raisedToFloorOps']} raised to floor"
+                ),
+            )
+        )
     y = top + 7
     for label, value in rows:
         texts.append(TextRun(MARGIN_MM, y, label.upper(), 6.5, grey, bold=True))

@@ -134,6 +134,42 @@ the app writes, so the range here is the range on the site.
   gets printed onto somebody's sock.
 - **`panel` drops prints that fall past the heel**, and warns with a count. Use
   `wrap` for a genuine all-over.
+- **The stitch minimums are industry defaults, not this supplier's numbers.**
+  See below; `smileysocks/stitch.py` holds them as constants so that swapping
+  in real ones is a one-line change the tests then re-verify.
+
+## Embroidery, and why strokes get raised
+
+The sock is embroidered, and thread has a minimum size that ink does not. A
+satin column narrower than about 1.2 mm will not hold: the digitiser drops it,
+or demotes it to a running stitch that reads as a hairline. Nothing about that
+failure is visible until a sample is stitched, which is the worst possible
+moment to discover it.
+
+So `build_layout` measures every stroked drawable against `MIN_SATIN_MM` and
+raises anything under it to the floor. The report it attaches to the layout
+describes the geometry **as designed**, not as delivered — the file alongside
+it always complies, and `stitchableAsDrawn` in the manifest is what says
+whether it needed help getting there.
+
+What the audit found, at the sizes this product actually prints:
+
+| placement | size | thinnest stroke as drawn | faces needing a raise |
+|---|---|---|---|
+| `leg` | 49.3 mm | 1.69 mm | 0 / 84 |
+| `cuff` | 28.9 mm | 0.99 mm | 12 / 84 |
+| `stacked` | 27.2 mm | 0.93 mm | 15 / 84 |
+| `allover` | 18.7 mm | 0.64 mm | **79 / 84** |
+
+The all-over tile is the real casualty. At 18.7 mm even `STROKE` itself lands
+at 1.17 mm, under the floor, which is why nearly the whole shelf needs raising
+there — and raising every weight to the same floor flattens the line
+modulation the faces are drawn with. Treat all-over as a print-only placement
+until someone decides it is worth redrawing for thread.
+
+`stitch_floor=False` turns the floor off for artwork that is genuinely being
+printed, where no such minimum exists and thickening the line would only
+coarsen the drawing.
 
 ## How this stays honest
 

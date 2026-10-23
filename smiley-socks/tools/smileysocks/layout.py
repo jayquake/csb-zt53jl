@@ -21,6 +21,7 @@ from . import pathdata as pd
 from .catalog import PrintSpot, colorway_by_id, height_by_id, placement_by_id, print_mm, print_spots
 from .design import Design
 from .face import STROKE, build_face
+from .stitch import StitchReport, enforce
 from .render import Op, ellipse_path, rect_path
 from .sock import SockMetrics, sock_metrics
 from .template import PrintTemplate
@@ -48,6 +49,9 @@ class Layout:
     ink: str
     #: Where cuff text goes, as boxes. Proof only — see `_cuff_text_ops`.
     text_guides: tuple[Op, ...] = ()
+    #: What this file asks of the needle. None for a layout built before the
+    #: stitch pass existed; every layout build_layout returns carries one.
+    stitch: StitchReport | None = None
 
     @property
     def width_px(self) -> int:
@@ -130,8 +134,17 @@ def _c(p) -> str:
     return f"{p[0]:.4f},{p[1]:.4f}"
 
 
-def build_layout(design: Design, template: PrintTemplate) -> tuple[list[Op], Layout]:
-    """Turn a design into a list of drawables and a description of the canvas."""
+def build_layout(
+    design: Design, template: PrintTemplate, stitch_floor: bool = True
+) -> tuple[list[Op], Layout]:
+    """Turn a design into a list of drawables and a description of the canvas.
+
+    ``stitch_floor`` raises every stroke to the satin minimum, which is what an
+    embroidered sock needs and what the default assumes. Pass ``False`` for
+    artwork that is genuinely being *printed* — ink has no such floor, and
+    thickening a line there would coarsen the drawing for no reason. Either
+    way the layout's report records the geometry as designed.
+    """
     height = height_by_id(design.height_id)
     metrics = sock_metrics(height.leg_cm)
     colorway = colorway_by_id(design.colorway_id)
@@ -146,6 +159,7 @@ def build_layout(design: Design, template: PrintTemplate) -> tuple[list[Op], Lay
         centres = ((width_mm / 2, height_mm / 2),)
         spots = tuple(print_spots(design.placement_id, metrics.landmarks))[:1]
         ops.extend(face_ops(design, centres[0][0], centres[0][1], size_mm, colorway.ink))
+        ops, report = enforce(ops, size_mm, apply_floor=stitch_floor)
         return ops, Layout(
             width_mm=width_mm,
             height_mm=height_mm,
@@ -157,6 +171,7 @@ def build_layout(design: Design, template: PrintTemplate) -> tuple[list[Op], Lay
             centres=centres,
             background=colorway.base if template.background else None,
             ink=colorway.ink,
+            stitch=report,
         )
 
     # The sock, unwrapped. u * circumference across, v * length down, with the
@@ -219,6 +234,11 @@ def build_layout(design: Design, template: PrintTemplate) -> tuple[list[Op], Lay
 
     text_guides = _cuff_text_ops(design, metrics, place, colorway.ink) if design.cuff_text else []
 
+    # The floor is applied to the whole assembled artwork rather than inside
+    # face_ops, so the sock's own fills are left alone and the report counts
+    # every face on the canvas — an all-over tile is dozens of them.
+    ops, report = enforce(ops, size_mm, apply_floor=stitch_floor)
+
     return ops, Layout(
         width_mm=width_mm,
         height_mm=height_mm,
@@ -231,6 +251,7 @@ def build_layout(design: Design, template: PrintTemplate) -> tuple[list[Op], Lay
         background=colorway.base if template.background else None,
         ink=colorway.ink,
         text_guides=tuple(text_guides),
+        stitch=report,
     )
 
 
