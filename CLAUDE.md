@@ -1,6 +1,13 @@
 # Apartment Finder — orientation for a new session
 
-This repo's actual project lives in **`apartment-finder/`**. Everything at
+> **There is a second, unrelated project in here now:** `smiley-socks/` is a
+> Vite + React storefront for a sock brand (design a face, put it on a sock,
+> 10% to mental health). It shares nothing with the apartment finder — no code,
+> no build, no workflow — and the scheduled workflow cannot touch it, because
+> the publish step stages entries by name from `apartment-finder/site/`. See
+> `smiley-socks/README.md`. Everything below is about the apartment finder.
+
+This repo's main project lives in **`apartment-finder/`**. Everything at
 the repo root (`index.html`, `app.js`, `styles.css`, `data.json`, `vendor/`)
 is the *published* static site — generated output the CI workflow copies up
 from `apartment-finder/public/` + `apartment-finder/data/snapshot.json` on
