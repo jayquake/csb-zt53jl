@@ -18,32 +18,24 @@ import { config } from '../config';
 import { log } from '../logger';
 import { clean, detectAgency, detectAmenities, parseFloor, parseInteger, parsePrice, parseRooms, parseHebrewDate } from './parse';
 
-/** Homeless city ids for the Gush Dan area. */
-const CITY_IDS: Record<string, number> = {
-  'תל אביב יפו': 1,
-  'תל אביב': 1,
-  'רמת גן': 2,
-  גבעתיים: 3,
-  הרצליה: 5,
-  'בת ים': 6,
-  חולון: 7,
-  'בני ברק': 8,
-  'רמת השרון': 9,
-};
-
-function buildSearchUrl(criteria: SearchCriteria, city: string, page: number): string {
-  const params = new URLSearchParams();
-  const cityId = CITY_IDS[city.trim()];
-  if (cityId) params.set('city', String(cityId));
-  else params.set('search', city);
-
-  if (criteria.minPriceIls != null) params.set('priceFrom', String(criteria.minPriceIls));
-  if (criteria.maxPriceIls != null) params.set('priceTo', String(criteria.maxPriceIls));
-  if (criteria.minRooms != null) params.set('roomsFrom', String(criteria.minRooms));
-  if (criteria.maxRooms != null) params.set('roomsTo', String(criteria.maxRooms));
-  if (page > 1) params.set('page', String(page));
-
-  return `https://www.homeless.co.il/rent/?${params.toString()}`;
+/**
+ * Builds a search URL.
+ *
+ * The site used to take filters as ordinary query params
+ * (`/rent/?city=1&priceTo=8000&...`) — that shape is now dead: it 500s into
+ * `GeneralError.aspx`, which falls back to rendering the unfiltered citywide
+ * board rather than erroring visibly, so the old code "worked" (200 OK, no
+ * exception) while silently returning zero matching cards every run.
+ * Verified directly in a real browser: the live shape is a path segment,
+ * `/rent/city=<hebrew name>`, with no query-string filters at all — the
+ * price/rooms dropdowns are client-side JS, not URL params — and pagination
+ * is `/rent/city=<name>/<page>`. So this scrapes unfiltered and leaves
+ * price/room matching to the ingest pipeline's own criteria check, same as
+ * it already does for the other sources' edge cases.
+ */
+function buildSearchUrl(city: string, page: number): string {
+  const base = `https://www.homeless.co.il/rent/city=${encodeURIComponent(city)}`;
+  return page > 1 ? `${base}/${page}` : base;
 }
 
 /**
@@ -59,7 +51,10 @@ async function readCards(page: Page): Promise<Array<Record<string, string>>> {
       const anchors = Array.from(document.querySelectorAll('a[href*="/rent/"], a[href*="/item/"]'));
       for (const anchor of anchors) {
         const href = (anchor as HTMLAnchorElement).href;
-        const idMatch = href.match(/\/(?:rent|item)\/(\d+)/);
+        // Detail pages are `/rent/viewad,<id>.aspx` — the older `/rent/<id>` and
+        // `/item/<id>` shapes are kept as a fallback in case other boards or a
+        // future redesign use them.
+        const idMatch = href.match(/viewad,(\d+)/) ?? href.match(/\/(?:rent|item)\/(\d+)/);
         if (!idMatch) continue;
         const card = anchor.closest('tr, li, article, div[class*="item"], div[class*="card"]') ?? anchor;
         const text = (card as HTMLElement).innerText ?? '';
@@ -136,7 +131,7 @@ export class HomelessSource implements ListingSource {
 
     for (const city of criteria.cities) {
       for (let pageNum = 1; pageNum <= config.browser.maxPages; pageNum += 1) {
-        const url = buildSearchUrl(criteria, city, pageNum);
+        const url = buildSearchUrl(city, pageNum);
         let page: Page | undefined;
 
         try {
