@@ -1,0 +1,200 @@
+@import 'tailwindcss';
+@import 'leaflet/dist/leaflet.css';
+@import 'leaflet.markercluster/dist/MarkerCluster.css';
+@import 'leaflet.markercluster/dist/MarkerCluster.Default.css';
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --radius-lg: var(--radius);
+  --radius-md: calc(var(--radius) - 4px);
+  --radius-sm: calc(var(--radius) - 8px);
+}
+
+:root {
+  --background: #f8fafc;
+  --foreground: #0f172a;
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #2563eb;
+  --primary: #2563eb;
+  --primary-foreground: #ffffff;
+  --secondary: #f1f5f9;
+  --secondary-foreground: #0f172a;
+  --muted: #f1f5f9;
+  --muted-foreground: #64748b;
+  --accent: #eff6ff;
+  --accent-foreground: #1d4ed8;
+  --destructive: #dc2626;
+  --destructive-foreground: #ffffff;
+  --success: #059669;
+  --success-foreground: #ffffff;
+  --radius: 0.875rem;
+}
+
+@media (prefers-color-scheme: dark) {
+  /* A saved 'light' choice overrides the OS; 'dark' and 'system' both land
+   * here (system via the media query, dark via the attribute selector below
+   * repeating the same values for when the OS itself is light). */
+  :root:not([data-theme='light']) {
+    --background: #0b1220;
+    --foreground: #e6edf7;
+    --card: #131c2e;
+    --card-foreground: #e6edf7;
+    --border: #24304a;
+    --input: #24304a;
+    --ring: #4f8cff;
+    --primary: #4f8cff;
+    --primary-foreground: #06101f;
+    --secondary: #182238;
+    --secondary-foreground: #e6edf7;
+    --muted: #182238;
+    --muted-foreground: #93a3b8;
+    --accent: #182238;
+    --accent-foreground: #9fc1ff;
+    --destructive: #f87171;
+    --destructive-foreground: #180505;
+    --success: #34d399;
+    --success-foreground: #04150f;
+  }
+}
+
+:root[data-theme='dark'] {
+  --background: #0b1220;
+  --foreground: #e6edf7;
+  --card: #131c2e;
+  --card-foreground: #e6edf7;
+  --border: #24304a;
+  --input: #24304a;
+  --ring: #4f8cff;
+  --primary: #4f8cff;
+  --primary-foreground: #06101f;
+  --secondary: #182238;
+  --secondary-foreground: #e6edf7;
+  --muted: #182238;
+  --muted-foreground: #93a3b8;
+  --accent: #182238;
+  --accent-foreground: #9fc1ff;
+  --destructive: #f87171;
+  --destructive-foreground: #180505;
+  --success: #34d399;
+  --success-foreground: #04150f;
+}
+
+body {
+  background: var(--color-background);
+  color: var(--color-foreground);
+  font-family: system-ui, -apple-system, 'Segoe UI', Rubik, Arial, sans-serif;
+  -webkit-text-size-adjust: 100%;
+}
+
+/* Markers are styled divs rather than Leaflet's default PNGs: no image assets
+   to vendor, and the colour can carry the match score. */
+.pin {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  margin: -17px 0 0 -17px;
+  border-radius: 50% 50% 50% 4px;
+  transform: rotate(-45deg);
+  border: 2px solid rgb(255 255 255 / 0.9);
+  box-shadow: 0 2px 6px rgb(0 0 0 / 0.35);
+  font-size: 10.5px;
+  font-weight: 700;
+  color: #fff;
+}
+.pin span {
+  transform: rotate(45deg);
+}
+.pin-high {
+  background: #059669;
+}
+.pin-mid {
+  background: #d97706;
+}
+.pin-low {
+  background: #64748b;
+}
+.pin-cluster {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: var(--primary-foreground);
+  border: 3px solid rgb(255 255 255 / 0.9);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 0.35);
+  font-weight: 700;
+  font-size: 13px;
+}
+.me-dot {
+  width: 16px;
+  height: 16px;
+  margin: -8px 0 0 -8px;
+  border-radius: 50%;
+  background: #2563eb;
+  border: 3px solid #fff;
+  box-shadow: 0 0 0 2px rgb(37 99 235 / 0.45);
+}
+
+.leaflet-popup-content {
+  margin: 10px 12px;
+  font-family: inherit;
+}
+.popup-title {
+  font-weight: 600;
+  font-size: 13.5px;
+  margin: 0 0 4px;
+  max-width: 200px;
+}
+.popup-price {
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 2px;
+}
+.popup-meta {
+  color: #64748b;
+  font-size: 12.5px;
+  margin-bottom: 6px;
+}
+.popup-links {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+.popup-links a {
+  font-size: 12.5px;
+  font-weight: 600;
+  text-decoration: none;
+  padding: 4px 9px;
+  border-radius: 7px;
+  background: #2563eb;
+  color: #fff;
+}
+.popup-links a.wa {
+  background: #25d366;
+  color: #05240f;
+}

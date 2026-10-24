@@ -1,5 +1,8 @@
 node_modules/
 dist/
+# Vite build output. Source lives in web/; `npm run web:build` regenerates
+# this from there, same as site/ below.
+public/
 # The snapshot is committed on purpose: it carries price history between
 # GitHub Actions runs, which each start from a fresh checkout.
 data/*

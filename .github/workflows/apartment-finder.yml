@@ -137,7 +137,9 @@ jobs:
           fi
 
       - name: Export snapshot and build the site
-        run: npm run snapshot:export
+        # site:build runs the Vite build (web/ -> public/) before exporting,
+        # so buildStaticSite picks up the React UI rather than a stale copy.
+        run: npm run site:build
 
       - name: Report what each source returned
         run: |

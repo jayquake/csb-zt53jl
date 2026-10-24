@@ -361,17 +361,35 @@ are geocoded with Nominatim (OpenStreetMap). Notes that matter:
 - A backlog is worked through a batch at a time, and the map states its own
   coverage ("24 of 55 shown") rather than quietly implying the rest don't exist.
 
-Leaflet is vendored into `public/vendor/` rather than loaded from a CDN, so the
-published page has no third-party runtime dependency. Map tiles come from
-OpenStreetMap.
+Leaflet (via `react-leaflet`) ships from npm rather than a CDN, bundled into
+the app by Vite, so the published page has no third-party runtime dependency
+at request time. Map tiles come from OpenStreetMap. Pins cluster
+(`leaflet.markercluster`) once a neighborhood gets dense enough to overlap.
 
 ---
 
 ## The web UI
 
-Mobile-first, no build step, works in light and dark. English interface with Hebrew listing content passed through using `dir="auto"`, so RTL text renders correctly inline.
+React + TypeScript + Tailwind v4, with shadcn-style components (Radix
+primitives underneath: select, checkbox, tabs, label). Mobile-first, works in
+light and dark via `prefers-color-scheme` — no manual theme toggle. English
+interface with Hebrew listing content passed through using `dir="auto"`, so
+RTL text renders correctly inline.
 
-- **Feed** — filter by **price range**, poster (no realtors / realtors only), source, **amenity chips** (elevator, parking, balcony, safe room, furnished — only a confirmed `true` counts) and free text; sort by match, price (either direction), size, rooms, newest, oldest or recently updated. Each card shows a price-trend sparkline.
+Source lives in `web/`; `npm run web:build` (Vite) builds it into `public/`,
+which is what `server.ts` serves and `snapshot.ts`'s `buildStaticSite` copies
+into `site/` for GitHub Pages. `public/` is therefore generated output, not
+hand-edited — it's gitignored like `site/`. Local dev: `npm run web:dev`
+(Vite, with HMR) proxies `/api` to the backend, which you run separately with
+`npm run dev`.
+
+Same dual-mode design as before: one build serves both the live `/api` (real
+server) and the published `data.json` snapshot (GitHub Pages, filtered/sorted
+client-side, Save/Hide kept in `localStorage`) — `web/src/lib/api.ts` is where
+that split lives now, mirroring the old `app.js`.
+
+- **Feed** — filter by **price range**, poster (no realtors / realtors only), source, **amenity chips** (elevator, parking, balcony, safe room, furnished — only a confirmed `true` counts) and free text; sort by match, price (either direction), size, rooms, newest, oldest or recently updated, with one-tap quick-sort pills for the common cases. Each card shows a price-trend sparkline.
+- **Map** — same filter bar (collapsed by default, to leave room for the map), clustered pins colored by score tier, a "my location" button with an accuracy circle.
 - **Saved** — your shortlist
 - **Add** — paste a Facebook-group post
 - **Criteria** — edit budget, rooms, size, cities, must-haves and alert thresholds from your phone; changes apply on the next scan
