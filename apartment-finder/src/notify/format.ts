@@ -102,6 +102,12 @@ function formatOne(alert: PendingAlert, index: number, style: Style): string {
   const specs = specLine(listing);
   if (specs) lines.push(`   ${specs}`);
 
+  // The mamad gets its own line rather than being folded into the spec list.
+  // Most Tel Aviv flats predate the 1992 rule and do not have one, so this is
+  // the rare exception worth spotting at a glance — costing one line for a
+  // listing that has one, and nothing at all for the many that do not.
+  if (listing.hasSafeRoom === true) lines.push(`   🛡️ ${style.bold('Mamad')}`);
+
   const location = locationLine(listing);
   if (location) lines.push(`   📍 ${style.text(location)}`);
 
@@ -175,6 +181,75 @@ export function formatDigest(alerts: PendingAlert[], options: DigestOptions = {}
     .filter((s) => s !== '')
     .join('\n')
     .trim();
+}
+
+export interface StatusOptions {
+  appUrl?: string;
+  flavor?: Flavor;
+  /** Listings currently active, so a quiet morning still shows the feed size. */
+  activeCount?: number;
+  /** Per-source counts from this run, e.g. `{ komo: 0 }`. */
+  sourceStats?: Record<string, number>;
+  /** Errors collected during the run. */
+  errors?: string[];
+}
+
+/**
+ * The morning status message, sent when a scan produced no alerts.
+ *
+ * This exists because silence is ambiguous. A scan that scrapes nothing at all
+ * — a source blocked, a network failure, a selector that stopped matching —
+ * produces zero alerts, which used to send exactly the same thing as a genuinely
+ * quiet morning: nothing. That failure mode is invisible for as long as it
+ * takes someone to notice the site has gone stale, which was days.
+ *
+ * So a run that finds nothing still says so, and says *why* it found nothing
+ * when it knows. A daily "all quiet, 28 listings tracked" is a small price for
+ * never again mistaking a broken scraper for a slow market.
+ */
+export function formatStatus(options: StatusOptions = {}): string {
+  const flavor: Flavor = options.flavor ?? 'whatsapp';
+  const style = STYLES[flavor];
+
+  const errors = options.errors ?? [];
+  const stats = options.sourceStats ?? {};
+  const sources = Object.entries(stats);
+  // A source that ran and returned nothing is as much a red flag as one that
+  // threw: Komo returning 0 for Tel Aviv means something broke, not that the
+  // city emptied out.
+  const empty = sources.filter(([, count]) => count === 0).map(([name]) => name);
+  const healthy = errors.length === 0 && sources.length > 0 && empty.length === 0;
+
+  const lines: string[] = [];
+
+  lines.push(style.bold(healthy ? '🔍 Morning apartment update' : '⚠️ Morning scan problem'));
+  lines.push(healthy ? 'No new listings or price drops today.' : 'The scan ran but brought back nothing.');
+  lines.push('');
+
+  if (sources.length) {
+    lines.push(sources.map(([name, count]) => `${name}: ${count}`).join(' · '));
+  }
+  if (options.activeCount != null) {
+    lines.push(`${options.activeCount} listings still tracked.`);
+  }
+
+  if (errors.length) {
+    lines.push('');
+    // Verbatim, not a friendly paraphrase — the raw message is what makes this
+    // diagnosable without opening the Actions log.
+    for (const error of errors.slice(0, 5)) lines.push(`• ${style.text(error)}`);
+    if (errors.length > 5) lines.push(`…and ${errors.length - 5} more`);
+  } else if (empty.length) {
+    lines.push('');
+    lines.push(`No errors reported, but ${empty.join(', ')} returned 0 — likely blocked or changed.`);
+  }
+
+  if (options.appUrl) {
+    lines.push('');
+    lines.push(`All results: ${style.link(options.appUrl, options.appUrl)}`);
+  }
+
+  return lines.join('\n').trim();
 }
 
 /** Single-listing message, used by the "notify me about this one" action. */

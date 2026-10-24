@@ -1,6 +1,6 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { formatDigest } from '../src/notify/format';
+import { formatDigest, formatStatus } from '../src/notify/format';
 import type { PendingAlert } from '../src/pipeline/ingest';
 
 function alert(overrides: Partial<PendingAlert> = {}): PendingAlert {
@@ -127,4 +127,74 @@ test('whatsapp rendering is unchanged by the flavor work', () => {
   const message = formatDigest([alert()], { flavor: 'whatsapp' })!;
   assert.match(message, /\*/);
   assert.doesNotMatch(message, /<b>|<a href/);
+});
+
+/* ---- morning status message ----
+   The point of these: silence used to mean both "quiet market" and "scraper is
+   dead", and only one of those is fine. */
+
+test('a healthy quiet morning reads as quiet, not broken', () => {
+  const message = formatStatus({ sourceStats: { komo: 12 }, activeCount: 28, errors: [] });
+  assert.match(message, /Morning apartment update/);
+  assert.doesNotMatch(message, /problem|⚠️/);
+  assert.match(message, /28 listings still tracked/);
+});
+
+test('a scrape that returned nothing is flagged as a problem, not a quiet day', () => {
+  // Exactly the shape of the real 2026-08-03 run: source ran, returned 0.
+  const message = formatStatus({
+    sourceStats: { komo: 0 },
+    activeCount: 28,
+    errors: ['komo תל אביב יפו: fetch failed'],
+  });
+  assert.match(message, /Morning scan problem/);
+  // The raw error is what makes it diagnosable without opening the CI log.
+  assert.match(message, /fetch failed/);
+});
+
+test('zero results with no thrown error is still reported as suspicious', () => {
+  const message = formatStatus({ sourceStats: { komo: 0 }, activeCount: 28, errors: [] });
+  assert.match(message, /Morning scan problem/);
+  assert.match(message, /komo returned 0|returned 0/);
+});
+
+test('status escapes html for telegram', () => {
+  const message = formatStatus({
+    flavor: 'telegram',
+    sourceStats: { komo: 0 },
+    errors: ['<script>alert(1)</script> & co'],
+  });
+  assert.match(message, /&lt;script&gt;/);
+  assert.doesNotMatch(message, /<script>/);
+});
+
+test('status caps a flood of errors instead of blowing the length limit', () => {
+  const errors = Array.from({ length: 12 }, (_, i) => `source ${i} exploded`);
+  const message = formatStatus({ sourceStats: { komo: 0 }, errors });
+  assert.match(message, /…and 7 more/);
+  assert.ok(message.length < 1600, `status was ${message.length}`);
+});
+
+/* ---- mamad marker ----
+   Rare enough in Tel Aviv (most stock predates the 1992 rule) that the marker's
+   job is to make the exception findable, not to decorate a common feature. */
+
+test('a listing with a mamad is marked in the digest', () => {
+  const message = formatDigest(
+    [alert({ listing: { ...alert().listing, hasSafeRoom: true } })],
+    { flavor: 'telegram' }
+  )!;
+  assert.match(message, /🛡️/);
+  assert.match(message, /Mamad/);
+});
+
+test('a listing without a confirmed mamad is not marked', () => {
+  // false and "never mentioned" both mean "do not claim it has one".
+  for (const value of [false, null, undefined]) {
+    const message = formatDigest(
+      [alert({ listing: { ...alert().listing, hasSafeRoom: value as boolean | null } })],
+      { flavor: 'telegram' }
+    )!;
+    assert.doesNotMatch(message, /🛡️/, `hasSafeRoom=${String(value)} should not be marked`);
+  }
 });

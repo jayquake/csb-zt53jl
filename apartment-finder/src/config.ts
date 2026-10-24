@@ -100,6 +100,16 @@ export const config = {
     /** "whatsapp" | "telegram" | "console". Comma-separated for several. */
     channels: list(process.env.NOTIFY_CHANNELS).length ? list(process.env.NOTIFY_CHANNELS) : ['console'],
 
+    /**
+     * Send a short status message on mornings with nothing to report.
+     *
+     * On by default, because the alternative is worse than a daily ping: with
+     * it off, a scan that scrapes nothing sends nothing, which looks exactly
+     * like a quiet market — that is how a dead scraper stayed invisible for
+     * days. Turn it off only if you would rather check the site yourself.
+     */
+    heartbeat: bool(process.env.NOTIFY_HEARTBEAT, true),
+
     twilio: {
       accountSid: process.env.TWILIO_ACCOUNT_SID ?? '',
       authToken: process.env.TWILIO_AUTH_TOKEN ?? '',

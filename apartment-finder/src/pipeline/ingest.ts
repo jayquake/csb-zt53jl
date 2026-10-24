@@ -41,6 +41,8 @@ export interface PendingAlert {
     score: number;
     scoreReasons: string[];
     imageUrls: string[];
+    /** Tri-state, like everywhere else: null/undefined means it never said. */
+    hasSafeRoom?: boolean | null;
   };
 }
 
@@ -217,6 +219,7 @@ function toPendingAlert(
     cityEn?: string | null;
     neighborhoodEn?: string | null;
     contactPhone?: string | null;
+    hasSafeRoom?: boolean | null;
     score: number;
   },
   reasons: string[],
@@ -242,6 +245,7 @@ function toPendingAlert(
       score: row.score,
       scoreReasons: reasons,
       imageUrls,
+      hasSafeRoom: row.hasSafeRoom ?? null,
     },
   };
 }

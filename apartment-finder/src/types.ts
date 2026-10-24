@@ -60,6 +60,9 @@ export type UserActionStatus = 'SAVED' | 'HIDDEN' | 'CONTACTED';
  * "don't care", which is what makes the same matcher usable for a loose
  * exploratory search and a tight one.
  */
+/** The amenities the scorer knows about, as referred to in preferences. */
+export type AmenityKey = 'elevator' | 'parking' | 'balcony' | 'safeRoom' | 'furnished';
+
 export interface SearchCriteria {
   /** Monthly rent in ILS. */
   minPriceIls?: number;
@@ -118,6 +121,21 @@ export interface SearchCriteria {
     favoriteNeighborhoods: string[];
     /** Free-text terms that earn bonus points when present. */
     bonusKeywords: string[];
+    /**
+     * The amenities you actually care about, ranked above the rest.
+     *
+     * Without this every amenity counts equally, so a flat with parking, a safe
+     * room and furniture outscores one with the elevator and balcony you were
+     * actually asking for. Listing them here puts most of the amenity weight on
+     * these specifically.
+     *
+     * Deliberately a *preference*, not `requireElevator`/`requireBalcony`: in
+     * the real Tel Aviv data most listings never mention a balcony at all and
+     * the majority state outright that there is no elevator, so requiring both
+     * returns almost nothing. Ranking beats rejecting when the data is this
+     * patchy.
+     */
+    preferredAmenities: AmenityKey[];
   };
 
   /** Only alert on listings scoring at least this (0-100). */
@@ -147,6 +165,12 @@ export const DEFAULT_CRITERIA: SearchCriteria = {
     idealMinSizeSqm: 65,
     favoriteNeighborhoods: ['לב תל אביב', 'פלורנטין', 'הצפון הישן', 'נווה צדק'],
     bonusKeywords: ['מרפסת', 'מעלית', 'משופצת', 'ממ"ד', 'חניה'],
+    // A mamad matters most, then elevator and balcony; the rest are a
+    // nice-to-have. See the note on `preferredAmenities` for why these are
+    // ranked rather than required — a mamad especially, since most Tel Aviv
+    // stock predates the 1992 rule that made them mandatory in new builds, and
+    // requiring one currently returns nothing at all.
+    preferredAmenities: ['safeRoom', 'elevator', 'balcony'],
   },
   minScoreToAlert: 55,
   minPriceDropPercent: 3,

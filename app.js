@@ -227,11 +227,17 @@ function listingCard(listing) {
     : listing.isAgency === false ? '<span class="badge ok">Owner</span>'
     : '';
 
+  // The mamad is deliberately not just another pill. Most Tel Aviv stock
+  // predates the 1992 rule that made safe rooms mandatory, so a flat that has
+  // one is the rare exception — it gets its own shield and colour so it is
+  // findable by eye in a long, otherwise identical list.
+  const mamadBadge =
+    listing.amenities.safeRoom === true ? '<span class="badge mamad">🛡️ Mamad</span>' : '';
+
   const amenityBadges = Object.entries({
     Elevator: listing.amenities.elevator,
     Parking: listing.amenities.parking,
     Balcony: listing.amenities.balcony,
-    'Safe room': listing.amenities.safeRoom,
     Furnished: listing.amenities.furnished,
   })
     // Only badge a confirmed amenity. null/undefined means the listing never
@@ -261,6 +267,7 @@ function listingCard(listing) {
         ${reasons ? `<div class="meta">✨ ${esc(reasons)}</div>` : ''}
         <div class="badges">
           <span class="badge score">${listing.score}</span>
+          ${mamadBadge}
           <span class="badge src">${esc(listing.source)}</span>
           ${posterBadge}
           ${amenityBadges}
@@ -445,7 +452,9 @@ function renderMap(listings) {
       : null;
 
     const popup = `
-      <div class="popup-price">${shekels(listing.priceIls)}</div>
+      <div class="popup-price">${shekels(listing.priceIls)}${
+        listing.amenities?.safeRoom === true ? ' <span class="popup-mamad">🛡️ Mamad</span>' : ''
+      }</div>
       <p class="popup-title" dir="auto">${esc(listing.title)}</p>
       <div class="popup-meta">${esc(specs)}${specs && place ? ' · ' : ''}${esc(place)}</div>
       <div class="popup-links">

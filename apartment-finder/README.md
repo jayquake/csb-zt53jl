@@ -96,12 +96,37 @@ and 06:30 in winter (IST). GitHub cron has no timezone support.
 
 ## Docker
 
+Docker runs the app in its **full server mode** — Express on :8080 plus the
+built-in `node-cron` scheduler. That is a different thing from the scheduled
+scan described above, and worth being clear about:
+
+| | Scheduled scan (GitHub Actions) | Docker / server mode |
+|---|---|---|
+| Runs | daily cron, in CI | continuously, on your machine |
+| UI | published read-only page | full read/write UI |
+| Change criteria | no — edit and commit | **yes, in the browser** |
+| Add a listing by hand | no | **yes, the Add tab** |
+
+So Docker is not redundant with the Actions workflow: the published page is
+deliberately read-only, and this is the supported way to change your search
+criteria or paste in a Facebook post without hand-editing files. Run it when
+you want to adjust something, then commit the updated snapshot.
+
 ```bash
 cp .env.example .env
 docker compose up -d --build
 ```
 
 **Komo-only.** The image installs no browser at all — see "Sources, and the bot-protection reality" below: Yad2 and Homeless need a real, headed Chrome window, and there is no display in a container to run one against, patched browser or not. Set `SOURCES=komo` in `.env` for Docker; leaving `yad2`/`homeless` in there will just fail loudly for those two on every scan while Komo keeps working. The `apartment-data` volume holds the SQLite database (your price history).
+
+Two notes on the image, both learned the hard way:
+
+- It **compiles TypeScript inside the build**, so `NODE_ENV=production` must
+  not be set before `npm ci` — npm reads that as `--omit=dev` and drops
+  `typescript`, `@types/*` and the `prisma` CLI, which breaks the build. The
+  Dockerfile sets it after the compile step instead.
+- Nothing in CI builds this image, so a break here is silent until someone
+  runs it. If it stops working, suspect drift from `package.json` first.
 
 ---
 
