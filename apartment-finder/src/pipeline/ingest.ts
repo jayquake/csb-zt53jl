@@ -279,11 +279,29 @@ export async function pruneOutOfScope(prisma: PrismaClient, criteria: SearchCrit
 /**
  * Marks listings that have not been seen for a while as inactive, so the feed
  * reflects what is actually still on the market.
+ *
+ * `scannedSources`, when given, restricts this to listings from a source this
+ * run actually scanned. Without it, a run that only scans a subset of sources
+ * (the scheduled CI run is Komo-only — Yad2/Homeless need a headed browser on
+ * an interactive desktop, see README "Sources, and the bot-protection
+ * reality") would silently expire every Yad2/Homeless listing after
+ * `staleAfterDays`, since their `lastSeenAt` never gets refreshed by a run
+ * that never looks at them. Omitted entirely (the default), every source is
+ * eligible, which is what a full manual run and the existing tests expect.
  */
-export async function markStale(prisma: PrismaClient, staleAfterDays: number, now: Date = new Date()): Promise<number> {
+export async function markStale(
+  prisma: PrismaClient,
+  staleAfterDays: number,
+  now: Date = new Date(),
+  scannedSources?: string[]
+): Promise<number> {
   const cutoff = new Date(now.getTime() - staleAfterDays * 86_400_000);
   const { count } = await prisma.listing.updateMany({
-    where: { isActive: true, lastSeenAt: { lt: cutoff } },
+    where: {
+      isActive: true,
+      lastSeenAt: { lt: cutoff },
+      ...(scannedSources ? { source: { in: scannedSources } } : {}),
+    },
     data: { isActive: false },
   });
   return count;

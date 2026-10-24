@@ -48,6 +48,9 @@ export async function runScan(options: ScanOptions = {}): Promise<ScanSummary> {
   const errors: string[] = [];
   const sourceStats: Record<string, number> = {};
   const scraped: RawListing[] = [];
+  // Which sources this run actually scraped — markStale uses this so a
+  // Komo-only CI run can't expire Yad2/Homeless listings it never looked at.
+  let scannedSourceNames: string[] | undefined;
 
   try {
     if (options.injected) {
@@ -56,6 +59,7 @@ export async function runScan(options: ScanOptions = {}): Promise<ScanSummary> {
     } else {
       const sources = resolveSources(options.sources ?? config.sources);
       if (sources.length === 0) errors.push('no valid sources configured');
+      scannedSourceNames = sources.map((source) => source.name);
 
       for (const source of sources) {
         try {
@@ -109,7 +113,7 @@ export async function runScan(options: ScanOptions = {}): Promise<ScanSummary> {
     // than waiting out staleAfterDays.
     await pruneOutOfScope(prisma, criteria);
 
-    const staleCount = await markStale(prisma, config.staleAfterDays, startedAt);
+    const staleCount = await markStale(prisma, config.staleAfterDays, startedAt, scannedSourceNames);
     if (staleCount > 0) log.info(`marked ${staleCount} listings inactive`);
 
     if (result.alerts.length > 0) {

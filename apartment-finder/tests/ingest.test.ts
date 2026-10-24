@@ -154,6 +154,28 @@ test('markStale retires listings that stopped appearing', async () => {
   assert.equal(await prisma.listing.count({ where: { isActive: true } }), 0);
 });
 
+test('markStale with scannedSources only expires the sources actually scanned', async () => {
+  // Regression guard for the scheduled CI run, which only scans Komo — Yad2
+  // and Homeless need a headed browser on an interactive desktop and can
+  // only be scanned by hand. Without this scoping, every Komo-only CI run
+  // would silently expire Yad2/Homeless listings after staleAfterDays, since
+  // their lastSeenAt is never refreshed by a run that never looks at them.
+  await prisma.listing.deleteMany();
+  const old = new Date(Date.now() - 30 * 86_400_000);
+  const base = { url: 'https://example.com/x', fingerprint: 'fp', title: 't', city: 'תל אביב יפו', priceIls: 6000 };
+  await prisma.listing.create({ data: { ...base, source: 'komo', externalId: 'komo-1', lastSeenAt: old } });
+  await prisma.listing.create({ data: { ...base, source: 'yad2', externalId: 'yad2-1', lastSeenAt: old } });
+
+  const future = new Date(Date.now() + 1000);
+  const count = await markStale(prisma, 14, future, ['komo']);
+
+  assert.equal(count, 1);
+  const komo = await prisma.listing.findUnique({ where: { source_externalId: { source: 'komo', externalId: 'komo-1' } } });
+  const yad2 = await prisma.listing.findUnique({ where: { source_externalId: { source: 'yad2', externalId: 'yad2-1' } } });
+  assert.equal(komo?.isActive, false);
+  assert.equal(yad2?.isActive, true);
+});
+
 test('the private-poster query must not drop unknown-provenance rows', () => {
   // Regression guard. `isAgency: { not: true }` looks correct but is wrong:
   // under SQL three-valued logic the comparison is unknown for NULL, so Prisma

@@ -1,11 +1,24 @@
 # Apartment Finder — orientation for a new session
 
 This repo's actual project lives in **`apartment-finder/`**. Everything at
-the repo root (`index.html`, `app.js`, `styles.css`, `data.json`, `vendor/`)
-is the *published* static site — generated output the CI workflow copies up
+the repo root (`index.html`, `app.js`/`assets/*.js`/`*.css`, `data.json`) is
+the *published* static site — generated output the CI workflow copies up
 from `apartment-finder/public/` + `apartment-finder/data/snapshot.json` on
 every run. Edit the source in `apartment-finder/`, never the root copies
 directly; they get overwritten by the next scan.
+
+**The UI is React + TypeScript + Tailwind v4 now** (shadcn-style components
+over Radix primitives), not the old vanilla JS. Source is
+`apartment-finder/web/`; `npm run web:build` (Vite) builds it into
+`apartment-finder/public/`, which is itself generated output now too
+(gitignored, like `site/`) — don't hand-edit anything under `public/`.
+`npm run site:build` (what CI runs) does `web:build` then `snapshot:export`.
+Local dev: `npm run web:dev` (Vite, HMR, proxies `/api` to :8080) alongside
+`npm run dev` (the Express backend) running separately.
+`apartment-finder/vite.config.mts` sets `base: './'` deliberately — Pages
+serves this at `jayquake.github.io/csb-zt53jl/`, a subpath, not a domain
+root, so Vite's default absolute `/assets/...` base 404s everything. If the
+live site ever goes blank with asset 404s in the console, check that first.
 
 A few other root files (`animal1`, `i hate this song.mp3`/`.mp4`,
 `sandbox.config.json`, root `package.json`) are leftovers from the
@@ -74,6 +87,25 @@ The self-hosted runner itself is still registered and running — just idle
 from this workflow's perspective. Fine to leave as-is; only relevant again
 if a future logged-in-session setup (not a Windows service) makes scheduled
 Yad2/Homeless scanning possible.
+
+Also fixed: `markStale` (`src/pipeline/ingest.ts`) now takes the list of
+sources a run actually scanned and only expires listings from those sources.
+Before this, the Komo-only CI run would silently mark every Yad2/Homeless
+listing inactive after `staleAfterDays` (14), since their `lastSeenAt` never
+refreshes on a run that never looks at them — nothing was actually confirmed
+gone, CI just structurally can't re-check them. A manual run that does scan
+Yad2/Homeless still ages them out normally. Test:
+`tests/ingest.test.ts` — "markStale with scannedSources only expires the
+sources actually scanned".
+
+**Watch for a stray auto-commit tool on this machine.** Mid-session, three
+commits with garbled, mismatched messages (content didn't match the message)
+appeared on `gh-pages` under the user's own git identity, which the user
+didn't knowingly make — something here auto-commits staged changes
+periodically (possibly tied to the `caveman` plugin, unconfirmed). Never
+assumed to be malicious, but check `git log` for recent unexplained commits
+before trusting `git status` at session start, and don't be surprised if
+something gets committed without an explicit `git commit` from you.
 
 ## Working agreements from prior sessions
 
