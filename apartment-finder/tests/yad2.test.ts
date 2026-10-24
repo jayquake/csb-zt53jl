@@ -18,7 +18,7 @@ import assert from 'node:assert/strict';
 import * as fs from 'node:fs';
 import * as path from 'node:path';
 
-import { toRawListing } from '../src/sources/yad2';
+import { toRawListing, parseItemChecklist } from '../src/sources/yad2';
 
 const fixture: Record<string, unknown>[] = JSON.parse(
   fs.readFileSync(path.join(__dirname, 'fixtures/yad2-listings.json'), 'utf8')
@@ -83,4 +83,44 @@ test('a listing missing street still gets a usable title from neighborhood/city'
   const listing = toRawListing(byOrderId('55981868'));
   assert.equal(listing?.street, undefined);
   assert.ok(listing?.title && listing.title.length > 0);
+});
+
+test('the item URL uses the share-link token, not the numeric orderId', () => {
+  // orderId 57260750 -> yad2.co.il/item/57260750 is a real 404 on live
+  // Yad2, verified directly ("חיפשנו בכל מקום... אבל אין לנו עמוד כזה").
+  // The working URL uses `token` ("82srv9fj" on this fixture row).
+  const listing = toRawListing(byOrderId('57260750'));
+  assert.equal(listing?.url, 'https://www.yad2.co.il/item/82srv9fj');
+});
+
+test('parseItemChecklist maps the item page\'s on/off labels, confirmed false included', () => {
+  // Captured from a live regular-listing item page: elevator and the
+  // accessibility item were greyed (`...__disabled`), AC was not.
+  const checklist = [
+    { label: 'מעלית', on: false },
+    { label: 'גישה לנכים', on: false }, // not in AMENITY_LABEL_FIELD — ignored
+    { label: 'מיזוג', on: true }, // not in AMENITY_LABEL_FIELD — ignored
+    { label: 'ממ"ד', on: false },
+    { label: 'מרוהטת', on: true },
+    { label: 'חיות מחמד', on: false },
+  ];
+  const fields = parseItemChecklist(checklist);
+  assert.equal(fields.hasElevator, false);
+  assert.equal(fields.hasSafeRoom, false);
+  assert.equal(fields.isFurnished, true);
+  assert.equal(fields.petsAllowed, false);
+  assert.equal(Object.keys(fields).length, 4, 'only the mapped labels should produce a field');
+});
+
+test('elevator/parking/balcony/safe-room/furnished are read from additionalDetails on a project listing', () => {
+  // 1013730 is a "project" (new-build) listing, whose amenity flags live
+  // under additionalDetails.include* rather than the top-level keys a plain
+  // listing uses. Before this, every one of these came back undefined for
+  // a project listing even when Yad2 had already said yes or no.
+  const listing = toRawListing(byOrderId('1013730'));
+  assert.equal(listing?.hasElevator, true);
+  assert.equal(listing?.hasParking, true);
+  // Explicitly false, not merely absent — confirms a structured `false`
+  // isn't lost to the `?? amenities.hasX` text-detection fallback.
+  assert.equal(listing?.hasBalcony, false);
 });

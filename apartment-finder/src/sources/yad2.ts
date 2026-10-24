@@ -217,10 +217,17 @@ export function toRawListing(obj: Record<string, unknown>, now: Date = new Date(
   // guess from in the first place (commercial cards have no description).
   const agencyName = asText((obj.customer as Record<string, unknown> | undefined)?.agencyName);
 
+  // The real item page lives at /item/<token>, not /item/<orderId>. `token`
+  // is the opaque share-link slug (e.g. "82srv9fj"); `externalId` above
+  // prefers `orderId` for DB identity, which is stable and unique but 404s
+  // when used as a URL — verified directly (yad2.co.il/item/<orderId> ->
+  // "חיפשנו בכל מקום... אבל אין לנו עמוד כזה", a real 404, not a redirect).
+  const token = asText(pick(obj, ['token', 'linkToken'])) ?? externalId;
+
   return {
     source: 'yad2',
     externalId,
-    url: `https://www.yad2.co.il/item/${externalId}`,
+    url: `https://www.yad2.co.il/item/${token}`,
     title,
     description,
     priceIls,
@@ -234,10 +241,14 @@ export function toRawListing(obj: Record<string, unknown>, now: Date = new Date(
     lng: coords?.lng,
     ...amenities,
     // Structured booleans, when Yad2 provides them, win over the text guess.
-    hasElevator: readBool(obj, ['elevator', 'hasElevator']) ?? amenities.hasElevator,
-    hasParking: readBool(obj, ['parking', 'hasParking']) ?? amenities.hasParking,
-    hasBalcony: readBool(obj, ['balcony', 'hasBalcony', 'balconies']) ?? amenities.hasBalcony,
-    hasSafeRoom: readBool(obj, ['saferoom', 'hasSaferoom', 'mamad']) ?? amenities.hasSafeRoom,
+    // The plain keys cover a regular listing; `include*` covers a "project"
+    // (new-build) listing, whose flags live under additionalDetails — readBool
+    // checks both.
+    hasElevator: readBool(obj, ['elevator', 'hasElevator', 'includeElevator']) ?? amenities.hasElevator,
+    hasParking: readBool(obj, ['parking', 'hasParking', 'includeParking']) ?? amenities.hasParking,
+    hasBalcony: readBool(obj, ['balcony', 'hasBalcony', 'balconies', 'includeBalcony']) ?? amenities.hasBalcony,
+    hasSafeRoom: readBool(obj, ['saferoom', 'hasSaferoom', 'mamad', 'includeSecurityRoom']) ?? amenities.hasSafeRoom,
+    isFurnished: readBool(obj, ['furnished', 'isFurnished', 'includeFurniture']) ?? amenities.isFurnished,
     imageUrls: images,
     isAgency:
       readBool(obj, ['isAgency', 'merchant', 'isBroker']) ??
@@ -248,12 +259,31 @@ export function toRawListing(obj: Record<string, unknown>, now: Date = new Date(
   };
 }
 
+/**
+ * Checks `obj` itself and then `obj.additionalDetails` for the first key that
+ * holds a usable boolean.
+ *
+ * A "project" (new-build) listing carries its amenity flags as
+ * `additionalDetails.include{Elevator,Parking,Balcony,SecurityRoom,...}`, one
+ * level down from a plain listing's top-level `elevator`/`hasElevator` shape.
+ * Checking only the top level — the previous behaviour — meant every
+ * project listing's elevator/parking/balcony/safe-room/furnished status came
+ * back `undefined` even when Yad2 had already told us, which is why "must
+ * have balcony" filtered out listings that plainly had one. Verified against
+ * a live payload: `additionalDetails.includeBalcony: true` with no top-level
+ * `balcony` key anywhere on the object.
+ */
 function readBool(obj: Record<string, unknown>, keys: string[]): boolean | undefined {
-  for (const key of keys) {
-    const value = obj[key];
-    if (typeof value === 'boolean') return value;
-    if (typeof value === 'number') return value > 0;
-    if (typeof value === 'string' && ['1', 'true', 'כן'].includes(value.toLowerCase())) return true;
+  const additionalDetails = obj.additionalDetails;
+  const containers = [obj, ...(additionalDetails && typeof additionalDetails === 'object' ? [additionalDetails as Record<string, unknown>] : [])];
+
+  for (const container of containers) {
+    for (const key of keys) {
+      const value = container[key];
+      if (typeof value === 'boolean') return value;
+      if (typeof value === 'number') return value > 0;
+      if (typeof value === 'string' && ['1', 'true', 'כן'].includes(value.toLowerCase())) return true;
+    }
   }
   return undefined;
 }
@@ -371,6 +401,80 @@ async function readFromDom(page: Page): Promise<RawListing[]> {
   return listings;
 }
 
+type BoolField = 'hasElevator' | 'hasSafeRoom' | 'isFurnished' | 'petsAllowed';
+
+/**
+ * Hebrew label (exact text, as it appears in the item page's "מה יש בנכס"
+ * checklist) -> the RawListing field it confirms.
+ *
+ * This only covers a *regular* listing — a "project" (new-build) listing's
+ * flags already come from `additionalDetails.include*` on the search-page
+ * JSON (see readBool above) with no detail-page visit needed. A regular
+ * listing carries none of that structurally on the search page at all; this
+ * checklist, verified directly on a live item page, is the only place it's
+ * exposed. Balcony is deliberately not here: checked a live listing with no
+ * balcony data anywhere on its detail page either, structured or not — Yad2
+ * just doesn't expose it for most regular listings, so text detection
+ * (detectAmenities) stays the only signal for that one.
+ */
+const AMENITY_LABEL_FIELD: Record<string, BoolField> = {
+  מעלית: 'hasElevator',
+  'ממ"ד': 'hasSafeRoom',
+  מרוהטת: 'isFurnished',
+  'חיות מחמד': 'petsAllowed',
+};
+
+/**
+ * Turns the item page's checklist (label + on/off, read in-browser) into
+ * typed fields. Split out from fetchItemPageFields so it's testable without a
+ * browser — same split as parseDetailFields in homeless.ts.
+ */
+export function parseItemChecklist(checklist: Array<{ label: string; on: boolean }>): Partial<Record<BoolField, boolean>> {
+  const fields: Partial<Record<BoolField, boolean>> = {};
+  for (const { label, on } of checklist) {
+    const field = AMENITY_LABEL_FIELD[label];
+    if (field) fields[field] = on;
+  }
+  return fields;
+}
+
+/**
+ * Visits a listing's own item page for the amenity checklist a regular
+ * listing never carries on the search page. One extra page load per listing
+ * — soft-fails like the rest of this codebase, a listing this can't enrich
+ * still ships with whatever the search page gave it.
+ */
+async function fetchItemPageFields(url: string): Promise<Partial<RawListing>> {
+  let page: Page | undefined;
+  try {
+    page = await openPage(url);
+    const checklist = await page.evaluate((labels: string[]) => {
+      const out: Array<{ label: string; on: boolean }> = [];
+      document.querySelectorAll('body *').forEach((el) => {
+        if (el.children.length !== 0) return;
+        const text = (el.textContent || '').trim();
+        if (!labels.includes(text)) return;
+        const parent = el.parentElement;
+        // The wrapper's CSS module class carries a build-hashed prefix but a
+        // stable `disabled` suffix for an off item — verified directly on a
+        // live item page (a greyed-out "מעלית" wrapper class ending in
+        // `__disabled`, a dark-text "מיזוג" wrapper with no such suffix).
+        const cls = parent ? parent.className.toString() : '';
+        out.push({ label: text, on: !/disabled/i.test(cls) });
+      });
+      return out;
+    }, Object.keys(AMENITY_LABEL_FIELD));
+
+    return parseItemChecklist(checklist);
+  } catch (err) {
+    log.debug(`yad2: item page enrichment failed for ${url}`, err instanceof Error ? err.message : err);
+    return {};
+  } finally {
+    await page?.close().catch(() => undefined);
+    await throttle();
+  }
+}
+
 export class Yad2Source implements ListingSource {
   readonly name = 'yad2' as const;
 
@@ -411,6 +515,21 @@ export class Yad2Source implements ListingSource {
 
           const fresh = pageListings.filter((l) => !seen.has(l.externalId));
           fresh.forEach((l) => seen.add(l.externalId));
+
+          // Only pay for an item-page visit when the search page (JSON or
+          // DOM fallback) left elevator/mamad genuinely unknown — a project
+          // listing's additionalDetails.include* or a regular listing's tags
+          // already answered it for most listings, so this only costs a page
+          // load on the ones actually missing it.
+          for (const listing of fresh) {
+            if (listing.hasElevator !== undefined && listing.hasSafeRoom !== undefined) continue;
+            const enriched = await fetchItemPageFields(listing.url);
+            listing.hasElevator ??= enriched.hasElevator;
+            listing.hasSafeRoom ??= enriched.hasSafeRoom;
+            listing.isFurnished ??= enriched.isFurnished;
+            listing.petsAllowed ??= enriched.petsAllowed;
+          }
+
           listings.push(...fresh);
 
           // No new results means we have walked off the end of the pagination.

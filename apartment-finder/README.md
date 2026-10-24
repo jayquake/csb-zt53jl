@@ -234,6 +234,46 @@ without one — most simply do not enumerate features. Collapsing that to "no"
 would reject almost the whole market on no evidence. Only the structured detail
 list, or an explicit `ללא מרפסת`, can assert absence.
 
+**Yad2 and Homeless amenities needed the same treatment, for the same reason.**
+Neither source's *search-results* page/card carries size or most amenities at
+all — verified directly against the local database, which had `sizeSqm` and
+every amenity stuck at `null`/`undefined` for nearly every Yad2 and Homeless
+listing. Each has its own detail-page structure, checked against a live
+listing in a real browser rather than assumed:
+
+- **Homeless**: the detail page's `.IconOption` elements carry an `on`/`off`
+  class, with the icon's own filename (`Terrace.svg`, `Elevators.svg`,
+  `safeRoom.svg`, `parking.svg`, `furnished.svg`, `pets.svg`,
+  `room-mates.svg`) as the stable identifier. Every listing's detail page is
+  now visited to read this grid plus the floor/size block
+  (`src/sources/homeless.ts`, `fetchDetailFields`/`parseDetailFields`).
+- **Yad2**: a *project* (new-build) listing already carries its flags
+  structurally on the search page itself
+  (`additionalDetails.include{Elevator,Parking,Balcony,SecurityRoom,...}`) —
+  no detail-page visit needed for those, just reading a container `readBool`
+  was never checking before. A *regular* listing carries none of that on the
+  search page; its detail page has its own checklist (elevator/mamad/
+  furnished/pets — the parent wrapper's CSS class ends in `disabled` when
+  off), so a regular listing whose elevator/mamad is still unknown after the
+  search page gets one detail-page visit to resolve it
+  (`src/sources/yad2.ts`, `fetchItemPageFields`/`parseItemChecklist`).
+  **Balcony stays text-only even after this** — checked a live regular
+  listing's detail page directly and it had no balcony data anywhere on it,
+  structured or not. Yad2 just doesn't expose it outside the project-listing
+  shape, so `detectAmenities` on the description is genuinely the best
+  available signal there.
+
+Both visits are soft-fail (a listing that can't be enriched still ships with
+whatever the search page gave it) and throttled the same as every other page
+load. The Yad2 one only fires when the search page left it genuinely unknown,
+so a project listing or a regular listing whose tags already answered it
+costs nothing extra.
+
+Also fixed in the same pass: the Yad2 item URL was built from `orderId`
+(`https://www.yad2.co.il/item/<orderId>`), which is a real 404 on live
+Yad2 — the working URL uses the `token` field instead (the share-link slug,
+e.g. `82srv9fj`), verified directly.
+
 ### Hebrew and English
 
 Cities and neighbourhoods are translated at ingest and stored alongside the

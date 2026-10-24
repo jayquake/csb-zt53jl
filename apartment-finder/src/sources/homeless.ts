@@ -121,6 +121,93 @@ export function parseCardText(
   };
 }
 
+/**
+ * SVG icon filename -> the RawListing field it confirms. Verified directly
+ * against a live detail page (viewad,726976): each is rendered inside a
+ * `.IconOption` div carrying an `on`/`off` class, with the icon's filename as
+ * the stable identifier — the div's own class is a build-hashed CSS module
+ * name elsewhere on this site, but this icon grid isn't, and the filenames
+ * read as plain English regardless of the page's Hebrew/translated state.
+ */
+const ICON_FIELD: Record<string, keyof RawListing> = {
+  'Elevators.svg': 'hasElevator',
+  'parking.svg': 'hasParking',
+  'Terrace.svg': 'hasBalcony',
+  'safeRoom.svg': 'hasSafeRoom',
+  'furnished.svg': 'isFurnished',
+  'pets.svg': 'petsAllowed',
+  'room-mates.svg': 'isRoommates',
+};
+
+/**
+ * Turns what the detail page's DOM evaluation handed back (a raw amenities
+ * map plus the floor/size/price block as plain text) into typed RawListing
+ * fields. Pulled out of fetchDetailFields so it can be unit tested against a
+ * captured real block without a browser — same split as parseCardText/readCards.
+ */
+export function parseDetailFields(amenities: Record<string, boolean>, detailText: string): Partial<RawListing> {
+  const sizeMatch = detailText.match(/מ["״]ר:\s*(\d+)/);
+  const floorMatch = detailText.match(/קומה:\s*(\d+|קרקע|מרתף)/);
+
+  return {
+    ...amenities,
+    sizeSqm: parseInteger(sizeMatch?.[1]),
+    floor: floorMatch ? parseFloor(floorMatch[1]) : undefined,
+  };
+}
+
+/**
+ * Visits a listing's own detail page for the fields the search-results card
+ * never carries: size, floor and the amenity checklist (elevator, parking,
+ * balcony, safe room, furnished, pets, roommates). The card only has
+ * title/price/rooms — verified directly, every Homeless listing in the local
+ * database had `sizeSqm`/amenities stuck at `null` because nothing ever
+ * fetched this page before.
+ *
+ * Soft-fails: a listing this can't enrich still ships with whatever the card
+ * gave it, same as the rest of this codebase's "one bad page doesn't sink the
+ * run" rule.
+ */
+async function fetchDetailFields(url: string): Promise<Partial<RawListing>> {
+  let page: Page | undefined;
+  try {
+    page = await openPage(url);
+    const raw = await page.evaluate((iconField) => {
+      const amenities: Record<string, boolean> = {};
+      document.querySelectorAll('.IconOption').forEach((el) => {
+        const img = el.querySelector('img.itemsAd');
+        const src = img ? (img.getAttribute('src') || '').split('/').pop() || '' : '';
+        const field = iconField[src];
+        if (!field) return;
+        amenities[field] = el.className.split(/\s+/).includes('on');
+      });
+
+      // The floor/size/price block has no stable container class either, so
+      // it's found the same way: anchor on a leaf text node whose content is
+      // recognisable (the "מ"ר:" label), then read a few ancestors up to
+      // capture the whole sibling block as plain text.
+      const leaf = Array.from(document.querySelectorAll('body *')).find(
+        (el) => el.children.length === 0 && /מ["״]ר:?$/.test((el.textContent || '').trim())
+      );
+      let detailText = '';
+      if (leaf) {
+        let node: Element | null = leaf.parentElement;
+        for (let i = 0; i < 4 && node && node.parentElement; i += 1) node = node.parentElement;
+        detailText = node ? node.textContent || '' : '';
+      }
+      return { amenities, detailText };
+    }, ICON_FIELD);
+
+    return parseDetailFields(raw.amenities, raw.detailText);
+  } catch (err) {
+    log.debug(`homeless: detail page enrichment failed for ${url}`, err instanceof Error ? err.message : err);
+    return {};
+  } finally {
+    await page?.close().catch(() => undefined);
+    await throttle();
+  }
+}
+
 export class HomelessSource implements ListingSource {
   readonly name = 'homeless' as const;
 
@@ -145,6 +232,15 @@ export class HomelessSource implements ListingSource {
 
           const fresh = parsed.filter((l) => !seen.has(l.externalId));
           fresh.forEach((l) => seen.add(l.externalId));
+
+          // The card has no size or amenity data at all (see fetchDetailFields)
+          // — only the detail page does, so each fresh listing costs one more
+          // page load. Sequential and throttled, same politeness as the board
+          // pages themselves.
+          for (const listing of fresh) {
+            Object.assign(listing, await fetchDetailFields(listing.url));
+          }
+
           listings.push(...fresh);
           log.debug(`homeless: ${fresh.length} new listings from page ${pageNum}`);
 
