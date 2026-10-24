@@ -10,6 +10,11 @@ const rootDir = import.meta.dirname;
 
 export default defineConfig({
   root: path.resolve(rootDir, 'web'),
+  // Relative, not '/': this is published at jayquake.github.io/csb-zt53jl/
+  // (a project page, not a domain root), and also served locally by
+  // server.ts at '/'. An absolute base would 404 every asset on Pages while
+  // looking fine in local dev, which is exactly the trap this avoids.
+  base: './',
   plugins: [react(), tailwindcss()],
   resolve: {
     alias: {
