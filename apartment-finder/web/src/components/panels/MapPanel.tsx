@@ -9,14 +9,10 @@ import { useAppContext } from '@/lib/app-context';
 import { fetchMapListingsServer, filterAndSort, fromSnapshot } from '@/lib/api';
 import { loadLocalActions } from '@/lib/local-actions';
 import { safeUrl, shekels, waLink } from '@/lib/utils';
+import { scoreIcon } from '@/lib/map-icons';
 import type { Listing } from '@/lib/types';
 
 const TEL_AVIV: [number, number] = [32.0761, 34.7783];
-
-function scoreIcon(score: number): L.DivIcon {
-  const tier = score >= 70 ? 'high' : score >= 50 ? 'mid' : 'low';
-  return L.divIcon({ className: '', html: `<div class="pin pin-${tier}"><span>${score}</span></div>`, iconSize: [0, 0] });
-}
 
 /** Clustered pins get the app's own badge styling rather than Leaflet's
  * default green/yellow/orange theme, so the map still reads as this app. */

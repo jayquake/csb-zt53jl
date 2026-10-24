@@ -1,9 +1,11 @@
 import * as React from 'react';
-import { Star, EyeOff, CheckCircle2, TrendingDown } from 'lucide-react';
+import { Star, EyeOff, CheckCircle2, TrendingDown, Maximize2 } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent } from '@/components/ui/dialog';
 import { Sparkline } from './Sparkline';
 import { ScoreRing } from './ScoreRing';
+import { ListingDetail } from './ListingDetail';
 import { shekels, safeUrl, localPhone, waLink, cn, relativeTime } from '@/lib/utils';
 import type { Listing, UserActionStatus } from '@/lib/types';
 
@@ -15,6 +17,7 @@ export function ListingCard({
   onAction: (id: string, requested: UserActionStatus) => void;
 }) {
   const [imageBroken, setImageBroken] = React.useState(false);
+  const [detailOpen, setDetailOpen] = React.useState(false);
   const image = !imageBroken && listing.imageUrls?.[0];
   const history = listing.priceHistory || [];
   const firstPrice = history.length > 1 ? history[0].priceIls : null;
@@ -139,8 +142,17 @@ export function ListingCard({
             <CheckCircle2 className="h-3.5 w-3.5" fill={listing.status === 'CONTACTED' ? 'currentColor' : 'none'} />
             {listing.status === 'CONTACTED' ? 'Contacted' : 'Contacted?'}
           </Button>
+          <Button variant="ghost" size="sm" onClick={() => setDetailOpen(true)}>
+            <Maximize2 className="h-3.5 w-3.5" />
+            Details
+          </Button>
         </div>
       </div>
+      <Dialog open={detailOpen} onOpenChange={setDetailOpen}>
+        <DialogContent>
+          <ListingDetail listing={listing} onAction={onAction} />
+        </DialogContent>
+      </Dialog>
     </article>
   );
 }
